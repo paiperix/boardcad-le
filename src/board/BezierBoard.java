@@ -34,7 +34,6 @@ import cadcore.BezierKnot;
 import cadcore.BezierSpline;
 import cadcore.BezierUtil;
 import cadcore.MathUtils;
-import cadcore.NurbsPoint;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -124,21 +123,21 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	private int mCurrentCrossSection = 1;
 
 	private String mFilename = new String();
-	
+
 	private double mCenterOfMass = 0;
-	
+
 	private AbstractBezierBoardSurfaceModel.ModelType mInterpolationType = AbstractBezierBoardSurfaceModel.ModelType.ControlPointInterpolation;
-	
+
 	public BezierBoard()
 	{
 		reset();
 	}
-	
+
 	public boolean isEmpty()
 	{
 		return (mOutlineSpline.getNrOfControlPoints() == 0);
 	}
-	
+
 
 	public void set(BezierBoard brd)
 	{
@@ -241,12 +240,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		mAux1 = new String();
 		mAux2 = new String();
 		mAux3 = new String();
-		
+
 		mCenterOfMass = 0;
 	}
-	
-	
-	
+
+
+
 	public int getRailCuts() {
 		return mRailCuts;
 	}
@@ -366,7 +365,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public void setFins(double[] mFins) {
 		this.mFins = mFins;
 	}
-	
+
 	public String getAuthor() {
 		return mAuthor;
 	}
@@ -383,12 +382,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		mInterpolationType = type;
 	}
-	
+
 	public AbstractBezierBoardSurfaceModel.ModelType getInterpolationType()
 	{
 		return mInterpolationType;
 	}
-	
+
 	public String getVersion() {
 		return mVersion;
 	}
@@ -621,13 +620,13 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public void setName(String mName) {
 		this.mName = mName;
 	}
-	
+
 
 	public BezierSpline getOutline()
 	{
 		return mOutlineSpline;
 	}
-	
+
 	public void setOutline(BezierSpline outline)
 	{
 		mOutlineSpline = outline;
@@ -637,12 +636,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		return mDeckSpline;
 	}
-	
+
 	public void setDeck(BezierSpline deck)
 	{
 		mDeckSpline = deck;
 	}
-	
+
 	public BezierSpline getBottom()
 	{
 		return mBottomSpline;
@@ -753,7 +752,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		{
 			index -= 1;
 		}
-		
+
 		return mCrossSections.get(index).getPosition();
 	}
 
@@ -765,7 +764,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		{
 			index += 1;
 		}
-		
+
 		return mCrossSections.get(index).getPosition();
 	}
 
@@ -793,7 +792,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public int getPreviousCrossSectionIndex(double pos)
 	{
 		int index = getNearestCrossSectionIndex(pos);
-		
+
 		if(getCrossSections().get(index).getPosition() >= pos)
 		{
 			index -= 1;
@@ -803,7 +802,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		//Get crosssections but use the first and last real crosssections if we're at the dummy crosssections at nose and tail
 		if(index==0)
 			index = 1;
-		
+
 		if(index > getCrossSections().size() - 2)
 			index = getCrossSections().size();
 
@@ -813,17 +812,17 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public int getNextCrossSectionIndex(double pos)
 	{
 		int index = getNearestCrossSectionIndex(pos);
-		
+
 		if(getCrossSections().get(index).getPosition() < pos)
 		{
 			index += 1;
-		} 
+		}
 
 
 		//Get crosssections but use the first and last real crosssections if we're at the dummy crosssections at nose and tail
 		if(index==0)
 			index = 1;
-		
+
 		if(index > getCrossSections().size() - 2)
 			index = getCrossSections().size() - 2;
 
@@ -878,7 +877,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		return getThicknessAtPos(getLength()/2.0);
 	}
-	
+
 	public double getMaxThickness()
 	{
 		double max = -100000;
@@ -894,8 +893,8 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		}
 		return max;
 	}
-	
-	public double getMaxThicknessPos() 
+
+	public double getMaxThicknessPos()
 	{
 		double max = -100000;
 		double maxPos = -100000;
@@ -910,30 +909,30 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		}
 		return maxPos;
 	}
-	
+
 	public double getMaxRocker()
 	{
 		return mBottomSpline.getMaxY();
 	}
-	
+
 	public Point2d getMaxDeckAtTailPos()
 	{
 		BezierSpline deck = getDeck();
-		
+
 		double x = deck.getXForMaxYInRange(0.0, UnitUtils.FOOT);
-		double y = deck.getMaxYInRange(0.0, UnitUtils.FOOT);		
-		
-		return new Point2d(x,y);		
+		double y = deck.getMaxYInRange(0.0, UnitUtils.FOOT);
+
+		return new Point2d(x,y);
 	}
-	
+
 	public Point2d getMaxDeckAtNosePos()
 	{
 		BezierSpline deck = getDeck();
-		
+
 		double x = deck.getXForMaxYInRange(getLength() - UnitUtils.FOOT, getLength());
-		double y = deck.getMaxYInRange(getLength() - UnitUtils.FOOT, getLength());		
-		
-		return new Point2d(x,y);				
+		double y = deck.getMaxYInRange(getLength() - UnitUtils.FOOT, getLength());
+
+		return new Point2d(x,y);
 	}
 
 	public double getWidthAtPos(double pos)
@@ -955,18 +954,18 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		return getDeckAtPos(pos) - getRockerAtPos(pos);
 	}
-	
+
 	public double getThicknessAtPos(double x, double y)
 	{
 		return getDeckAt(x,y) - getBottomAt(x,y);
 	}
-	
+
 
 	public double getFromTailOverBottomCurveAtPos(double pos)
 	{
 		return mBottomSpline.getLengthByX(pos);
 	}
-		
+
 	public double getFromNoseOverBottomCurveAtPos(double pos)
 	{
 		return mBottomSpline.getLength() - mBottomSpline.getLengthByX(pos);
@@ -992,24 +991,24 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public Point2D.Double getPointAtPos(double x, double s)
 	{
 		Point2D.Double pos = getSurfacePointAtPos(x,s);
-		
+
 		return new Point2D.Double(pos.x,pos.y-getRockerAtPos(x));
 	}
 
 	public Point2D.Double getSurfacePointAtPos(double x, double s)
 	{
 		Point3d pos = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getPointAt(this, x, s, -90.0, 360.0, true);
-		
+
 		return new Point2D.Double(pos.y,pos.z);
-		
+
 	}
 
-	
+
 	public Vector3d getDeckNormalAt(double x, double y)
 	{
 		return AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getDeckNormalAt(this,x, y);
 	}
-	
+
 	public Vector3d getBottomNormalAt(double x, double y)
 	{
 		return AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getBottomNormalAt(this,x, y);
@@ -1021,17 +1020,17 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		final double OFFSET = 0.001;
 		final double S_OFFSET = 0.001;
 		Point2D.Double o = getSurfacePointAtPos(x,s);
-		
+
 		Point2D.Double cp = getSurfacePointAtPos(x,s-S_OFFSET);
 		Vector3d cv = new Vector3d(x, cp.x-o.x, cp.y-o.y);
-		
+
 		Point2D.Double lp = getSurfacePointAtPos(x-OFFSET,s);
 		Vector3d lv = new Vector3d(x, lp.x-o.x, lp.y-o.y);
-		
+
 		Vector3d normalVec = new Vector3d();
 		normalVec.cross(cv,lv);
 		normalVec.normalize();
-		
+
 		return normalVec;
 	}
 
@@ -1040,20 +1039,20 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		final double OFFSET = 0.001;
 		final double S_OFFSET = 0.001;
 		Point2D.Double o = getSurfacePointAtPos(x,s);
-		
+
 		Point2D.Double cp = getSurfacePointAtPos(x,s-S_OFFSET);
 		Vector3d cv = new Vector3d(x, cp.x-o.x, cp.y-o.y);
-		
+
 		Point2D.Double lp = getSurfacePointAtPos(x-OFFSET,s);
 		Vector3d lv = new Vector3d(x, lp.x-o.x, lp.y-o.y);
-		
+
 		Vector3d normalVec = new Vector3d();
 		normalVec.cross(cv,lv);
 		normalVec.normalize();
-		
+
 		return normalVec;
 	}
-	
+
 	public Point3d getSurfacePoint(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits)
 	{
 		return getSurfacePoint(x, minAngle, maxAngle, currentSplit, totalSplits, true);
@@ -1071,30 +1070,30 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 		point = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getPointAt(this,x, s, -360.0, 360.0, true);
 		return point;
-		
+
 	}
 
 	public Vector3d getSurfaceNormal(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits)
-	{		
+	{
 		return 	getSurfaceNormal(x, minAngle, maxAngle, currentSplit, totalSplits, true);
 
 	}
-	
+
 	public Vector3d getSurfaceNormal(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits, boolean useMinimumAngleOnSharpCorners )
-	{		
-		
+	{
+
 		Vector3d normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getNormalAt(this,x, (double)currentSplit/(double)totalSplits, minAngle, maxAngle, useMinimumAngleOnSharpCorners);
 		return normal;
 
 	}
 
 	public Vector3d getSurfaceNormal(double x, double s)
-	{		
+	{
 		Vector3d normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getNormalAt(this,x, s, -360.0, 360.0, true);
 		return normal;
 	}
 
-	
+
 	public Vector3d getTangentAtPos(double x, double sa, double sb)
 	{
 		//Get the position first since we cheat with the crosssections at tip and tail
@@ -1114,8 +1113,8 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 		double a  = ((1-p)*a1) + (p*a2);
 
-		Vector3d ret = new Vector3d(0,Math.sin(a),Math.cos(a)); 
-		
+		Vector3d ret = new Vector3d(0,Math.sin(a),Math.cos(a));
+
 		return ret;
 	}
 
@@ -1123,30 +1122,30 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		if(getCrossSections().size() == 0)
 			return null;
-		
+
 		if(x < 0)
 			return null;
-		
+
 		if(x > getLength())
 			return null;
-		
+
 		int index = getNearestCrossSectionIndex(x);
 		if(getCrossSections().get(index).getPosition() > x)
 		{
 			index -= 1;
-		}			
+		}
 		int nextIndex = index+1;
-		
+
 		double firstCrossSectionPos = getCrossSections().get(index).getPosition();
 		double secondCrossSectionPos = getCrossSections().get(nextIndex).getPosition();
-				
+
 		//Calculate t
 		double t = (x - firstCrossSectionPos) / (secondCrossSectionPos - firstCrossSectionPos);
 		if(Double.isInfinite(t) || Double.isNaN(t))
 		{
 			t = 0.0;
 		}
-		
+
 		if(index < 1)
 		{
 			index = 1;
@@ -1164,28 +1163,28 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		if(i != null)
 		{
 			//Calculate scale
-			double thickness = getThicknessAtPos(x); 
+			double thickness = getThicknessAtPos(x);
 			if(thickness < 0.5)
 				thickness = 0.5;
-				
+
 			double width = getWidthAtPos(x);
 			if(width < 0.5)
 				width = 0.5;
-			
+
 			i.scale(thickness, width);
-			
+
 			i.setPosition(x);
 		}
-		
+
 		return i;
 	}
-	
+
 	public double getArea()
 	{
 	    final MathUtils.Function f = new MathUtils.Function(){public double f(double x){return getWidthAtPos(x);}};
-		
+
 		double newInt =  MathUtils.Integral.getIntegral(f, BezierSpline.ZERO, getLength()-BezierSpline.ZERO, AREA_SPLITS);
-				
+
 		return newInt;
 	}
 
@@ -1193,77 +1192,77 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		if(getCrossSections().size() < 3)
 			return 0;
-		
+
 		double a = 0.01;
-		
+
 		double b = getLength() - 0.01;
 
 		MathUtils.Function crsSecAreaFunc = new MathUtils.Function(){public double f(double x){return getCrossSectionAreaAt(x,VOLUME_X_SPLITS);}};
-		
+
 		double volume =  MathUtils.Integral.getIntegral(crsSecAreaFunc, a, b, VOLUME_Y_SPLITS);
-				
+
 		return volume;
 	}
-	
+
 	public double getMomentOfInertia(double x, double y)
 	{
 		if(getCrossSections().size() < 3)
 			return 0;
-		
+
 		double a = 0.01;
-		
+
 		double b = getLength() - 0.01;
 
 		MathUtils.Function crsSecAreaFunc = new MathUtils.Function(){public double f(double x){return getCrossSectionAreaAt(x,VOLUME_X_SPLITS);}};
-		
+
 		//System.out.println("--------------");
-		
+
 		double pos = a;
 		double pos_step = (b-a)/VOLUME_Y_SPLITS;
 		double density = 3.0/30;	//3kg board of 30 liters is a good estimate for a modern performance board
-		
+
 		double momentOfInertia = 0;
 		for(int i = 0; i < VOLUME_Y_SPLITS; i++)
 		{
 			double volume =  MathUtils.Integral.getIntegral(crsSecAreaFunc, pos, pos+pos_step, 1);
 			volume /= UnitUtils.CUBICCENTIMETER_PR_LITRE;
-			
+
 			double dx = pos+(pos_step/2) - x;
 			double dy = y;
 			double r = Math.sqrt((dx*dx) + (dy*dy));
 			r/=UnitUtils.CENTIMETER_PR_METER;	//To get the unit right kgm2
-			
+
 			momentOfInertia += volume*density*r*r;
 
 			//System.out.printf("x:%f y:%f dx:%f, dy:%f r: %f volume:%f\n",x,y,dx,dy,r, volume);
-			
+
 			pos += pos_step;
 		}
 
 		return momentOfInertia;
 	}
-	
-	
+
+
 	public double getCenterOfMass()
 	{
 		if(mCenterOfMass != 0)
 			return mCenterOfMass;
-		
+
 		double momentSum = 0.0;
 		double weightSum = 0.0;
-		
+
 		if(getCrossSections().size() < 3)
 			return 0.0;
-		
-		
+
+
 		double a = 0.01;
-		
+
 		double b = getLength() - 0.01;
-		
+
 		double step = (b-a)/MASS_Y_SPLIS;
-		
+
 		double an = a;
-		
+
 		double x0 = getCrossSectionAreaAt(an, MASS_X_SPLITS);
 
 		for(int i = 0; i < MASS_Y_SPLIS; i++)
@@ -1271,7 +1270,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 			double x1 = getCrossSectionAreaAt(an+(step/2), MASS_X_SPLITS);
 			double x2 = getCrossSectionAreaAt(an+step, MASS_X_SPLITS);
-			
+
 			if(Double.isNaN(x0))
 			{
 				x0 = 0;
@@ -1290,43 +1289,43 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			momentSum += (an+(step/2))*integral;
 			weightSum += integral;
 
-			an += step;	
-			
+			an += step;
+
 			x0 = x2;
 		}
 		mCenterOfMass = momentSum/weightSum;
 		return mCenterOfMass;
 
 	}
-	
+
 	public double getCrossSectionAreaAt(final double pos, final int splits)
 	{
 		double area = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getCrosssectionAreaAt(this,pos, splits);
-		
+
 		return area;
 	}
-	
+
 	public double getWidthAt(double x)
 	{
 		return getWidthAtPos(x);
 	}
-	
+
 	public double getDeckAt(double x, double y)
 	{
 		if(getWidthAt(x)/2.0 < y)
 			return 0.0;
-		
+
 		if(y == 0.0)
 		{
 			double z = getDeck().getValueAt(x);
 			return z;
 		}
-		
+
 		Point3d point = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getDeckAt(this,x, y);
 		return point.z;
 
 	}
-	
+
 	public double getBottomAt(double x, double y)
 	{
 		if(getWidthAt(x)/2.0 < y)
@@ -1346,12 +1345,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public void onRockerChanged()
 	{
 		mCenterOfMass = 0;
-		
+
 		if(BoardCAD.getInstance().isUsingRockerStickAdjustment())
 		{
-			adjustRockerToCenterTangent();			
+			adjustRockerToCenterTangent();
 		}
-		
+
 		adjustRockerToZero();
 
 		adjustCrosssectionsToThicknessAndWidth();
@@ -1385,13 +1384,13 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 		double sin = Math.sin(Math.PI - tangentAngle);
 		double cos = Math.cos(Math.PI - tangentAngle);
-		
+
 //DEBUG		System.out.printf("Brd.adjustRockerToCenterTangent() angle: %f sin: %f cos: %f\n", tangentAngle*180/Math.PI, sin, cos);
 
 		double x=0;
 		double y=0;
 		BezierKnot current = null;
-		
+
 		for(int i = 0; i < mBottomSpline.getNrOfControlPoints(); i++)
 		{
 			current = mBottomSpline.getControlPoint(i);
@@ -1400,7 +1399,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			{
 				x = points[j].x;
 				y = points[j].y;
-				
+
 				points[j].x = x*sin + y*cos;
 				points[j].y = x*cos + y*sin;
 			}
@@ -1414,15 +1413,15 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			{
 				x = points[j].x;
 				y = points[j].y;
-				
+
 				points[j].x = x*sin + y*cos;
 				points[j].y = x*cos + y*sin;
 			}
 		}
-		
+
 		//Tail may be a bit off the end so move the rocker
 		double fromZero = mBottomSpline.getControlPoint(0).getEndPoint().x;
-		
+
 		for(int i = 0; i < mBottomSpline.getNrOfControlPoints(); i++)
 		{
 			current = mBottomSpline.getControlPoint(i);
@@ -1442,14 +1441,14 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 				points[j].x = points[j].x-fromZero;
 			}
 		}
-		
+
 		//Scale so length of rocker matches outline
 		double rockerLength = mBottomSpline.getMaxX();
 		double brdLength = getLength();
-		
+
 		mBottomSpline.scale(1.0, brdLength/rockerLength);
 		mDeckSpline.scale(1.0, brdLength/rockerLength);
-		
+
 	}
 
 	void adjustRockerToZero()
@@ -1484,9 +1483,9 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		double thicknessScale = newThickness/getMaxThickness();
 
 		mOutlineSpline.scale(widthScale, lengthScale);
-		mDeckSpline.scale(thicknessScale, lengthScale);		
+		mDeckSpline.scale(thicknessScale, lengthScale);
 		//problem...from here the value of BoardCAD.getInstance().getCurrentBrd().getMaxThickness() is not what the user asked
-		
+
 		mBottomSpline.scale(thicknessScale, lengthScale);
 
 		for(int i = 1; i < mCrossSections.size()-1; i++)
@@ -1505,14 +1504,14 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		double widthScale = newWidth/getMaxWidth();
 		double thicknessScale = newThickness/getMaxThickness();
 		double thicknessDiff = newThickness - getMaxThickness();
-		
+
 		double maxThicknessPos = getMaxThicknessPos();
 
 		ArrayList<Double> thicknesses = new ArrayList<Double>();
 		for(int i = 1; i < mDeckSpline.getNrOfControlPoints()-1; i++)
 		{
 			BezierKnot point = mDeckSpline.getControlPoint(i);
-			
+
 			double x = point.getEndPoint().x;
 			if(x < BezierSpline.ZERO)
 			{
@@ -1524,14 +1523,14 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			}
 			double thickness = point.getEndPoint().y - mBottomSpline.getValueAt(x);
 			System.out.printf("x:%f, Thickness: %f\n", point.getEndPoint().x, thickness);
-			
+
 			thicknesses.add(thickness);
 		}
-		
+
 		mOutlineSpline.scale(widthScale, lengthScale);
-		mDeckSpline.scale(1.0, lengthScale);		
+		mDeckSpline.scale(1.0, lengthScale);
 //problem...from here the value of BoardCAD.getInstance().getCurrentBrd().getMaxThickness() is not what the user asked
-		
+
 		mBottomSpline.scale(lengthScale, lengthScale);
 
 		double angle = Math.atan2(thicknessDiff, maxThicknessPos);
@@ -1540,7 +1539,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		for(int i = 1; i < mDeckSpline.getNrOfControlPoints()-1; i++)
 		{
 			BezierKnot point = mDeckSpline.getControlPoint(i);
-			
+
 			double x = point.getEndPoint().x;
 			if(x < BezierSpline.ZERO)
 			{
@@ -1552,20 +1551,20 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			}
 
 			double thickness = thicknesses.get(i-1);
-			
+
 			double targetThickness = thickness*thicknessScale;
-			
+
 			double actualThickness = point.getEndPoint().y - mBottomSpline.getValueAt(x);
-			
+
 			double dy = targetThickness - actualThickness;
 
 //			System.out.printf("x:%f, Thickness:%f, thicknessScale:%f, targetThickness:%f, actualThickness:%f, dy:%f\n", x, thickness, thicknessScale, targetThickness, actualThickness, dy);
 
 			point.setControlPointLocation(point.getEndPoint().x, point.getEndPoint().y + dy);
-			
-			
+
+
 			double usedAngle = angle*((maxThicknessPos-x)/maxThicknessPos);
-			
+
 //			System.out.printf("usedAngle:%f\n", usedAngle);
 
 			point.setTangentToNextAngle(point.getTangentToNextAngle() + usedAngle);
@@ -1588,12 +1587,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		mFins[2]=mFins[2]*straightXRatio;
 		mFins[4]=mFins[4]*straightXRatio;
 		mFins[5]=mFins[5]*straightXRatio;
-		
-		mFins[1]=mFins[1]*YRatio;    
+
+		mFins[1]=mFins[1]*YRatio;
 		mFins[3]=mFins[3]*YRatio;
 	}
-	
-	
+
+
 	public void setLocks()
 	{
 		if(mOutlineSpline.getNrOfControlPoints() < 2)
@@ -1651,18 +1650,18 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			mCrossSections.get(i).getBezierSpline().getControlPoint(mCrossSections.get(i).getBezierSpline().getNrOfControlPoints()-1).setTangentToPrevLocks(BezierKnot.LOCK_X_MORE);
 		}
 	}
-	
+
 	public void checkAndFixContinousy(boolean fixShouldBeCont, boolean fixShouldNotBeCont)
 	{
 		checkAndFixContinousy(getOutline(), fixShouldBeCont, fixShouldNotBeCont);
 		checkAndFixContinousy(getBottom(), fixShouldBeCont, fixShouldNotBeCont);
 		checkAndFixContinousy(getDeck(), fixShouldBeCont, fixShouldNotBeCont);
-		
+
 		for(int i = 0; i < getCrossSections().size(); i++)
 		{
-			checkAndFixContinousy(getCrossSections().get(i).getBezierSpline(), fixShouldBeCont, fixShouldNotBeCont);			
+			checkAndFixContinousy(getCrossSections().get(i).getBezierSpline(), fixShouldBeCont, fixShouldNotBeCont);
 		}
-		
+
 	}
 
 	public void checkAndFixContinousy(BezierSpline patch, boolean fixShouldBeCont, boolean fixShouldNotBeCont)
@@ -1670,17 +1669,17 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		for(int i = 0; i < patch.getNrOfControlPoints(); i++)
 		{
 			BezierKnot ControlPoint = patch.getControlPoint(i);
-			
+
 			double pta = ControlPoint.getTangentToPrevAngle();
 			double nta = ControlPoint.getTangentToNextAngle();
 
 			boolean cont = (Math.abs(Math.abs(Math.PI -pta)-nta) < 0.02)?true:false;	//0.02 is roughly one degree
-			
+
 			if(cont && fixShouldBeCont)
 			{
 				ControlPoint.setContinous(cont);
 			}
-			
+
 			if(!cont && fixShouldNotBeCont)
 			{
 				ControlPoint.setContinous(cont);
@@ -1692,12 +1691,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		return mFilename;
 	}
-	
+
 	public void setModel(String model)
 	{
 		 mModel = model;
 	}
-	
+
 	public String getModel()
 	{
 		return mModel;
@@ -1720,15 +1719,15 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 		if(aabbCenter.y - (width/2.0) > getMaxWidth())
 				return false;
-		
+
 		if(aabbCenter.x - (depth/2.0) > getLength())
 			return false;
-		
-		int depthSplits = 3;	//Numbers of coordinates, 3 mean corners point plus one at each center 
+
+		int depthSplits = 3;	//Numbers of coordinates, 3 mean corners point plus one at each center
 		int widthSplits = 3;	//9 checks total
-		
+
 		double x = aabbCenter.x - (depth/2.0);
-		
+
 		for(int i = 0; i <= depthSplits; i++)
 		{
 			double y = aabbCenter.y - (width/2.0);
@@ -1737,10 +1736,10 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			{
 				double z = getDeckAt(x, y);
 				z += getRockerAtPos(x);
-				
+
 				if(z < aabbCenter.y - (width/2.0))
 					return true;
-				
+
 				y += width / (double)(widthSplits-1);
 			}
 			x += depth / (double)(depthSplits-1);
@@ -1749,599 +1748,13 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		return false;
 	}
 
-	public NurbsPoint getOutline3D(double x)
-	{
-		x=x/10;
-		if(x>getLength())
-			x=getLength();
-
-		double width=mOutlineSpline.getValueAt(x);
-		double rocker=mBottomSpline.getValueAt(x);
-		double deck=mDeckSpline.getValueAt(x);
-
-		//find closest cross sections before and after x
-
-		int before_index=0;
-		double before_x=0.0;
-		double before_y=0.0;
-		double before_z=0.0;
-		int after_index=0;
-		double after_x=0.0;	
-		double after_y=0.0;
-		double after_z=0.0;
-
-		before_index=1;
-		BezierBoardCrossSection current = mCrossSections.get(before_index);
-		before_x=current.getPosition();
-
-		for(int i = 1; i < mCrossSections.size(); i++)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()<x)
-			{
-				before_index=i;
-				before_x=current.getPosition();
-			}
-		}
-
-		after_index=mCrossSections.size()-2;
-		current = mCrossSections.get(after_index);
-		after_x=current.getPosition();
-
-		for(int i = mCrossSections.size()-2; i>=1; i--)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()>x)
-			{
-				after_index=i;
-				after_x=current.getPosition();
-			}
-		}
-		/*
-		int ni = getNearestCrossSectionIndex(x);
-		double nearestPos = mCrossSections.get(ni).getPosition();
-		if(nearestPos < x)
-		{
-			before_index=ni;
-			before_x=nearestPos;
-			after_index=ni+1;
-			after_x= mCrossSections.get(ni+1).getPosition();
-		}
-		else
-		{
-			before_index=ni-1;
-			before_x=mCrossSections.get(ni-1).getPosition();
-			after_index=ni;
-			after_x= nearestPos;
-
-		}
-		 */
-		//find outline ControlPoint for each cross section
-
-//		int before_outline_index=0;
-//		int after_outline_index=0;
-
-		double before_outline=0;		
-		BezierBoardCrossSection before_cross_section=mCrossSections.get(before_index);
-		BezierSpline before_ControlPoints=before_cross_section.getBezierSpline();
-		for(int i=1; i<before_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=before_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(before_outline<=ControlPoint_point.getX())
-			{
-				before_outline=ControlPoint_point.getX();
-				before_z=before_outline;
-//				before_y=ControlPoint_point.getY();
-				before_y=myControlPoint.getEndPoint().y;
-//				before_outline_index=i;
-			}
-		}
-
-
-
-		double after_outline=0;		
-		BezierBoardCrossSection after_cross_section=mCrossSections.get(after_index);
-		BezierSpline after_ControlPoints=after_cross_section.getBezierSpline();
-		for(int i=1; i<after_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=after_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(after_outline<=ControlPoint_point.getX())
-			{
-				after_outline=ControlPoint_point.getX();
-				after_z=after_outline;
-//				after_y=ControlPoint_point.getY();
-				after_y=myControlPoint.getEndPoint().y;
-//				after_outline_index=i;
-			}
-		}
-
-		//calculate the linear combination
-
-		double y1top=mDeckSpline.getValueAt(before_x)-mBottomSpline.getValueAt(before_x);
-		double y1=before_y/y1top*(deck-rocker);
-		double y2top=mDeckSpline.getValueAt(after_x)-mBottomSpline.getValueAt(after_x);
-		double y2=after_y/y2top*(deck-rocker);
-
-		double y_value=0.0;
-
-		if(before_x==after_x)
-		{
-			y_value=y1+rocker;
-		}
-		else
-		{
-			y_value=y1+(y2-y1)/(after_x-before_x)*(x-before_x)+rocker;
-		}
-
-		NurbsPoint outline_point=new NurbsPoint(10*x,10*y_value,10*width);				
-
-		return outline_point;
-	}
-
-	public NurbsPoint getTuckedUnder3D(double x)
-	{
-		x=x/10;
-		if(x>getLength())
-			x=getLength();
-
-		double width=mOutlineSpline.getValueAt(x);
-		double rocker=mBottomSpline.getValueAt(x);
-		double deck=mDeckSpline.getValueAt(x);
-
-		//find closest cross sections before and after x
-
-		int before_index=0;
-		double before_x=0.0;
-		double before_y=0.0;
-		double before_z=0.0;
-		int after_index=0;
-		double after_x=0.0;	
-		double after_y=0.0;
-		double after_z=0.0;
-
-
-		before_index=1;
-		BezierBoardCrossSection current = mCrossSections.get(before_index);
-		before_x=current.getPosition();
-
-		for(int i = 1; i < mCrossSections.size(); i++)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()<x)
-			{
-				before_index=i;
-				before_x=current.getPosition();
-			}
-		}
-
-		after_index=mCrossSections.size()-2;
-		current = mCrossSections.get(after_index);
-		after_x=current.getPosition();
-
-		for(int i = mCrossSections.size()-2; i>=1; i--)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()>x)
-			{
-				after_index=i;
-				after_x=current.getPosition();
-			}
-		}
-
-		/*
-		int ni = getNearestCrossSectionIndex(x);
-		double nearestPos = mCrossSections.get(ni).getPosition();
-		if(nearestPos < x)
-		{
-			before_index=ni;
-			before_x=nearestPos;
-			after_index=ni+1;
-			after_x= mCrossSections.get(ni+1).getPosition();
-		}
-		else
-		{
-			before_index=ni-1;
-			before_x=mCrossSections.get(ni-1).getPosition();
-			after_index=ni;
-			after_x= nearestPos;
-
-		}
-		 */
-
-		//find outline ControlPoint for each cross section
-
-		int before_outline_index=0;
-		int after_outline_index=0;
-
-		double before_outline=0;		
-		BezierBoardCrossSection before_cross_section=mCrossSections.get(before_index);
-		BezierSpline before_ControlPoints=before_cross_section.getBezierSpline();
-		for(int i=1; i<before_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=before_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(before_outline<ControlPoint_point.getX())
-			{
-				before_outline=ControlPoint_point.getX();
-				before_z=before_outline;
-				before_y=ControlPoint_point.getY();
-				before_outline_index=i;
-			}
-		}
-
-		double after_outline=0;		
-		BezierBoardCrossSection after_cross_section=mCrossSections.get(after_index);
-		BezierSpline after_ControlPoints=after_cross_section.getBezierSpline();
-		for(int i=1; i<after_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=after_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(after_outline<ControlPoint_point.getX())
-			{
-				after_outline=ControlPoint_point.getX();
-				after_z=after_outline;
-				after_y=ControlPoint_point.getY();
-				after_outline_index=i;
-			}
-		}
-
-		//get point before outline and check if it is tucked under, otherwise use outline
-		BezierKnot myControlPoint;
-		Point2D.Double ControlPoint_point;
-		if(before_outline_index > 0)//to prevent java.lang.ArrayIndexOutOfBoundsException
-		{
-			myControlPoint=before_ControlPoints.getControlPoint(before_outline_index-1);
-			ControlPoint_point=myControlPoint.getEndPoint();
-			if(ControlPoint_point.getX()>before_outline/2)
-			{
-				before_z=ControlPoint_point.getX();
-				before_y=ControlPoint_point.getY();
-			}
-		}
-
-		if(after_outline_index > 0)	//to prevent java.lang.ArrayIndexOutOfBoundsException
-		{
-			myControlPoint=after_ControlPoints.getControlPoint(after_outline_index-1);
-			ControlPoint_point=myControlPoint.getEndPoint();
-			if(ControlPoint_point.getX()>after_outline/2)
-			{
-				after_z=ControlPoint_point.getX();
-				after_y=ControlPoint_point.getY();
-			}
-		}
-
-		//calculate the linear combination
-
-		double y1top=mDeckSpline.getValueAt(before_x)-mBottomSpline.getValueAt(before_x);
-		double y1=before_y/y1top*(deck-rocker);
-		double y2top=mDeckSpline.getValueAt(after_x)-mBottomSpline.getValueAt(after_x);
-		double y2=after_y/y2top*(deck-rocker);
-
-		double y_value=0.0;
-
-		if(before_x==after_x)
-		{
-			y_value=y1+rocker;
-		}
-		else
-		{
-			y_value=y1+(y2-y1)/(after_x-before_x)*(x-before_x)+rocker;
-		}
-
-		double z1top=mOutlineSpline.getValueAt(before_x);
-		double z1=before_z/z1top*width;
-		double z2top=mOutlineSpline.getValueAt(after_x);
-		double z2=after_z/z2top*width;
-
-		double z_value=0.0;
-
-		if(before_x==after_x)
-		{
-			z_value=z1;
-		}
-		else
-		{
-			z_value=z1+(z2-z1)/(after_x-before_x)*(x-before_x);
-		}
-
-		NurbsPoint tucked_under_point=new NurbsPoint(10*x,10*y_value,10*z_value);				
-		return tucked_under_point;
-
-
-	}
-
-	public NurbsPoint getTop3D(double x, double z)
-	{
-		x=x/10;
-		if(x>getLength())
-			x=getLength();
-
-		z=z/10;
-		double width=mOutlineSpline.getValueAt(x);
-		double rocker=mBottomSpline.getValueAt(x);
-		double deck=mDeckSpline.getValueAt(x);
-
-		//find closest cross sections before and after x
-
-		int before_index=0;
-		double before_x=0.0;
-		int after_index=0;
-		double after_x=0.0;		
-
-		before_index=1;
-		BezierBoardCrossSection current = mCrossSections.get(before_index);
-		before_x=current.getPosition();
-
-		for(int i = 1; i < mCrossSections.size(); i++)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()<x)
-			{
-				before_index=i;
-				before_x=current.getPosition();
-			}
-		}
-
-		after_index=mCrossSections.size()-2;
-		current = mCrossSections.get(after_index);
-		after_x=current.getPosition();
-
-		for(int i = mCrossSections.size()-2; i>=1; i--)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()>x)
-			{
-				after_index=i;
-				after_x=current.getPosition();
-			}
-		}
-		/*
-		int ni = getNearestCrossSectionIndex(x);
-		double nearestPos = mCrossSections.get(ni).getPosition();
-		if(nearestPos < x)
-		{
-			before_index=ni;
-			before_x=nearestPos;
-			after_index=ni+1;
-			after_x= mCrossSections.get(ni+1).getPosition();
-		}
-		else
-		{
-			before_index=ni-1;
-			before_x=mCrossSections.get(ni-1).getPosition();
-			after_index=ni;
-			after_x= nearestPos;
-
-		}
-
-		 */
-		//find outline ControlPoint for each cross section
-
-		int before_outline_index=0;
-		int after_outline_index=0;
-
-		double before_outline=0;		
-		BezierBoardCrossSection before_cross_section=mCrossSections.get(before_index);
-		BezierSpline before_ControlPoints=before_cross_section.getBezierSpline();
-		for(int i=1; i<before_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=before_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(before_outline<ControlPoint_point.getX())
-			{
-				before_outline=ControlPoint_point.getX();
-				before_outline_index=i;
-			}
-		}
-
-		double after_outline=0;		
-		BezierBoardCrossSection after_cross_section=mCrossSections.get(after_index);
-		BezierSpline after_ControlPoints=after_cross_section.getBezierSpline();
-		for(int i=1; i<after_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=after_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(after_outline<ControlPoint_point.getX())
-			{
-				after_outline=ControlPoint_point.getX();
-				after_outline_index=i;
-			}
-		}
-
-		//find y-value at related z for each cross section
-		/*
-		ArrayList<BezierControlPoint> top_before_ControlPoints = new ArrayList<BezierControlPoint>();
-		for(int i = before_ControlPoints.size()-1; i>=before_outline_index; i--)
-		{
-			ControlPoint myControlPoint=(BezierControlPoint)before_ControlPoints.get(i).clone();
-			myControlPoint.switch_tangents();
-			top_before_ControlPoints.add(myControlPoint);
-		}
-		 */
-//		double y1=BezierUtil.value(top_before_ControlPoints, z*before_outline/width);
-//		double y1top=BezierUtil.value(top_before_ControlPoints, 0);
-		double y1=before_ControlPoints.getValueAtReverse(z*before_outline/width);
-		double y1top=before_ControlPoints.getValueAtReverse(0);
-		/*
-		ArrayList<BezierControlPoint> top_after_ControlPoints = new ArrayList<BezierControlPoint>();
-		for(int i = after_ControlPoints.size()-1; i>=after_outline_index; i--)
-		{
-			ControlPoint myControlPoint=(BezierControlPoint)after_ControlPoints.get(i).clone();
-			myControlPoint.switch_tangents();
-			top_after_ControlPoints.add(myControlPoint);
-		}
-		 */
-//		double y2=BezierUtil.value(top_after_ControlPoints, z*after_outline/width);
-//		double y2top=BezierUtil.value(top_after_ControlPoints, 0);
-		double y2=after_ControlPoints.getValueAtReverse(z*after_outline/width);
-		double y2top=after_ControlPoints.getValueAtReverse(0);
-
-
-		//calculate the linear combination
-
-		y1=y1/y1top*(deck-rocker);
-		y2=y2/y2top*(deck-rocker);
-
-		double y_value=0.0;
-
-		if(before_x==after_x)
-		{
-			y_value=y1+rocker;
-		}
-		else
-		{
-			y_value=y1+(y2-y1)/(after_x-before_x)*(x-before_x)+rocker;
-		}
-
-		NurbsPoint top_point=new NurbsPoint(10*x,10*y_value,10*z);				
-		return top_point;
-	}
-
-	public NurbsPoint getBottom3D(double x, double z)
-	{
-		x=x/10;
-		if(x>getLength())
-			x=getLength();
-
-		z=z/10;
-		double width=mOutlineSpline.getValueAt(x);
-		double rocker=mBottomSpline.getValueAt(x);
-		double deck=mDeckSpline.getValueAt(x);
-
-		//find closest cross sections before and after x
-
-		int before_index=0;
-		double before_x=0.0;
-		int after_index=0;
-		double after_x=0.0;		
-
-		before_index=1;
-		BezierBoardCrossSection current = mCrossSections.get(before_index);
-		before_x=current.getPosition();
-
-		for(int i = 1; i < mCrossSections.size(); i++)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()<x)
-			{
-				before_index=i;
-				before_x=current.getPosition();
-			}
-		}
-
-		after_index=mCrossSections.size()-2;
-		current = mCrossSections.get(after_index);
-		after_x=current.getPosition();
-
-		for(int i = mCrossSections.size()-2; i>=1; i--)
-		{
-			current = mCrossSections.get(i);
-			if(current.getPosition()>x)
-			{
-				after_index=i;
-				after_x=current.getPosition();
-			}
-		}
-
-
-		//find outline ControlPoint for each cross section
-
-		int before_outline_index=0;
-		int after_outline_index=0;
-
-		double before_outline=0;		
-		BezierBoardCrossSection before_cross_section=mCrossSections.get(before_index);
-		BezierSpline before_ControlPoints=before_cross_section.getBezierSpline();
-		for(int i=1; i<before_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=before_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(before_outline<ControlPoint_point.getX())
-			{
-				before_outline=ControlPoint_point.getX();
-				before_outline_index=i;
-			}
-		}
-
-		double after_outline=0;		
-		BezierBoardCrossSection after_cross_section=mCrossSections.get(after_index);
-		BezierSpline after_ControlPoints=after_cross_section.getBezierSpline();
-		for(int i=1; i<after_ControlPoints.getNrOfControlPoints()-1; i++)
-		{
-			BezierKnot myControlPoint=after_ControlPoints.getControlPoint(i);
-			Point2D.Double ControlPoint_point=myControlPoint.getEndPoint();
-
-			if(after_outline<ControlPoint_point.getX())
-			{
-				after_outline=ControlPoint_point.getX();
-				after_outline_index=i;
-			}
-		}
-
-		//find y-value at related z for each cross section
-
-		ArrayList<BezierKnot> top_before_ControlPoints = new ArrayList<BezierKnot>();
-		for(int i = 0; i<=before_outline_index; i++)
-		{
-			BezierKnot myControlPoint=(BezierKnot)before_ControlPoints.getControlPoint(i).clone();
-			top_before_ControlPoints.add(myControlPoint);
-		}
-
-		double y1=BezierUtil.value(top_before_ControlPoints, z*before_outline/width);
-//		double y1top=mDeckSpline.getValueAt(before_x);
-		double y1top=mDeckSpline.getValueAt(before_x)-mBottomSpline.getValueAt(before_x);
-
-
-		ArrayList<BezierKnot> top_after_ControlPoints = new ArrayList<BezierKnot>();
-		for(int i = 0; i<=after_outline_index; i++)
-		{
-			BezierKnot myControlPoint=(BezierKnot)after_ControlPoints.getControlPoint(i).clone();
-			top_after_ControlPoints.add(myControlPoint);
-		}
-
-		double y2=BezierUtil.value(top_after_ControlPoints, z*after_outline/width);
-//		double y2top=mDeckSpline.getValueAt(after_x);
-		double y2top=mDeckSpline.getValueAt(after_x)-mBottomSpline.getValueAt(after_x);
-
-
-		//calculate the linear combination
-
-		y1=y1/y1top*(deck-rocker);
-		y2=y2/y2top*(deck-rocker);
-
-		double y_value=0.0;
-
-		if(before_x==after_x)
-		{
-			y_value=y1+rocker;
-		}
-		else
-		{
-			y_value=y1+(y2-y1)/(after_x-before_x)*(x-before_x)+rocker;
-		}
-
-		NurbsPoint bottom_point=new NurbsPoint(10*x,10*y_value,10*z);				
-		return bottom_point;
-	}
-
-
-
 	public Object clone()
 	{
 		BezierBoard brd = null;
 		try {
 			brd = (BezierBoard)super.clone();
 		} catch(CloneNotSupportedException e) {
-			System.out.println("Exception in BezierBoard::clone(): " + e.toString());			
+			System.out.println("Exception in BezierBoard::clone(): " + e.toString());
 			throw new Error("CloneNotSupportedException in Brd");
 		}
 
@@ -2377,7 +1790,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 		return brd;
 	}
-	
+
 
 	public String toString()
 	{
@@ -2405,8 +1818,8 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			str.concat(surferString);
 		}
 
-		
+
 		return str;
 	}
-		
+
 }

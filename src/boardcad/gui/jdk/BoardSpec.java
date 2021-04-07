@@ -25,7 +25,7 @@ public class BoardSpec extends JPanel {
 	private JRadioButton mStraightLineRadioButton = null;
 	private JButton mScaleButton = null;
 	private JLabel Widepoint = null;
-	private JLabel Thickpoint = null;	
+	private JLabel Thickpoint = null;
 	private JLabel jLabel1 = null;
 	private JLabel jLabel2 = null;
 	private JLabel ThicknessAtCenter = null;
@@ -49,7 +49,7 @@ public class BoardSpec extends JPanel {
 	private java.util.Timer mTimer;
 	private java.util.Timer mIntegralTimer;
 	private JLabel centerWidth = null;
-	
+
 	/**
 	 * This is the default constructor
 	 */
@@ -69,7 +69,7 @@ public class BoardSpec extends JPanel {
 		Font table = new Font("Arial",Font.PLAIN,13);
 		Font header = new Font("Arial",Font.BOLD,14);
 		Font volAndArea = new Font ("Arial", Font.BOLD,12);
-		
+
 		// Center width measurement
 		GridBagConstraints gridBagConstraints18 = new GridBagConstraints();
 		gridBagConstraints18.gridx = 2;
@@ -543,7 +543,7 @@ private JRadioButton getOverCurveRadioButton() {
 					mOverCurveRadioButton.setText("");
 					mOverCurveRadioButton.setToolTipText(LanguageResource.getString("OVERCURVERADIOBUTTONTOOLTIP_STR"));
 					mOverCurveRadioButton.addActionListener(new java.awt.event.ActionListener() {
-						
+
 						@Override
 						public void actionPerformed(java.awt.event.ActionEvent e) {
 							mOverCurveRadioButton.setSelected(true);
@@ -561,7 +561,7 @@ private JRadioButton getOverCurveRadioButton() {
 						mStraightLineRadioButton = new JRadioButton();
 						mStraightLineRadioButton.setToolTipText(LanguageResource.getString("STRAIGHTLINERADIOBUTTONTOOLTIP_STR"));
 						mStraightLineRadioButton.addActionListener(new java.awt.event.ActionListener() {
-							
+
 							@Override
 							public void actionPerformed(java.awt.event.ActionEvent e) {
 								mStraightLineRadioButton.setSelected(true);
@@ -606,13 +606,13 @@ private JRadioButton getOverCurveRadioButton() {
 			public void run()
 			{
 				updateAreaAndVolume();
-				
+
 				mIntegralTimer = null;
 			}
 		}, 500);
 
 	}
-	
+
 	public void updateInfoInstantly()
 	{
 		updateMeasurements();
@@ -623,18 +623,10 @@ private JRadioButton getOverCurveRadioButton() {
 	{
 		return mOverCurveRadioButton.isSelected();
 	}
-	
+
 	void updateMeasurements()
 	{
-		BoardHandler board_handler=BoardCAD.getInstance().getBoardHandler();	
-		if(!board_handler.is_empty())
-		{
-			Length.setText(LanguageResource.getString("STRAIGHTLINE_STR") + " " + UnitUtils.convertLengthToCurrentUnit(board_handler.get_board_length()/10, true));
-			
-			return;
-		}
-			
-		BezierBoard brd = BoardCAD.getInstance().getFocusedBoard();		
+		BezierBoard brd = BoardCAD.getInstance().getFocusedBoard();
 		if(brd.isEmpty())
 		{
 			return;
@@ -653,11 +645,11 @@ private JRadioButton getOverCurveRadioButton() {
 		double tailPos=0.001;
 		double twoFeetFromNosePos = brd.getLength()-(2*foot);
 		double twoFeetFromTailPos = 2*foot;
-		
+
 		if(mOverCurveRadioButton.isSelected())
 		{
 			BezierSpline bottom = brd.getBottom();
-			
+
 			centerPos =  bottom.getPointByCurveLength(brd.getLengthOverCurve()/2.0).x;
 			widepointPos =  bottom.getLengthByX(brd.getMaxWidthPos()) - (brd.getLengthOverCurve()/2.0);
 			thickpointPos = bottom.getLengthByX(brd.getMaxThicknessPos()) - (brd.getLengthOverCurve()/2.0);
@@ -666,10 +658,10 @@ private JRadioButton getOverCurveRadioButton() {
 			twoFeetFromNosePos =  bottom.getPointByCurveLength(brd.getLengthOverCurve()-(2*foot)).x;
 			twoFeetFromTailPos =  bottom.getPointByCurveLength(2*foot).x;
 		}
-		
+
 		centerWidth.setText(centerWidth.getText().substring(0, centerWidth.getText().indexOf(":")+1) + "     " + UnitUtils.convertLengthToCurrentUnit(brd.getWidthAt(centerPos), false));
 		Widepoint.setText(Widepoint.getText().substring(0, Widepoint.getText().indexOf(":")+1) + "      " + UnitUtils.convertLengthToCurrentUnit(brd.getMaxWidth(), false)+" @ " + UnitUtils.convertLengthToCurrentUnit(widepointPos, false));
-		Thickpoint.setText(Thickpoint.getText().substring(0, Thickpoint.getText().indexOf(":")+1) + "      " + UnitUtils.convertLengthToCurrentUnit(brd.getMaxThickness(), false)+" @ " + UnitUtils.convertLengthToCurrentUnit(thickpointPos, false));		
+		Thickpoint.setText(Thickpoint.getText().substring(0, Thickpoint.getText().indexOf(":")+1) + "      " + UnitUtils.convertLengthToCurrentUnit(brd.getMaxThickness(), false)+" @ " + UnitUtils.convertLengthToCurrentUnit(thickpointPos, false));
 		WidthAtNose.setText(WidthAtNose.getText().substring(0, WidthAtNose.getText().indexOf(":")+1) + "  " + UnitUtils.convertLengthToCurrentUnit(brd.getWidthAtPos(oneFootFromNosePos), false));
 		WidthAtTail.setText(WidthAtTail.getText().substring(0, WidthAtTail.getText().indexOf(":")+1) + "     " + UnitUtils.convertLengthToCurrentUnit(brd.getWidthAtPos(oneFootFromTailPos), false));
 		ThicknessAtCenter.setText(ThicknessAtCenter.getText().substring(0, ThicknessAtCenter.getText().indexOf(":")+1) + "     " + UnitUtils.convertLengthToCurrentUnit(brd.getThicknessAtPos(centerPos), false));
@@ -686,12 +678,12 @@ private JRadioButton getOverCurveRadioButton() {
 
 	void updateAreaAndVolume()
 	{
-		BezierBoard brd = BoardCAD.getInstance().getFocusedBoard();		
+		BezierBoard brd = BoardCAD.getInstance().getFocusedBoard();
 		if(brd.isEmpty())
 		{
 			return;
 		}
-		
+
 		Area.setText(Area.getText().substring(0, Area.getText().indexOf(":")+1) + " " + UnitUtils.convertAreaToCurrentUnit(brd.getArea()) );
 		Volume.setText(Volume.getText().substring(0, Volume.getText().indexOf(":")+1) + " " + UnitUtils.convertVolumeToCurrentUnit(brd.getVolume()) );
 	}

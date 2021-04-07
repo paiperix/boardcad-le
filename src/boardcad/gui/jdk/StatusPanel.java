@@ -28,7 +28,7 @@ public class StatusPanel extends JPanel
 		add(status_text);
 	}
 
-	public void set_mode(String text)
+	public void setMode(String text)
 	{
 		mode=text;
 		update_status();

@@ -8,14 +8,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import javax.media.j3d.BranchGroup;
-import javax.media.j3d.PickSegment;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
-
-import com.sun.j3d.utils.behaviors.picking.Intersect;
-
-import cadcore.NurbsSurface;
-import cadcore.NurbsPoint;
 
 import board.AbstractBoard;
 import boardcam.MachineConfig;
@@ -35,7 +29,7 @@ public class STLCutter extends AbstractCutter
 	private final String CUTTER_SCALE_X = "CutterScaleX";
 	private final String CUTTER_SCALE_Y = "CutterScaleY";
 	private final String CUTTER_SCALE_Z = "CutterScaleZ";
-	
+
 	private final String CUTTER_STL_FILENAME = "STLFilename";
 
 	private Point3d[] cutting_point;
@@ -45,33 +39,31 @@ public class STLCutter extends AbstractCutter
 
 	private Point3d[] collision_point;
 	private Point3d[] transformed_collision_point;
-	
+
 	private double offset_x;
 	private double offset_y;
-	private double offset_z;	
+	private double offset_z;
 	private int n;
 	private int cn;
 
 //	private Point3d[][] triangle;
 	private Point3d[][][][]	triangle;
-	private int triangle_n;
-	private int triangle_n2;
 
 	public STLCutter()
-	{	
+	{
 	}
-	
+
 	public STLCutter(MachineConfig config)
-	{		
+	{
 		final Settings cutterSettings = config.addCategory(LanguageResource.getString("CUTTERCATEGORY_STR"));
 		cutterSettings.clear();
 		SettingChangedCallback scaleChanged = new Settings.SettingChangedCallback()
 		{
 			public void onSettingChanged(Object object)
-			{		
+			{
 				scale(cutterSettings.getDouble(CUTTER_SCALE_X), cutterSettings.getDouble(CUTTER_SCALE_Y), cutterSettings.getDouble(CUTTER_SCALE_Z));
 				update3DModel();
-			}	
+			}
 		};
 		cutterSettings.addObject(CUTTER_SCALE_X,  new Double(1.0), LanguageResource.getString("CUTTERSCALEX_STR"), scaleChanged);
 		cutterSettings.addObject(CUTTER_SCALE_Y,  new Double(1.0), LanguageResource.getString("CUTTERSCALEY_STR"), scaleChanged);
@@ -80,16 +72,16 @@ public class STLCutter extends AbstractCutter
 		SettingChangedCallback filenameChanged = new Settings.SettingChangedCallback()
 		{
 			public void onSettingChanged(Object object)
-			{		
+			{
 				try{
 					loadCutter(cutterSettings.getFileName(CUTTER_STL_FILENAME));
 					update3DModel();
 				}
 				catch(Exception e)
 				{
-					
+
 				}
-			}	
+			}
 		};
 		cutterSettings.addFileName(CUTTER_STL_FILENAME, "", LanguageResource.getString("STL_FILENAME_STR"), filenameChanged);
 	}
@@ -101,59 +93,59 @@ public class STLCutter extends AbstractCutter
 			createFlatCutter(new PrintStream(new File("flat_cutter.stl")), 10.0, 25.3);
 		} catch (Exception e) {
 		}
-*/		
+*/
 		loadCutter(toolname);
-		
+
 		transformed_cutting_point=new Point3d[n];
 		transformed_cutting_normal=new Vector3d[n];
-				
+
 		for(int i=0;i<n-1;i++)
 		{
 			transformed_cutting_point[i]=new Point3d(cutting_point[i].x, cutting_point[i].y, cutting_point[i].z);
 			transformed_cutting_normal[i]=new Vector3d(cutting_normal[i].x, cutting_normal[i].y, cutting_normal[i].z);
 		}
-		
+
 	}
-	
+
 
 	public void createCollisionCutter()
 	{
 
 		cn=n;
-		
+
 		collision_point=new Point3d[cn];
 		transformed_collision_point=new Point3d[cn];
-		
+
 		double myscale=0.9;
 		double myztrans=1;
-				
+
 		for(int i=0;i<cn-1;i++)
 		{
 			collision_point[i]=new Point3d(cutting_point[i].x*myscale, cutting_point[i].y*myscale, cutting_point[i].z+myztrans);
 			transformed_collision_point[i]=new Point3d(cutting_point[i].x*myscale, cutting_point[i].y*myscale, cutting_point[i].z+myztrans);
 		}
-		
+
 	}
-	
+
 	public void createCollisionCutter(String toolname, double scale_x, double scale_y, double scale_z, double myztrans)
 	{
 
 		loadCollisionCutter(toolname);
 
 		transformed_collision_point=new Point3d[cn];
-		
+
 		for(int i=0;i<cn-1;i++)
 		{
 			collision_point[i]=new Point3d(collision_point[i].x*scale_x, collision_point[i].y*scale_y, collision_point[i].z*scale_z+myztrans);
 			transformed_collision_point[i]=new Point3d(collision_point[i].x*scale_x, collision_point[i].y*scale_y, collision_point[i].z*scale_z+myztrans);
 		}
-		
+
 	}
 
 
-	
+
 	public void scale(double xscale, double yscale, double zscale)
-	{		
+	{
 		for(int i=0;i<n-1;i++)
 		{
 			cutting_point[i].x=cutting_point[i].x*xscale;
@@ -172,7 +164,7 @@ public class STLCutter extends AbstractCutter
 		offset_y=y;
 		offset_z=z;
 	}
-	
+
 	public void setRotation(double angle)
 	{
 		for(int i=0;i<n-1;i++)
@@ -180,12 +172,12 @@ public class STLCutter extends AbstractCutter
 			transformed_cutting_point[i]=new Point3d(cutting_point[i].x, cutting_point[i].y, cutting_point[i].z);
 			transformed_cutting_normal[i]=new Vector3d(cutting_normal[i].x, cutting_normal[i].y, cutting_normal[i].z);
 		}
-		
+
 		for(int i=0;i<cn-1;i++)
 		{
 			transformed_collision_point[i]=new Point3d(collision_point[i].x, collision_point[i].y, collision_point[i].z);
 		}
-		
+
 		translate(-offset_x, -offset_y, -offset_z);
 		rotate4(angle);
 		translate(offset_x, offset_y, offset_z);
@@ -198,80 +190,80 @@ public class STLCutter extends AbstractCutter
 			transformed_cutting_point[i]=new Point3d(cutting_point[i].x, cutting_point[i].y, cutting_point[i].z);
 			transformed_cutting_normal[i]=new Vector3d(cutting_normal[i].x, cutting_normal[i].y, cutting_normal[i].z);
 		}
-		
+
 		for(int i=0;i<cn-1;i++)
 		{
 			transformed_collision_point[i]=new Point3d(collision_point[i].x, collision_point[i].y, collision_point[i].z);
 		}
-		
+
 		translate(-offset_x, -offset_y, -offset_z);
 		rotate4(angle4);
 		rotate5(angle5);
 		translate(offset_x, offset_y, offset_z);
 	}
-	
-	
+
+
 	/**
-	* Rotates the tool around fourth (x) axis 
+	* Rotates the tool around fourth (x) axis
 	*
 	* @param theta	The rotation angle in degrees
-	*/	
+	*/
 	private void rotate4(double theta)
 	{
 
 		//rotate board
-		
+
 		double[][] m = {{1.0, 0.0, 0.0},
 				{0.0, Math.cos(-theta*3.1415/180.0), -Math.sin(-theta*3.1415/180.0)},
-		                {0.0, Math.sin(-theta*3.1415/180.0), Math.cos(-theta*3.1415/180.0)}}; 
+		                {0.0, Math.sin(-theta*3.1415/180.0), Math.cos(-theta*3.1415/180.0)}};
 
 
 
 		double[] t={0.0 , 0.0, 0.0};
 
-		
+
 		transform(m,t);
 	}
-	
+
 	/**
 	* Rotates the tool around fifth (z) axis
 	*
 	* @param theta	The rotation angle in degrees
-	*/	
+	*/
 	private void rotate5(double theta)
 	{
 
 		//rotate board
-		
+
 		double[][] m = {{Math.cos(theta*3.1415/180.0), Math.sin(theta*3.1415/180.0), 0.0},
 				{-Math.sin(theta*3.1415/180.0), Math.cos(theta*3.1415/180.0), 0.0},
-		                {0.0, 0.0, 1.0}}; 
+		                {0.0, 0.0, 1.0}};
 
 		double[] t={0.0 , 0.0, 0.0};
 
-		
+
 		transform(m,t);
 	}
 
 	private void translate(double dx, double dy, double dz)
 	{
-	
+
 		double[][] m = {{1.0, 0.0, 0.0},
 		                {0.0, 1.0, 0.0},
-		                {0.0, 0.0, 1.0}}; 
+		                {0.0, 0.0, 1.0}};
 
 		double[] t={dx, dy, dz};
 
 		transform(m,t);
 	}
-	
+
 	private void transform(double[][] m, double[] t)
 	{
-		
+
 //		transformed_cutting_point=new Point3d[n];
 //		transformed_cutting_normal=new Vector3d[n];
-		double tx,ty,tz;				
-		
+		double tx,ty,tz;
+
 		for(int i=0;i<n-1;i++)
 		{
 //			transformed_cutting_point[i]=new Point3d(0.0, 0.0, 0.0);
@@ -296,16 +288,16 @@ public class STLCutter extends AbstractCutter
 			tz=m[2][0]*transformed_collision_point[i].x+m[2][1]*transformed_collision_point[i].y+m[2][2]*transformed_collision_point[i].z+t[2];
 			transformed_collision_point[i]=new Point3d(tx, ty, tz);
 		}
-		
+
 	}
 
-	
-		
+
+
 	public double[] calcOffset(Point3d pos, Vector3d normal, AbstractBoard board)
-	{	
+	{
 		// find the cutting point with normal pointing against the board normal
 		// if ambiguous choose cutting point closest to tool tip (0,0,0)
-		
+
 		double min_normal=1000;
 		double min_distance=1000;
 		double norm, dist;
@@ -315,7 +307,7 @@ public class STLCutter extends AbstractCutter
 			norm=Math.sqrt( (normal.x+transformed_cutting_normal[i].x)*(normal.x+transformed_cutting_normal[i].x)+
 					(normal.y+transformed_cutting_normal[i].y)*(normal.y+transformed_cutting_normal[i].y)+
 					(normal.z+transformed_cutting_normal[i].z)*(normal.z+transformed_cutting_normal[i].z));
-			
+
 			dist=Math.sqrt( transformed_cutting_point[i].x*transformed_cutting_point[i].x +
 					transformed_cutting_point[i].y*transformed_cutting_point[i].y +
 					transformed_cutting_point[i].z*transformed_cutting_point[i].z);
@@ -327,217 +319,36 @@ public class STLCutter extends AbstractCutter
 				selected_point=i;
 			}
 		}
-		
+
 		Point3d offsetPoint = new Point3d(pos);
 		//TODO: Add feature for mould milling? IE, sub or add...
-//		offsetPoint.add(transformed_cutting_point[selected_point]);		
-		offsetPoint.sub(transformed_cutting_point[selected_point]);		
-		
+//		offsetPoint.add(transformed_cutting_point[selected_point]);
+		offsetPoint.sub(transformed_cutting_point[selected_point]);
+
 		double[] ret = new double[]{offsetPoint.x, offsetPoint.y, offsetPoint.z};
-		return ret;	
+		return ret;
 
 	}
-	
-	
-	public NurbsPoint calcOffset(NurbsPoint p1, NurbsPoint mynormal)
-	{	
-//		Vector3d mynormal2=new Vector3d(mynormal.x, mynormal.y, mynormal.z);
-		Vector3d mynormal2=new Vector3d(mynormal.x, mynormal.z, mynormal.y);
-		double[] res=new double[3];
-		res=calcOffset(new Point3d(p1.x, p1.z, p1.y), mynormal2, null);
-								
-		return new NurbsPoint(res[0],res[2],res[1]);
-	}
-	
+
+
 	public void setRotationAngle(double angle)
 	{
 	}
-	
+
 	public void setRotationMatrix(double[][] m)
 	{
 	}
-	
+
 	public void setTranslationVector(double[] t)
 	{
 	}
 
-	public void calculateTriangles(NurbsSurface srf)
-	{
-
-		double step=0.5;
-//		triangle=new Point3d[(int)(2*srf.get_nr_of_segments()/step*srf.get_nr_of_points()/step)][3];
-		triangle=new Point3d[(int)(2*srf.get_nr_of_segments()/step)][(int)(2*srf.get_nr_of_points()/step)][2][3];
-		
-		NurbsPoint p1, p2, p3;
-
-		int k=0;
-		int k2=0;
-		
-		
-		for(int i=0; i<srf.get_nr_of_segments(); i++)
-		{
-			for(double u=0.0; u<1.0-step/2; u=u+step)
-			{
-				
-				k2=0;
-				
-				for(int j=0; j<srf.get_nr_of_points(); j++)
-				{
-				
-					for(double v=0.0; v<1.0-step/2; v=v+step)
-					{
-						p1=srf.get_point_on_surface(i,j,u,v);
-						p2=srf.get_point_on_surface(i,j,u+step,v);
-						p3=srf.get_point_on_surface(i,j,u+step,v+step);
-						
-						triangle[k][k2][0][0]=new Point3d(p1.x,p1.y,p1.z);
-						triangle[k][k2][0][1]=new Point3d(p2.x,p2.y,p2.z);
-						triangle[k][k2][0][2]=new Point3d(p3.x,p3.y,p3.z);
-										
-						p1=srf.get_point_on_surface(i,j,u,v);
-						p2=srf.get_point_on_surface(i,j,u+step,v+step);
-						p3=srf.get_point_on_surface(i,j,u+step,v);
-						
-						triangle[k][k2][1][0]=new Point3d(p1.x,p1.y,p1.z);
-						triangle[k][k2][1][1]=new Point3d(p2.x,p2.y,p2.z);
-						triangle[k][k2][1][2]=new Point3d(p3.x,p3.y,p3.z);
-						k2++;
-//						System.out.println("k=" + k + " k2=" + k2);
-						
-					}
-			
-				}
-				
-				k++;
-			
-			}
-		}
-		
-		triangle_n=k;
-		triangle_n2=k2;		
-	
-	}
-
-	public boolean checkCollision(NurbsPoint cutterpos)
-	{
-		Intersect intersect=new Intersect();
-		PickSegment segment;
-		Point3d start, end;
-//		Point3d[] triangle=new Point3d[3];
-		int index=0;
-		double[] dist=new double[3];
-		boolean collision=false;
-		NurbsPoint p1, p2, p3;
-		double step=0.5;
-		
-		int start_i, end_i;
-		int start_j, end_j;
-		
-		start_i=(int)((cutterpos.i-1)/step);
-		end_i=(int)((cutterpos.i+2)/step);
-		start_j=(int)((cutterpos.j-1)/step);
-		end_j=(int)((cutterpos.j+2)/step);
-			
-//		System.out.println("n=" + n);		
-		for(int k=0;k<cn-2;k=k+2)
-		{
-			//create line segment from tool
-			
-//			start=new Point3d(transformed_cutting_point[k].x + cutterpos.x,
-//					transformed_cutting_point[k].y + cutterpos.y,
-//					transformed_cutting_point[k].z + cutterpos.z);
-
-//			end=new Point3d(transformed_cutting_point[k+1].x + cutterpos.x,
-//					transformed_cutting_point[k+1].y + cutterpos.y,
-//					transformed_cutting_point[k+1].z + cutterpos.z	);
-					
-
-			start=new Point3d(transformed_collision_point[k].x + cutterpos.x,
-					transformed_collision_point[k].y + cutterpos.y,
-					transformed_collision_point[k].z + cutterpos.z);
-
-			end=new Point3d(transformed_collision_point[k+1].x + cutterpos.x,
-					transformed_collision_point[k+1].y + cutterpos.y,
-					transformed_collision_point[k+1].z + cutterpos.z);
-
-
-			segment=new PickSegment(start, end);
-	
-			//check intersection with each surface triangle
-				
-//			System.out.println("checking for collision");
-
-
-			for(int i=start_i;i<end_i;i++)
-			{
-				for(int j=start_j;j<end_j;j++)
-				{
-					if(intersect.segmentAndTriangle(segment,triangle[i][j][0],index,dist))
-						collision=true;
-
-					if(intersect.segmentAndTriangle(segment,triangle[i][j][1],index,dist))
-						collision=true;
-				}
-			}		
-/*			
-			for(int i=3; i<srf.get_nr_of_segments()-5; i++)
-			{
-				for(double u=0.0; u<1.0; u=u+step)
-				{
-				
-					for(int j=3; j<srf.get_nr_of_points()-5; j++)
-					{
-					
-						for(double v=0.0; v<1.0; v=v+step)
-						{
-							p1=srf.get_point_on_surface(i,j,u,v);
-							p2=srf.get_point_on_surface(i,j,u+step,v);
-							p3=srf.get_point_on_surface(i,j,u+step,v+step);
-							
-							triangle[0]=new Point3d(p1.x,p1.y,p1.z);
-							triangle[1]=new Point3d(p2.x,p2.y,p2.z);
-							triangle[2]=new Point3d(p3.x,p3.y,p3.z);
-							
-							if(intersect.segmentAndTriangle(segment,triangle,index,dist))
-								collision=true;
-							
-							p1=srf.get_point_on_surface(i,j,u,v);
-							p2=srf.get_point_on_surface(i,j,u+step,v+step);
-							p3=srf.get_point_on_surface(i,j,u+step,v);
-							
-							triangle[0]=new Point3d(p1.x,p1.y,p1.z);
-							triangle[1]=new Point3d(p2.x,p2.y,p2.z);
-							triangle[2]=new Point3d(p3.x,p3.y,p3.z);
-							
-							if(intersect.segmentAndTriangle(segment,triangle,index,dist))
-								collision=true;
-						}
-				
-					}
-				
-				}
-			}
-*/
-
-		
-		}
-
-
-		if(collision)
-		{
-			System.out.println("collision detected at i=" + cutterpos.i + " j=" + cutterpos.j);
-			
-		}
-		
-		
-		return collision;
-	}
 
 	public boolean checkCollision(Point3d pos, AbstractBoard board)
 	{
 		return false;
 	}
-	
+
 	public BranchGroup get3DModel()
 	{
 		return null;
@@ -546,19 +357,19 @@ public class STLCutter extends AbstractCutter
 	public void update3DModel()
 	{
 	}
-	
+
 	public void loadCutter(String filename)
 	{
-	
+
 		n=0;
 		cutting_point=new Point3d[10000];
 		cutting_normal=new Vector3d[10000];
-				
+
 		File file = new File (filename);
 
 		try {
-		
-		
+
+
 			// Create a FileReader and then wrap it with BufferedReader.
 
 			FileReader file_reader = new FileReader (file);
@@ -580,13 +391,13 @@ public class STLCutter extends AbstractCutter
 					pos=line.indexOf("normal");	// a new facet should start with "facet normal"
 					pos2=line.indexOf("endsolid");	// the file should end with "endsolid"
 				}while(pos==-1 && pos2==-1);
-			
-				
+
+
 				if(pos>0)
 				{
 
-					
-					//read normal		
+
+					//read normal
 					cutting_normal[n]=new Vector3d(0.0, 0.0, 0.0);
 					line=line.substring(pos+6);	// remove part before normal coordinates
 					line=line.trim();		// remove leading spaces
@@ -601,7 +412,7 @@ public class STLCutter extends AbstractCutter
 					cutting_normal[n].z=Double.parseDouble(line);	// read normal_z
 					for(int i=0;i<3;i++)
 					{
-					
+
 						//read vertex
 						do{
 							line=buf_reader.readLine();
@@ -612,29 +423,29 @@ public class STLCutter extends AbstractCutter
 						cutting_point[n]=new Point3d(0.0, 0.0, 0.0);
 						line=line.substring(pos+6);	// remove part before vertex coordinates
 						line=line.trim();		// remove leading spaces
-					
+
 						pos=line.indexOf(' ');		// find space after vertex_x coordinate
 						cutting_point[n].x=Double.parseDouble(line.substring(0,pos));	// read vertex_x
-					
+
 						line=line.substring(pos);	// remove vertex_x
 						line=line.trim();		// remove leading spaces
 						pos=line.indexOf(' ');		// find space after vertex_y coordinate
 						cutting_point[n].y=Double.parseDouble(line.substring(0,pos));	// read vertex_y
-						
+
 						line=line.substring(pos);	// remove vertex_y
 						line=line.trim();		// remove leading spaces
 						cutting_point[n].z=Double.parseDouble(line);	// read vertex_z
-						
+
 						n=n+1;
 						cutting_normal[n]=new Vector3d(cutting_normal[n-1].x, cutting_normal[n-1].y,cutting_normal[n-1].z);
-					
+
 					}
 				}
-				
+
 			}while(pos2==-1);
-		
+
 			buf_reader.close ();
-			
+
 		}
 		catch (IOException e2) {
 			System.out.println ("IO exception =" + e2 );
@@ -645,15 +456,15 @@ public class STLCutter extends AbstractCutter
 
 	public void loadCollisionCutter(String filename)
 	{
-	
+
 		cn=0;
 		collision_point=new Point3d[10000];
-				
+
 		File file = new File (filename);
 
 		try {
-		
-		
+
+
 			// Create a FileReader and then wrap it with BufferedReader.
 
 			FileReader file_reader = new FileReader (file);
@@ -675,13 +486,13 @@ public class STLCutter extends AbstractCutter
 					pos=line.indexOf("normal");	// a new facet should start with "facet normal"
 					pos2=line.indexOf("endsolid");	// the file should end with "endsolid"
 				}while(pos==-1 && pos2==-1);
-			
-				
+
+
 				if(pos>0)
 				{
 
-					
-					//read normal		
+
+					//read normal
 /*					cutting_normal[n]=new Vector3d(0.0, 0.0, 0.0);
 					line=line.substring(pos+6);	// remove part before normal coordinates
 					line=line.trim();		// remove leading spaces
@@ -698,7 +509,7 @@ public class STLCutter extends AbstractCutter
 
 					for(int i=0;i<3;i++)
 					{
-					
+
 						//read vertex
 						do{
 							line=buf_reader.readLine();
@@ -709,29 +520,29 @@ public class STLCutter extends AbstractCutter
 						collision_point[cn]=new Point3d(0.0, 0.0, 0.0);
 						line=line.substring(pos+6);	// remove part before vertex coordinates
 						line=line.trim();		// remove leading spaces
-					
+
 						pos=line.indexOf(' ');		// find space after vertex_x coordinate
 						collision_point[cn].x=Double.parseDouble(line.substring(0,pos));	// read vertex_x
-					
+
 						line=line.substring(pos);	// remove vertex_x
 						line=line.trim();		// remove leading spaces
 						pos=line.indexOf(' ');		// find space after vertex_y coordinate
 						collision_point[cn].y=Double.parseDouble(line.substring(0,pos));	// read vertex_y
-						
+
 						line=line.substring(pos);	// remove vertex_y
 						line=line.trim();		// remove leading spaces
 						collision_point[cn].z=Double.parseDouble(line);	// read vertex_z
-						
+
 						cn=cn+1;
 //						cutting_normal[n]=new Vector3d(cutting_normal[n-1].x, cutting_normal[n-1].y,cutting_normal[n-1].z);
-					
+
 					}
 				}
-				
+
 			}while(pos2==-1);
-		
+
 			buf_reader.close ();
-			
+
 		}
 		catch (IOException e2) {
 			System.out.println ("IO exception =" + e2 );
@@ -739,7 +550,7 @@ public class STLCutter extends AbstractCutter
 
 	}
 
-	
+
 	//create a flat cutter and save as STL-file
 
 	public void createFlatCutter(String filename, double tool_radius, int nr_triangles)
@@ -756,7 +567,7 @@ public class STLCutter extends AbstractCutter
 			dataOut=new PrintStream(new File(filename));
 
 			dataOut.println("solid cutter");
-	
+
 			double step_angle=360.0/(nr_triangles/2.0);
 
 			for(double i=0;i<360.0;i=i+step_angle)
@@ -770,7 +581,7 @@ public class STLCutter extends AbstractCutter
 				v2.sub(p1, p3);
 				normal.cross(v1, v2);
 				normal.normalize();
-			
+
 				if(!(Double.toString(normal.x).equals("NaN")))
 				{
 					dataOut.println("facet normal " + Double.toString(normal.x) + " " + Double.toString(normal.y)+ " " + Double.toString(normal.z) + "");
@@ -791,7 +602,7 @@ public class STLCutter extends AbstractCutter
 				v2.sub(p1, p3);
 				normal.cross(v1, v2);
 				normal.normalize();
-			
+
 				if(!(Double.toString(normal.x).equals("NaN")))
 				{
 					dataOut.println("facet normal " + Double.toString(normal.x) + " " + Double.toString(normal.y)+ " " + Double.toString(normal.z) + "");
@@ -819,7 +630,7 @@ public class STLCutter extends AbstractCutter
 
 
 	}
-	
-			
+
+
 }
 

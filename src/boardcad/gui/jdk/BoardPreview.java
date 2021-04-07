@@ -28,7 +28,7 @@ public final class BoardPreview extends JComponent implements PropertyChangeList
         private File mFile = null;
     	private Font mFont = new Font("Dialog", Font.PLAIN, 10);
 
-        public BoardPreview(JFileChooser fc) 
+        public BoardPreview(JFileChooser fc)
         {
             setPreferredSize(new Dimension(250, 400));
             fc.addPropertyChangeListener(this);
@@ -39,33 +39,30 @@ public final class BoardPreview extends JComponent implements PropertyChangeList
                 mBrd = null;
                 return;
             }
-            
+
             String extension = FileTools.getExtension(mFile);
             if (extension != null) {
                 if (extension.equals("srf")) {
                 	mBrd = new BezierBoard();
                     SrfReader.loadFile(mBrd, mFile.getAbsolutePath());
-                } 
+                }
                 else if (extension.equals("brd")){
                 	mBrd = new BezierBoard();
                     BrdReader.loadFile(mBrd, mFile.getAbsolutePath());
-                } 
+                }
                 else if (extension.equals("s3d")) {
                 	mBrd = new BezierBoard();
                     S3dReader.loadFile(mBrd, mFile.getAbsolutePath());
-                }  
+                }
                 else if (extension.equals("s3dx")) {
                 	mBrd = new BezierBoard();
                     S3dxReader.loadFile(mBrd, mFile.getAbsolutePath());
-                } 
-				else if (extension.equals("stp") || (extension.equals("step"))) {
-					StepReader.loadPreview(mBrd, mFile.getAbsolutePath());
-				}
-                else if (extension.equals("cad")){
-                	//TODO: implement
-                }            
+                }
+                else {
+                	//TODO: Warn
+                }
             }
-            
+
         }
 
         @Override
@@ -73,12 +70,12 @@ public final class BoardPreview extends JComponent implements PropertyChangeList
         {
             boolean update = false;
             String prop = e.getPropertyName();
-            
+
             if (JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(prop)) {//If the directory changed, don't show an image.
                 mFile = null;
                 mBrd = null;
                 update = true;
-            } 
+            }
             else if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(prop)) {	//If a file became selected, find out which one.
                 mFile = (File) e.getNewValue();
                 mBrd = null;
@@ -95,52 +92,51 @@ public final class BoardPreview extends JComponent implements PropertyChangeList
         }
 
         @Override
-		protected void paintComponent(Graphics gr) 
+		protected void paintComponent(Graphics gr)
         {
         	Graphics2D g = (Graphics2D)gr;
     		FontMetrics fontMetrics = g.getFontMetrics(mFont);
 
-        	double leftMargin = 5.0;
     		double topMargin = 3.0;
     		double bottomMargin = 3.0;
 
     		double height = getHeight();
         	double width = getWidth();
-        	
+
             g.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    		
+
     		g.setBackground(new Color(1.0f,1.0f,1.0f,1.0f));
     		g.clearRect(0, 0, (int)width, (int)height);
-    		
+
     		//Draw frames
     		double frameMargins = 2.0;
     		double lowerFrameHeight = fontMetrics.getHeight()*5 + topMargin + bottomMargin;
     		double upperFrameHeight = height - lowerFrameHeight - frameMargins;
-    		
-    		g.setColor(Color.GRAY);
-    		g.drawRect((int)frameMargins, 0, (int)(width-frameMargins-1), (int)upperFrameHeight);    		
-    		g.drawRect((int)frameMargins, (int)(upperFrameHeight + frameMargins), (int)(width-frameMargins-1), (int)lowerFrameHeight-1);
-    		
 
-    		if (mBrd == null) 
+    		g.setColor(Color.GRAY);
+    		g.drawRect((int)frameMargins, 0, (int)(width-frameMargins-1), (int)upperFrameHeight);
+    		g.drawRect((int)frameMargins, (int)(upperFrameHeight + frameMargins), (int)(width-frameMargins-1), (int)lowerFrameHeight-1);
+
+
+    		if (mBrd == null)
             {
                 loadBoard();
             }
-    
-            if (mBrd != null) 
-            {        		        		
+
+            if (mBrd != null)
+            {
             	double scale = (upperFrameHeight-topMargin-bottomMargin)/mBrd.getLength();
 
             	JavaDraw jd = new JavaDraw(g);
-        		
+
         		//Vertical
         		BasicStroke stroke = new BasicStroke(1.0f/(float)scale);
-        		
+
         		double outlineDrawPos = width/2 - (mBrd.getThickness()*scale + 5.0*scale)/2;
-        		
-        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos, upperFrameHeight-bottomMargin, scale, 0.0, Color.BLACK, stroke, new BezierSpline[]{mBrd.getOutline()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorX, true);	  		
-        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos +  mBrd.getMaxWidth()*scale/2+ mBrd.getThickness()*scale + 5.0*scale, 0.0, upperFrameHeight-bottomMargin, scale , Color.BLACK, stroke, new BezierSpline[]{mBrd.getDeck(), mBrd.getBottom()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipX | BezierBoardDrawUtil.FlipY, true);	  		
+
+        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos, upperFrameHeight-bottomMargin, scale, 0.0, Color.BLACK, stroke, new BezierSpline[]{mBrd.getOutline()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorX, true);
+        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos +  mBrd.getMaxWidth()*scale/2+ mBrd.getThickness()*scale + 5.0*scale, 0.0, upperFrameHeight-bottomMargin, scale , Color.BLACK, stroke, new BezierSpline[]{mBrd.getDeck(), mBrd.getBottom()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipX | BezierBoardDrawUtil.FlipY, true);
 
             	//Text
         		double strLength = fontMetrics.stringWidth(mFile.getName());
@@ -149,7 +145,7 @@ public final class BoardPreview extends JComponent implements PropertyChangeList
         		String modelStr = ((!mBrd.getModel().isEmpty())?(LanguageResource.getString("MODEL_STR") + mBrd.getModel()):"");
         		strLength = fontMetrics.stringWidth(modelStr);
         		g.drawString(modelStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*2)));
-        		
+
         		String dimStr = UnitUtils.convertLengthToCurrentUnit(mBrd.getLength(), true) + "(" + UnitUtils.convertLengthToCurrentUnit(mBrd.getLengthOverCurve(), true) + ") x " + UnitUtils.convertLengthToCurrentUnit(mBrd.getMaxWidth(), false) + " x " + UnitUtils.convertLengthToCurrentUnit(mBrd.getThickness(), false);
         		strLength = fontMetrics.stringWidth(dimStr);
         		g.drawString(dimStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*3)));

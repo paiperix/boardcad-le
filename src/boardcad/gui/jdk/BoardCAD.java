@@ -35,7 +35,6 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.*;
 import java.util.Locale;
 import java.util.Timer;
@@ -57,7 +56,6 @@ import boardcad.DefaultBrds;
 import boardcad.FileTools;
 import boardcad.print.*;
 import boardcad.settings.Settings.Enumeration;
-import boardcad.settings.Settings.SettingChangedCallback;
 import boardcad.settings.Settings;
 import boardcad.commands.*;
 import boardcad.export.DxfExport;
@@ -66,7 +64,6 @@ import boardcad.export.StlExport;
 import boardcad.i18n.LanguageResource;
 import boardcam.cutters.AbstractCutter;
 import boardcam.MachineConfig;
-import boardcam.Scan;
 import boardcam.cutters.SimpleBullnoseCutter;
 import boardcam.holdingsystems.SupportsBlankHoldingSystem;
 import boardcam.toolpathgenerators.*;
@@ -83,15 +80,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	};
 
 	protected BezierBoard mCurrentBrd;
-
 	private BezierBoard mOriginalBrd;
-
 	private BezierBoard mGhostBrd;
 
-	static protected Locale[] mSupportedLanguages = { new Locale("en", ""), new Locale("fr", ""), new Locale("pt", ""), new Locale("es", ""), new Locale("no", ""), new Locale("nl", "") };
+	static protected Locale[] mSupportedLanguages = { new Locale("en", ""), new Locale("fr", ""), new Locale("pt", ""),
+			new Locale("es", ""), new Locale("no", ""), new Locale("nl", "") };
 
 	private BrdCommand mCurrentCommand;
-
 	private BrdCommand mPreviousCommand;
 
 	private PrintBrd mPrintBrd;
@@ -102,29 +97,24 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	private boolean mBlockGUI = true;
 
-	private QuadView fourView;
+	private QuadView mQuadView;
 
 	public QuadView getFourView() {
-		return fourView;
+		return mQuadView;
 	}
 
-	public String getFourViewName() {
+	public String getFourViewActiveName() {
 		return getFourView().getActive().getName();
 	}
 
-	private BoardEdit view1;
-	private BoardEdit view2;
-	private BoardEdit view3;
-	private BoardEdit view4;
+	private BoardEdit mQuadViewOutlineEdit;
+	private BoardEdit mQuadViewCrossSectionEdit;
+	private BoardEdit mQuadViewRockerEdit;
 
 	private BoardEdit mOutlineEdit;
-
 	private BoardEdit mCrossSectionEdit;
-
 	private BoardEdit mCrossSectionOutlineEdit;
-
 	private BoardEdit mBottomAndDeckEdit;
-
 	private BoardEdit mOutlineEdit2;
 
 	DeckOrBottom mEditDeckorBottom = DeckOrBottom.DECK;
@@ -139,13 +129,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	private BrdEditSplitPane mOutlineAndProfileSplitPane;
 
-	JPanel mNurbspanel;
-	JPanel mRenderedpanel;
-
-	boolean mAlwaysApproximateNurbs = false;
-
-	boolean mNeverApproximateNurbs = false;
-
+	JPanel mRenderedPanel;
 	private JFrame mFrame;
 
 	private JToolBar mToolBar;
@@ -240,13 +224,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	protected DesignPanel design_panel2;
 	protected DesignPanel design_panel3;
 
-	public StatusPanel status_panel;
+	public StatusPanel mStatusPanel;
 
 	WeightCalculatorDialog mWeightCalculatorDialog;
 
 	BoardGuidePointsDialog mGuidePointsDialog;
 
-	protected BoardHandler board_handler;
 	public JCheckBoxMenuItem mIsLockedX;
 	public JCheckBoxMenuItem mIsLockedY;
 	public JCheckBoxMenuItem mIsLockedZ;
@@ -380,64 +363,94 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mColorSettings = mSettings.addCategory(LanguageResource.getString("COLORS_STR"));
 
 		mColorSettings.addColor(TEXTCOLOR, new Color(0, 0, 0), LanguageResource.getString("TEXTCOLOR_STR"));
-		mColorSettings.addColor(BACKGROUNDCOLOR, new Color(200, 200, 240), LanguageResource.getString("BACKGROUNDCOLOR_STR"), new Settings.SettingChangedCallback() {
-			@Override
-			public void onSettingChanged(Object obj) {
-				if (design_panel != null)
-					design_panel.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
-				if (design_panel2 != null)
-					design_panel2.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
-				if (design_panel3 != null)
-					design_panel3.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
-			}
-		});
-		mColorSettings.addColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245), LanguageResource.getString("UNSELECTEDBACKGROUNDCOLOR_STR"));
-		mColorSettings.addColor(STRINGERCOLOR, new Color(100, 100, 100), LanguageResource.getString("STRINGERCOLOR_STR"));
-		mColorSettings.addColor(FLOWLINESCOLOR, new Color(100, 150, 100), LanguageResource.getString("FLOWLINESCOLOR_STR"));
+		mColorSettings.addColor(BACKGROUNDCOLOR, new Color(200, 200, 240),
+				LanguageResource.getString("BACKGROUNDCOLOR_STR"), new Settings.SettingChangedCallback() {
+					@Override
+					public void onSettingChanged(Object obj) {
+						if (design_panel != null)
+							design_panel.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
+						if (design_panel2 != null)
+							design_panel2.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
+						if (design_panel3 != null)
+							design_panel3.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
+					}
+				});
+		mColorSettings.addColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245),
+				LanguageResource.getString("UNSELECTEDBACKGROUNDCOLOR_STR"));
+		mColorSettings.addColor(STRINGERCOLOR, new Color(100, 100, 100),
+				LanguageResource.getString("STRINGERCOLOR_STR"));
+		mColorSettings.addColor(FLOWLINESCOLOR, new Color(100, 150, 100),
+				LanguageResource.getString("FLOWLINESCOLOR_STR"));
 		mColorSettings.addColor(APEXLINECOLOR, new Color(80, 80, 200), LanguageResource.getString("APEXLINECOLOR_STR"));
-		mColorSettings.addColor(TUCKUNDERLINECOLOR, new Color(150, 50, 50), LanguageResource.getString("TUCKUNDERCOLOR_STR"));
-		mColorSettings.addColor(CENTERLINECOLOR, new Color(180, 180, 220), LanguageResource.getString("CENTERLINECOLOR_STR"));
+		mColorSettings.addColor(TUCKUNDERLINECOLOR, new Color(150, 50, 50),
+				LanguageResource.getString("TUCKUNDERCOLOR_STR"));
+		mColorSettings.addColor(CENTERLINECOLOR, new Color(180, 180, 220),
+				LanguageResource.getString("CENTERLINECOLOR_STR"));
 
 		mColorSettings.addColor(BRDCOLOR, new Color(0, 0, 0), LanguageResource.getString("BRDCOLOR_STR"));
-		mColorSettings.addColor(ORIGINALCOLOR, new Color(240, 240, 240), LanguageResource.getString("ORIGINALCOLOR_STR"));
+		mColorSettings.addColor(ORIGINALCOLOR, new Color(240, 240, 240),
+				LanguageResource.getString("ORIGINALCOLOR_STR"));
 		mColorSettings.addColor(GHOSTCOLOR, new Color(128, 128, 128), LanguageResource.getString("GHOSTCOLOR_STR"));
 		mColorSettings.addColor(BLANKCOLOR, new Color(128, 128, 128), LanguageResource.getString("BLANKCOLOR_STR"));
 		mColorSettings.addColor(GRIDCOLOR, new Color(128, 128, 128), LanguageResource.getString("GRIDCOLOR_STR"));
 		mColorSettings.addColor(FINSCOLOR, new Color(205, 128, 128), LanguageResource.getString("FINSCOLOR_STR"));
-		mColorSettings.addColor(CURVATURECOLOR, new Color(130, 130, 180), LanguageResource.getString("CURVATURECOLOR_STR"));
-		mColorSettings.addColor(VOLUMEDISTRIBUTIONCOLOR, new Color(80, 80, 80), LanguageResource.getString("VOLUMEDISTRIBUTIONCOLOR_STR"));
-		mColorSettings.addColor(CENTEROFMASSCOLOR, new Color(205, 10, 10), LanguageResource.getString("CENTEROFMASSCOLOR_STR"));
-		mColorSettings.addColor(SELECTEDTANGENTCOLOR, new Color(0, 0, 0), LanguageResource.getString("SELECTEDTANGENTCOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTCENTERCOLOR, new Color(30, 30, 200), LanguageResource.getString("SELECTEDCONTROLPOINTCENTERCOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 0), LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT1COLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 0, 0), LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT2COLOR_STR"));
+		mColorSettings.addColor(CURVATURECOLOR, new Color(130, 130, 180),
+				LanguageResource.getString("CURVATURECOLOR_STR"));
+		mColorSettings.addColor(VOLUMEDISTRIBUTIONCOLOR, new Color(80, 80, 80),
+				LanguageResource.getString("VOLUMEDISTRIBUTIONCOLOR_STR"));
+		mColorSettings.addColor(CENTEROFMASSCOLOR, new Color(205, 10, 10),
+				LanguageResource.getString("CENTEROFMASSCOLOR_STR"));
+		mColorSettings.addColor(SELECTEDTANGENTCOLOR, new Color(0, 0, 0),
+				LanguageResource.getString("SELECTEDTANGENTCOLOR_STR"));
+		mColorSettings.addColor(SELECTEDCONTROLPOINTCENTERCOLOR, new Color(30, 30, 200),
+				LanguageResource.getString("SELECTEDCONTROLPOINTCENTERCOLOR_STR"));
+		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 0),
+				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT1COLOR_STR"));
+		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 0, 0),
+				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT2COLOR_STR"));
 
-		mColorSettings.addColor(SELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(0, 0, 0), LanguageResource.getString("SELECTEDCONTROLPOINTCENTEROUTLINECOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(0, 0, 0), LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(0, 0, 0), LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR_STR"));
+		mColorSettings.addColor(SELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(0, 0, 0),
+				LanguageResource.getString("SELECTEDCONTROLPOINTCENTEROUTLINECOLOR_STR"));
+		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(0, 0, 0),
+				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR_STR"));
+		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(0, 0, 0),
+				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR_STR"));
 
-		mColorSettings.addColor(UNSELECTEDTANGENTCOLOR, new Color(100, 100, 100), LanguageResource.getString("UNSELECTEDTANGENTCOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTCENTERCOLOR, new Color(200, 200, 240), LanguageResource.getString("UNSELECTEDCONTROLPOINTCENTERCOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 240), LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT1COLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 200, 240), LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT2COLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDTANGENTCOLOR, new Color(100, 100, 100),
+				LanguageResource.getString("UNSELECTEDTANGENTCOLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDCONTROLPOINTCENTERCOLOR, new Color(200, 200, 240),
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTCENTERCOLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 240),
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT1COLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 200, 240),
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT2COLOR_STR"));
 
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(80, 80, 150), LanguageResource.getString("UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(150, 150, 80), LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(150, 80, 80), LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(80, 80, 150),
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(150, 150, 80),
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR_STR"));
+		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(150, 80, 80),
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR_STR"));
 
-		mColorSettings.addColor(GUIDEPOINTCOLOR, new Color(255, 0, 0), LanguageResource.getString("GUIDEPOINTCOLOR_STR"));
+		mColorSettings.addColor(GUIDEPOINTCOLOR, new Color(255, 0, 0),
+				LanguageResource.getString("GUIDEPOINTCOLOR_STR"));
 		mColorSettings.addColor(BASELINECOLOR, new Color(0, 0, 0), LanguageResource.getString("GUIDEPOINTCOLOR_STR"));
 
 		mSizeSettings = mSettings.addCategory(LanguageResource.getString("SIZE_AND_THICKNESS_STR"));
 
-		mSizeSettings.addDouble(SELECTEDCONTROLPOINTSIZE, 4.0, LanguageResource.getString("SELECTEDCONTROLPOINTSIZE_STR"));
-		mSizeSettings.addDouble(SELECTEDCONTROLPOINTOUTLINETHICKNESS, 1.5, LanguageResource.getString("SELECTEDCONTROLPOINTOUTLINETHICKNESS_STR"));
-		mSizeSettings.addDouble(UNSELECTEDCONTROLPOINTSIZE, 3.0, LanguageResource.getString("UNSELECTEDCONTROLPOINTSIZE_STR"));
-		mSizeSettings.addDouble(UNSELECTEDCONTROLPOINTOUTLINETHICKNESS, 0.8, LanguageResource.getString("UNSELECTEDCONTROLPOINTOUTLINETHICKNESS_STR"));
+		mSizeSettings.addDouble(SELECTEDCONTROLPOINTSIZE, 4.0,
+				LanguageResource.getString("SELECTEDCONTROLPOINTSIZE_STR"));
+		mSizeSettings.addDouble(SELECTEDCONTROLPOINTOUTLINETHICKNESS, 1.5,
+				LanguageResource.getString("SELECTEDCONTROLPOINTOUTLINETHICKNESS_STR"));
+		mSizeSettings.addDouble(UNSELECTEDCONTROLPOINTSIZE, 3.0,
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTSIZE_STR"));
+		mSizeSettings.addDouble(UNSELECTEDCONTROLPOINTOUTLINETHICKNESS, 0.8,
+				LanguageResource.getString("UNSELECTEDCONTROLPOINTOUTLINETHICKNESS_STR"));
 
 		mSizeSettings.addDouble(BEZIERTHICKNESS, 0.8, LanguageResource.getString("BEZIERTHICKNESS_STR"));
 		mSizeSettings.addDouble(CURVATURETHICKNESS, 1.2, LanguageResource.getString("CURVATURETHICKNESS_STR"));
-		mSizeSettings.addDouble(VOLUMEDISTRIBUTIONTHICKNESS, 1.2, LanguageResource.getString("VOLUMEDISTRIBUTIONTHICKNESS_STR"));
+		mSizeSettings.addDouble(VOLUMEDISTRIBUTIONTHICKNESS, 1.2,
+				LanguageResource.getString("VOLUMEDISTRIBUTIONTHICKNESS_STR"));
 		mSizeSettings.addDouble(GUIDEPNTTHICKNESS, 1.2, LanguageResource.getString("GUIDEPNTTHICKNESS_STR"));
 		mSizeSettings.addDouble(BASELINETHICKNESS, 1, LanguageResource.getString("BASELINETHICKNESS_STR"));
 
@@ -453,18 +466,23 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 		}
 
-		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new Enumeration(systemLookAndFeelIndex, looks), LanguageResource.getString("LOOKANDFEEL_STR"), new Settings.SettingChangedCallback() {
-			@Override
-			public void onSettingChanged(Object obj) {
-				Enumeration e = (Enumeration) mMiscSettings.getObject(LOOK_AND_FEEL);
+		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new Enumeration(systemLookAndFeelIndex, looks),
+				LanguageResource.getString("LOOKANDFEEL_STR"), new Settings.SettingChangedCallback() {
+					@Override
+					public void onSettingChanged(Object obj) {
+						Enumeration e = (Enumeration) mMiscSettings.getObject(LOOK_AND_FEEL);
 
-				String selectedLookAndFeelName = e.getAlternatives().get(e.getValue());
+						String selectedLookAndFeelName = e.getAlternatives().get(e.getValue());
 
-				if (mBlockGUI == false) {
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), String.format(LanguageResource.getString("LOOKANDFEELCHANGEDMSG_STR"), selectedLookAndFeelName), LanguageResource.getString("LOOKANDFEELCHANGEDTITLE_STR"), JOptionPane.INFORMATION_MESSAGE);
-				}
-			}
-		});
+						if (mBlockGUI == false) {
+							JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
+									String.format(LanguageResource.getString("LOOKANDFEELCHANGEDMSG_STR"),
+											selectedLookAndFeelName),
+									LanguageResource.getString("LOOKANDFEELCHANGEDTITLE_STR"),
+									JOptionPane.INFORMATION_MESSAGE);
+						}
+					}
+				});
 		mMiscSettings.getPreferences();
 
 		try {
@@ -479,20 +497,22 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Couldn't find class for specified look and feel:" + UIManager.getSystemLookAndFeelClassName());
+			System.err.println(
+					"Couldn't find class for specified look and feel:" + UIManager.getSystemLookAndFeelClassName());
 			System.err.println("Using the default look and feel.");
 		}
 
 		mMiscSettings.addBoolean(PRINTGUIDEPOINTS, false, LanguageResource.getString("PRINTGUIDEPOINTS_STR"));
 		mMiscSettings.addBoolean(PRINTFINS, false, LanguageResource.getString("PRINTFINS_STR"));
 
-		mMiscSettings.addInteger(FRACTIONACCURACY, 16, LanguageResource.getString("FRACTIONACCURACY_STR"), new Settings.SettingChangedCallback() {
+		mMiscSettings.addInteger(FRACTIONACCURACY, 16, LanguageResource.getString("FRACTIONACCURACY_STR"),
+				new Settings.SettingChangedCallback() {
 
-			@Override
-			public void onSettingChanged(Object obj) {
-				UnitUtils.setFractionAccuracy(((Integer) obj).intValue());
-			}
-		});
+					@Override
+					public void onSettingChanged(Object obj) {
+						UnitUtils.setFractionAccuracy(((Integer) obj).intValue());
+					}
+				});
 
 		mMiscSettings.addBoolean(ROCKERSTICK, false, LanguageResource.getString("ROCKERSTICK_STR"));
 
@@ -503,7 +523,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		SwingUtilities.invokeLater(this);
 	}
 
-	public void setDefaultTheme(){
+	public void setDefaultTheme() {
 		mColorSettings.setColor(TEXTCOLOR, new Color(0, 0, 0));
 		mColorSettings.setColor(BACKGROUNDCOLOR, new Color(200, 200, 240));
 		mColorSettings.setColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245));
@@ -544,7 +564,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mColorSettings.setColor(BASELINECOLOR, new Color(0, 0, 0));
 	}
 
-	public void setDarkTheme(){
+	public void setDarkTheme() {
 		mColorSettings.setColor(TEXTCOLOR, new Color(200, 200, 200));
 		mColorSettings.setColor(BACKGROUNDCOLOR, new Color(200, 200, 240));
 		mColorSettings.setColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245));
@@ -608,34 +628,57 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final Preferences prefs = Preferences.userNodeForPackage(BoardCAD.class);
 
 		defaultDirectory = prefs.get("defaultDirectory", "");
-		mIsPaintingGridMenuItem.setSelected(prefs.getBoolean("mIsPaintingGridMenuItem", mIsPaintingGridMenuItem.isSelected()));
-		mIsPaintingOriginalBrdMenuItem.setSelected(prefs.getBoolean("mIsPaintingOriginalBrdMenuItem", mIsPaintingOriginalBrdMenuItem.isSelected()));
-		mIsPaintingGhostBrdMenuItem.setSelected(prefs.getBoolean("mIsPaintingGhostBrdMenuItem", mIsPaintingGhostBrdMenuItem.isSelected()));
-		mIsPaintingControlPointsMenuItem.setSelected(prefs.getBoolean("mIsPaintingControlPointsMenuItem", mIsPaintingControlPointsMenuItem.isSelected()));
-		mIsPaintingNonActiveCrossSectionsMenuItem.setSelected(prefs.getBoolean("mIsPaintingNonActiveCrossSectionsMenuItem", mIsPaintingNonActiveCrossSectionsMenuItem.isSelected()));
-		mIsPaintingGuidePointsMenuItem.setSelected(prefs.getBoolean("mIsPaintingGuidePointsMenuItem", mIsPaintingGuidePointsMenuItem.isSelected()));
-		mIsPaintingCurvatureMenuItem.setSelected(prefs.getBoolean("mIsPaintingCurvatureMenuItem", mIsPaintingCurvatureMenuItem.isSelected()));
-		mIsPaintingVolumeDistributionMenuItem.setSelected(prefs.getBoolean("mIsPaintingVolumeDistributionMenuItem", mIsPaintingVolumeDistributionMenuItem.isSelected()));
-		mIsPaintingCenterOfMassMenuItem.setSelected(prefs.getBoolean("mIsPaintingCenterOfMassMenuItem", mIsPaintingCenterOfMassMenuItem.isSelected()));
-		mIsPaintingSlidingInfoMenuItem.setSelected(prefs.getBoolean("mIsPaintingSlidingInfoMenuItem", mIsPaintingSlidingInfoMenuItem.isSelected()));
-		mIsPaintingSlidingCrossSectionMenuItem.setSelected(prefs.getBoolean("mIsPaintingSlidingCrossSectionMenuItem", mIsPaintingSlidingCrossSectionMenuItem.isSelected()));
-		mIsPaintingFinsMenuItem.setSelected(prefs.getBoolean("mIsPaintingFinsMenuItem", mIsPaintingFinsMenuItem.isSelected()));
-		mIsPaintingBackgroundImageMenuItem.setSelected(prefs.getBoolean("mIsPaintingBackgroundImageMenuItem", mIsPaintingBackgroundImageMenuItem.isSelected()));
-		mIsAntialiasingMenuItem.setSelected(prefs.getBoolean("mIsAntialiasingMenuItem", mIsAntialiasingMenuItem.isSelected()));
+		mIsPaintingGridMenuItem
+				.setSelected(prefs.getBoolean("mIsPaintingGridMenuItem", mIsPaintingGridMenuItem.isSelected()));
+		mIsPaintingOriginalBrdMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingOriginalBrdMenuItem", mIsPaintingOriginalBrdMenuItem.isSelected()));
+		mIsPaintingGhostBrdMenuItem
+				.setSelected(prefs.getBoolean("mIsPaintingGhostBrdMenuItem", mIsPaintingGhostBrdMenuItem.isSelected()));
+		mIsPaintingControlPointsMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingControlPointsMenuItem", mIsPaintingControlPointsMenuItem.isSelected()));
+		mIsPaintingNonActiveCrossSectionsMenuItem.setSelected(prefs.getBoolean(
+				"mIsPaintingNonActiveCrossSectionsMenuItem", mIsPaintingNonActiveCrossSectionsMenuItem.isSelected()));
+		mIsPaintingGuidePointsMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingGuidePointsMenuItem", mIsPaintingGuidePointsMenuItem.isSelected()));
+		mIsPaintingCurvatureMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingCurvatureMenuItem", mIsPaintingCurvatureMenuItem.isSelected()));
+		mIsPaintingVolumeDistributionMenuItem.setSelected(prefs.getBoolean("mIsPaintingVolumeDistributionMenuItem",
+				mIsPaintingVolumeDistributionMenuItem.isSelected()));
+		mIsPaintingCenterOfMassMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingCenterOfMassMenuItem", mIsPaintingCenterOfMassMenuItem.isSelected()));
+		mIsPaintingSlidingInfoMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingSlidingInfoMenuItem", mIsPaintingSlidingInfoMenuItem.isSelected()));
+		mIsPaintingSlidingCrossSectionMenuItem.setSelected(prefs.getBoolean("mIsPaintingSlidingCrossSectionMenuItem",
+				mIsPaintingSlidingCrossSectionMenuItem.isSelected()));
+		mIsPaintingFinsMenuItem
+				.setSelected(prefs.getBoolean("mIsPaintingFinsMenuItem", mIsPaintingFinsMenuItem.isSelected()));
+		mIsPaintingBackgroundImageMenuItem.setSelected(prefs.getBoolean("mIsPaintingBackgroundImageMenuItem",
+				mIsPaintingBackgroundImageMenuItem.isSelected()));
+		mIsAntialiasingMenuItem
+				.setSelected(prefs.getBoolean("mIsAntialiasingMenuItem", mIsAntialiasingMenuItem.isSelected()));
 		mUseFillMenuItem.setSelected(prefs.getBoolean("mUseFillMenuItem", mUseFillMenuItem.isSelected()));
-		mIsPaintingBaseLineMenuItem.setSelected(prefs.getBoolean("mIsPaintingBaseLineMenuItem", mIsPaintingBaseLineMenuItem.isSelected()));
-		mIsPaintingCenterLineMenuItem.setSelected(prefs.getBoolean("mIsPaintingCenterLineMenuItem", mIsPaintingCenterLineMenuItem.isSelected()));
-		mIsPaintingOverCurveMesurementsMenuItem.setSelected(prefs.getBoolean("mIsPaintingoverCurveMesurementsMenuItem", mIsPaintingOverCurveMesurementsMenuItem.isSelected()));
-		mIsPaintingMomentOfInertiaMenuItem.setSelected(prefs.getBoolean("mIsPaintingMomentOfInertiaMenuItem", mIsPaintingMomentOfInertiaMenuItem.isSelected()));
+		mIsPaintingBaseLineMenuItem
+				.setSelected(prefs.getBoolean("mIsPaintingBaseLineMenuItem", mIsPaintingBaseLineMenuItem.isSelected()));
+		mIsPaintingCenterLineMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingCenterLineMenuItem", mIsPaintingCenterLineMenuItem.isSelected()));
+		mIsPaintingOverCurveMesurementsMenuItem.setSelected(prefs.getBoolean("mIsPaintingoverCurveMesurementsMenuItem",
+				mIsPaintingOverCurveMesurementsMenuItem.isSelected()));
+		mIsPaintingMomentOfInertiaMenuItem.setSelected(prefs.getBoolean("mIsPaintingMomentOfInertiaMenuItem",
+				mIsPaintingMomentOfInertiaMenuItem.isSelected()));
 
-		mIsPaintingCrossectionsPositionsMenuItem.setSelected(prefs.getBoolean("mIsPaintingCrossectionsPositionsMenuItem", mIsPaintingCrossectionsPositionsMenuItem.isSelected()));
+		mIsPaintingCrossectionsPositionsMenuItem.setSelected(prefs.getBoolean(
+				"mIsPaintingCrossectionsPositionsMenuItem", mIsPaintingCrossectionsPositionsMenuItem.isSelected()));
 
-		mIsPaintingFlowlinesMenuItem.setSelected(prefs.getBoolean("mIsPaintingFlowlinesMenuItem", mIsPaintingFlowlinesMenuItem.isSelected()));
+		mIsPaintingFlowlinesMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingFlowlinesMenuItem", mIsPaintingFlowlinesMenuItem.isSelected()));
 
-		mIsPaintingApexlineMenuItem.setSelected(prefs.getBoolean("mIsPaintingApexlineMenuItem", mIsPaintingApexlineMenuItem.isSelected()));
+		mIsPaintingApexlineMenuItem
+				.setSelected(prefs.getBoolean("mIsPaintingApexlineMenuItem", mIsPaintingApexlineMenuItem.isSelected()));
 
-		mIsPaintingTuckUnderLineMenuItem.setSelected(prefs.getBoolean("mIsPaintingTuckUnderLineMenuItem", mIsPaintingTuckUnderLineMenuItem.isSelected()));
-		mIsPaintingFootMarksMenuItem.setSelected(prefs.getBoolean("mIsPaintingFootMarksMenuItem", mIsPaintingFootMarksMenuItem.isSelected()));
+		mIsPaintingTuckUnderLineMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingTuckUnderLineMenuItem", mIsPaintingTuckUnderLineMenuItem.isSelected()));
+		mIsPaintingFootMarksMenuItem.setSelected(
+				prefs.getBoolean("mIsPaintingFootMarksMenuItem", mIsPaintingFootMarksMenuItem.isSelected()));
 
 		mPrintMarginLeft = prefs.getDouble("mPrintMarginLeft", mPrintMarginLeft);
 		mPrintMarginRight = prefs.getDouble("mPrintMarginRight", mPrintMarginRight);
@@ -666,7 +709,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		prefs.putBoolean("mIsPaintingOriginalBrdMenuItem", mIsPaintingOriginalBrdMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingGhostBrdMenuItem", mIsPaintingGhostBrdMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingControlPointsMenuItem", mIsPaintingControlPointsMenuItem.isSelected());
-		prefs.putBoolean("mIsPaintingNonActiveCrossSectionsMenuItem", mIsPaintingNonActiveCrossSectionsMenuItem.isSelected());
+		prefs.putBoolean("mIsPaintingNonActiveCrossSectionsMenuItem",
+				mIsPaintingNonActiveCrossSectionsMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingGuidePointsMenuItem", mIsPaintingGuidePointsMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingCurvatureMenuItem", mIsPaintingCurvatureMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingVolumeDistributionMenuItem", mIsPaintingVolumeDistributionMenuItem.isSelected());
@@ -677,9 +721,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		prefs.putBoolean("mIsPaintingBackgroundImageMenuItem", mIsPaintingCrossectionsPositionsMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingBaseLineMenuItem", mIsPaintingBaseLineMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingCenterLineMenuItem", mIsPaintingCenterLineMenuItem.isSelected());
-		prefs.putBoolean("mIsPaintingOverCurveMesurementsMenuItem", mIsPaintingOverCurveMesurementsMenuItem.isSelected());
+		prefs.putBoolean("mIsPaintingOverCurveMesurementsMenuItem",
+				mIsPaintingOverCurveMesurementsMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingMomentOfInertiaMenuItem", mIsPaintingMomentOfInertiaMenuItem.isSelected());
-		prefs.putBoolean("mIsPaintingCrossectionsPositionsMenuItem", mIsPaintingCrossectionsPositionsMenuItem.isSelected());
+		prefs.putBoolean("mIsPaintingCrossectionsPositionsMenuItem",
+				mIsPaintingCrossectionsPositionsMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingFlowlinesMenuItem", mIsPaintingFlowlinesMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingApexlineMenuItem", mIsPaintingApexlineMenuItem.isSelected());
 		prefs.putBoolean("mIsPaintingTuckUnderLineMenuItem", mIsPaintingTuckUnderLineMenuItem.isSelected());
@@ -754,9 +800,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	}
 
 	public void updateBezier3DModel() {
-		if (mTabbedPane.getSelectedComponent() == mRenderedpanel) {
+		if (mTabbedPane.getSelectedComponent() == mRenderedPanel) {
 			design_panel2.updateBezier3DModel(getCurrentBrd());
-		} else if (mTabbedPane.getSelectedComponent() == fourView) {
+		} else if (mTabbedPane.getSelectedComponent() == mQuadView) {
 			design_panel3.updateBezier3DModel(getCurrentBrd());
 		}
 	}
@@ -776,8 +822,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			mTabbedPane.setSelectedComponent(mOutlineAndProfileSplitPane);
 		} else if (edit == mBottomAndDeckEdit) {
 			mTabbedPane.setSelectedComponent(mBottomAndDeckEdit);
-		} else if (edit == view1 || edit == view2 || edit == view3) {
-			mTabbedPane.setSelectedComponent(fourView);
+		} else if (edit == mQuadViewOutlineEdit || edit == mQuadViewCrossSectionEdit || edit == mQuadViewRockerEdit) {
+			mTabbedPane.setSelectedComponent(mQuadView);
 		} else {
 			mTabbedPane.setSelectedComponent(edit);
 		}
@@ -795,8 +841,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				return mCrossSectionEdit;
 			} else if (component == mOutlineAndProfileSplitPane) {
 				return mOutlineAndProfileSplitPane.getActive();
-			} else if (component == fourView) {
-				return fourView.getActive();
+			} else if (component == mQuadView) {
+				return mQuadView.getActive();
 			} else if (component instanceof BoardEdit) {
 				return (BoardEdit) component;
 			} else {
@@ -1203,23 +1249,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		return mGhostBrd;
 	}
 
-	public BoardHandler getBoardHandler() {
-		return board_handler;
-	}
-
 	public void redraw() {
 		mOutlineEdit.repaint();
 		mBottomAndDeckEdit.repaint();
-		// mOutlineEdit2.repaint();
-		// mOutlineAndProfileSplitPane.getTopComponent().repaint();
-		// mOutlineAndProfileSplitPane.getBottomComponent().repaint();
-		view1.repaint();
-		view2.repaint();
-		view3.repaint();
-		view4.repaint();
-		design_panel.redraw();
-		// fourView.repaint();
-		// mFrame.repaint();
+		mQuadViewOutlineEdit.repaint();
+		mQuadViewCrossSectionEdit.repaint();
+		mQuadViewRockerEdit.repaint();
 	}
 
 	BezierBoard getFocusedBoard() {
@@ -1239,12 +1274,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mBottomAndDeckEdit.fit_all();
 		mCrossSectionEdit.fit_all();
 
-		view1.fit_all();
-		view2.fit_all();
-		view3.fit_all();
-		view4.fit_all();
+		mQuadViewOutlineEdit.fit_all();
+		mQuadViewCrossSectionEdit.fit_all();
+		mQuadViewRockerEdit.fit_all();
 
-		design_panel.fit_all();
 		// mMachineView.fit_all();
 
 	}
@@ -1280,7 +1313,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		final double maxWidth = getCurrentBrd().getMaxWidth();
 
-		mFrame.setTitle(appname + " - " + getCurrentBrd().getFilename() + "  " + UnitUtils.convertLengthToCurrentUnit(length, true) + " x " + UnitUtils.convertLengthToCurrentUnit(maxWidth, false));
+		mFrame.setTitle(appname + " - " + getCurrentBrd().getFilename() + "  "
+				+ UnitUtils.convertLengthToCurrentUnit(length, true) + " x "
+				+ UnitUtils.convertLengthToCurrentUnit(maxWidth, false));
 
 		mBoardSpec.updateInfo();
 
@@ -1336,34 +1371,22 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	private void saveAs(String filename) {
 
 		final String ext = FileTools.getExtension(filename);
-		if (ext != null && ext.compareTo("cad") == 0) {
-			board_handler.save_board_as(filename);
-		} else if (ext != null && (ext.compareTo("stp") == 0 || ext.compareTo("step") == 0)) {
+		BrdWriter.saveFile(getCurrentBrd(), filename);
 
-			try {
-				board_handler.export_board(new PrintStream(new File(filename)), filename);
-			} catch (IOException excep2) {
-				System.out.println("Problem creating file");
-			}
+		addRecentBoardFile(getCurrentBrd().getFilename());
 
-			addRecentBoardFile(getCurrentBrd().getFilename());
-			onBrdChanged();
-			mBoardChanged = false;
-		} else {
-			BrdWriter.saveFile(getCurrentBrd(), filename);
-
-			addRecentBoardFile(getCurrentBrd().getFilename());
-
-			onBrdChanged();
-			mBoardChanged = false; // Made a call to onBrdChanged, but
-			// we just saved the board
-		}
+		onBrdChanged();
+		mBoardChanged = false; // Made a call to onBrdChanged, but
+		// we just saved the board
 	}
 
 	private int saveChangedBoard() {
 		if (mBoardChanged == true) {
-			final Object[] options = { LanguageResource.getString("YESBUTTON_STR"), LanguageResource.getString("NOBUTTON_STR"), LanguageResource.getString("CANCELBUTTON_STR") };
-			final int n = JOptionPane.showOptionDialog(mFrame, LanguageResource.getString("SAVECURRENTBOARDMSG_STR"), LanguageResource.getString("SAVECURRENTBOARDTITLE_STR"), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			final Object[] options = { LanguageResource.getString("YESBUTTON_STR"),
+					LanguageResource.getString("NOBUTTON_STR"), LanguageResource.getString("CANCELBUTTON_STR") };
+			final int n = JOptionPane.showOptionDialog(mFrame, LanguageResource.getString("SAVECURRENTBOARDMSG_STR"),
+					LanguageResource.getString("SAVECURRENTBOARDTITLE_STR"), JOptionPane.YES_NO_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
 			switch (n) {
 			case 0:
@@ -1459,8 +1482,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 
-				String str = (String) JOptionPane.showInputDialog(mFrame, LanguageResource.getString("NEWBOARDMSG_STR"), LanguageResource.getString("NEWBOARDTITLE_STR"), JOptionPane.PLAIN_MESSAGE, null, DefaultBrds.getInstance().getDefaultBoardsList(), DefaultBrds.getInstance()
-						.getDefaultBoardsList()[0]);
+				String str = (String) JOptionPane.showInputDialog(mFrame, LanguageResource.getString("NEWBOARDMSG_STR"),
+						LanguageResource.getString("NEWBOARDTITLE_STR"), JOptionPane.PLAIN_MESSAGE, null,
+						DefaultBrds.getInstance().getDefaultBoardsList(),
+						DefaultBrds.getInstance().getDefaultBoardsList()[0]);
 
 				if (str == null)
 					return;
@@ -1656,7 +1681,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		printOutline.addActionListener(this);
 		printMenu.add(printOutline);
 
-		final JMenuItem printSpinTemplate = new JMenuItem(LanguageResource.getString("PRINTSPINTEMPLATE_STR"), KeyEvent.VK_T);
+		final JMenuItem printSpinTemplate = new JMenuItem(LanguageResource.getString("PRINTSPINTEMPLATE_STR"),
+				KeyEvent.VK_T);
 		// printOutline.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
 		// ActionEvent.ALT_MASK));
 		printSpinTemplate.addActionListener(this);
@@ -1688,7 +1714,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("SANDWICHPARAMETERSCATEGORY_STR");
 				Settings sandwichSettings = settings.addCategory(categoryName);
-				sandwichSettings.addMeasurement("SkinThickness", 0.3, LanguageResource.getString("SANDWICHSKINTHICKNESS_STR"));
+				sandwichSettings.addMeasurement("SkinThickness", 0.3,
+						LanguageResource.getString("SANDWICHSKINTHICKNESS_STR"));
 				sandwichSettings.addBoolean("Flatten", false, LanguageResource.getString("SANDWICHFLATTEN_STR"));
 				SettingDialog settingsDialog = new SettingDialog(settings);
 				settingsDialog.setTitle(LanguageResource.getString("PRINTSANDWICHPROFILETEMPLATETITLE_STR"));
@@ -1699,7 +1726,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					return;
 				}
 
-				mPrintSandwichTemplates.printProfileTemplate(sandwichSettings.getMeasurement("SkinThickness"), sandwichSettings.getBoolean("Flatten"), 0.0);
+				mPrintSandwichTemplates.printProfileTemplate(sandwichSettings.getMeasurement("SkinThickness"),
+						sandwichSettings.getBoolean("Flatten"), 0.0);
 				settingsDialog.dispose();
 			}
 
@@ -1718,8 +1746,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("SANDWICHPARAMETERSCATEGORY_STR");
 				Settings sandwichSettings = settings.addCategory(categoryName);
-				sandwichSettings.addMeasurement("SkinThickness", 0.3, LanguageResource.getString("SANDWICHSKINTHICKNESS_STR"));
-				sandwichSettings.addMeasurement("ToRail", 2.54 / 2, LanguageResource.getString("SANDWICHDISTANCETORAIL_STR"));
+				sandwichSettings.addMeasurement("SkinThickness", 0.3,
+						LanguageResource.getString("SANDWICHSKINTHICKNESS_STR"));
+				sandwichSettings.addMeasurement("ToRail", 2.54 / 2,
+						LanguageResource.getString("SANDWICHDISTANCETORAIL_STR"));
 				sandwichSettings.addMeasurement("TailOffset", 2.0, LanguageResource.getString("SANDWICHTAILOFFSET"));
 				sandwichSettings.addMeasurement("NoseOffset", 6.0, LanguageResource.getString("SANDWICHNOSEOFFSET"));
 				sandwichSettings.addBoolean("Flatten", false, LanguageResource.getString("SANDWICHFLATTEN_STR"));
@@ -1732,7 +1762,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					return;
 				}
 
-				mPrintSandwichTemplates.printRailTemplate(sandwichSettings.getMeasurement("ToRail"), sandwichSettings.getMeasurement("SkinThickness"), sandwichSettings.getMeasurement("TailOffset"), sandwichSettings.getMeasurement("NoseOffset"), sandwichSettings.getBoolean("Flatten"));
+				mPrintSandwichTemplates.printRailTemplate(sandwichSettings.getMeasurement("ToRail"),
+						sandwichSettings.getMeasurement("SkinThickness"), sandwichSettings.getMeasurement("TailOffset"),
+						sandwichSettings.getMeasurement("NoseOffset"), sandwichSettings.getBoolean("Flatten"));
 				settingsDialog.dispose();
 			}
 
@@ -1751,7 +1783,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("SANDWICHPARAMETERSCATEGORY_STR");
 				Settings sandwichSettings = settings.addCategory(categoryName);
-				sandwichSettings.addMeasurement("ToRail", 2.54 / 2, LanguageResource.getString("SANDWICHDISTANCETORAIL_STR"));
+				sandwichSettings.addMeasurement("ToRail", 2.54 / 2,
+						LanguageResource.getString("SANDWICHDISTANCETORAIL_STR"));
 				SettingDialog settingsDialog = new SettingDialog(settings);
 				settingsDialog.setTitle(LanguageResource.getString("PRINTSANDWICHDECKSKINTEMPLATETITLE_STR"));
 				settingsDialog.setModal(true);
@@ -1780,7 +1813,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("SANDWICHPARAMETERSCATEGORY_STR");
 				Settings sandwichSettings = settings.addCategory(categoryName);
-				sandwichSettings.addMeasurement("ToRail", 2.54 / 2, LanguageResource.getString("SANDWICHDISTANCETORAIL_STR"));
+				sandwichSettings.addMeasurement("ToRail", 2.54 / 2,
+						LanguageResource.getString("SANDWICHDISTANCETORAIL_STR"));
 				SettingDialog settingsDialog = new SettingDialog(settings);
 				settingsDialog.setTitle(LanguageResource.getString("PRINTSANDWICHBOTTOMSKINTEMPLATETITLE_STR"));
 				settingsDialog.setModal(true);
@@ -1831,7 +1865,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printStringerTemplate(HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"), HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"), HWSSettings.getMeasurement("NoseOffset"));
+				mPrintHollowWoodTemplates.printStringerTemplate(HWSSettings.getMeasurement("SkinThickness"),
+						HWSSettings.getMeasurement("FrameThickness"), HWSSettings.getMeasurement("Webbing"),
+						HWSSettings.getMeasurement("TailOffset"), HWSSettings.getMeasurement("NoseOffset"));
 				settingsDialog.dispose();
 			}
 
@@ -1850,7 +1886,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HWSPARAMETERSCATEGORY_STR");
 				Settings HWSSettings = settings.addCategory(categoryName);
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("SkinThickness", 0.4, LanguageResource.getString("HWSSKINTHICKNESS_STR"));
 				HWSSettings.addMeasurement("FrameThickness", 0.5, LanguageResource.getString("HWSFRAMETHICKNESS_STR"));
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
@@ -1865,7 +1902,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printCrosssectionTemplates(HWSSettings.getMeasurement("DistanceFromRail"), HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"), HWSSettings.getMeasurement("Webbing"));
+				mPrintHollowWoodTemplates.printCrosssectionTemplates(HWSSettings.getMeasurement("DistanceFromRail"),
+						HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"),
+						HWSSettings.getMeasurement("Webbing"));
 				settingsDialog.dispose();
 			}
 
@@ -1884,7 +1923,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HWSPARAMETERSCATEGORY_STR");
 				Settings HWSSettings = settings.addCategory(categoryName);
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("SkinThickness", 0.4, LanguageResource.getString("HWSSKINTHICKNESS_STR"));
 				HWSSettings.addMeasurement("FrameThickness", 0.5, LanguageResource.getString("HWSFRAMETHICKNESS_STR"));
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
@@ -1901,7 +1941,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printRailTemplate(HWSSettings.getMeasurement("DistanceFromRail"), HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"), HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"),
+				mPrintHollowWoodTemplates.printRailTemplate(HWSSettings.getMeasurement("DistanceFromRail"),
+						HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"),
+						HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"),
 						HWSSettings.getMeasurement("NoseOffset"));
 				settingsDialog.dispose();
 			}
@@ -1921,7 +1963,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HWSPARAMETERSCATEGORY_STR");
 				Settings HWSSettings = settings.addCategory(categoryName);
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("SkinThickness", 0.4, LanguageResource.getString("HWSSKINTHICKNESS_STR"));
 				HWSSettings.addMeasurement("FrameThickness", 0.5, LanguageResource.getString("HWSFRAMETHICKNESS_STR"));
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
@@ -1938,7 +1981,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printNoseTemplate(HWSSettings.getMeasurement("DistanceFromRail"), HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"), HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"),
+				mPrintHollowWoodTemplates.printNoseTemplate(HWSSettings.getMeasurement("DistanceFromRail"),
+						HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"),
+						HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"),
 						HWSSettings.getMeasurement("NoseOffset"));
 				settingsDialog.dispose();
 			}
@@ -1958,7 +2003,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HWSPARAMETERSCATEGORY_STR");
 				Settings HWSSettings = settings.addCategory(categoryName);
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("SkinThickness", 0.4, LanguageResource.getString("HWSSKINTHICKNESS_STR"));
 				HWSSettings.addMeasurement("FrameThickness", 0.5, LanguageResource.getString("HWSFRAMETHICKNESS_STR"));
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
@@ -1975,7 +2021,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printTailTemplate(HWSSettings.getMeasurement("DistanceFromRail"), HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"), HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"),
+				mPrintHollowWoodTemplates.printTailTemplate(HWSSettings.getMeasurement("DistanceFromRail"),
+						HWSSettings.getMeasurement("SkinThickness"), HWSSettings.getMeasurement("FrameThickness"),
+						HWSSettings.getMeasurement("Webbing"), HWSSettings.getMeasurement("TailOffset"),
 						HWSSettings.getMeasurement("NoseOffset"));
 				settingsDialog.dispose();
 			}
@@ -1995,7 +2043,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HWSPARAMETERSCATEGORY_STR");
 				Settings HWSSettings = settings.addCategory(categoryName);
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
 				settings.getPreferences();
@@ -2009,7 +2058,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printDeckSkinTemplate(HWSSettings.getMeasurement("DistanceFromRail"), HWSSettings.getMeasurement("TailOffset"), HWSSettings.getMeasurement("NoseOffset"));
+				mPrintHollowWoodTemplates.printDeckSkinTemplate(HWSSettings.getMeasurement("DistanceFromRail"),
+						HWSSettings.getMeasurement("TailOffset"), HWSSettings.getMeasurement("NoseOffset"));
 				settingsDialog.dispose();
 			}
 
@@ -2028,7 +2078,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HWSPARAMETERSCATEGORY_STR");
 				Settings HWSSettings = settings.addCategory(categoryName);
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
 				settings.getPreferences();
@@ -2042,7 +2093,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				mPrintHollowWoodTemplates.printBottomSkinTemplate(HWSSettings.getMeasurement("DistanceFromRail"), HWSSettings.getMeasurement("TailOffset"), HWSSettings.getMeasurement("NoseOffset"));
+				mPrintHollowWoodTemplates.printBottomSkinTemplate(HWSSettings.getMeasurement("DistanceFromRail"),
+						HWSSettings.getMeasurement("TailOffset"), HWSSettings.getMeasurement("NoseOffset"));
 				settingsDialog.dispose();
 			}
 
@@ -2051,7 +2103,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		printMenu.add(printHWSMenu);
 
-		final JMenu printChamberedWoodMenu = new JMenu(LanguageResource.getString("PRINTCHAMBEREDWOODTEMPLATESMENU_STR"));
+		final JMenu printChamberedWoodMenu = new JMenu(
+				LanguageResource.getString("PRINTCHAMBEREDWOODTEMPLATESMENU_STR"));
 
 		final AbstractAction printChamberedWoodTemplate = new AbstractAction() {
 			static final long serialVersionUID = 1L;
@@ -2066,14 +2119,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				final String categoryName = LanguageResource.getString("CHAMBEREDWOODPARAMETERSCATEGORY_STR");
 				final Settings chamberedWoodSettings = settings.addCategory(categoryName);
 				chamberedWoodSettings.addBoolean("Draw grid", true, LanguageResource.getString("DRAWGRID_STR"));
-				chamberedWoodSettings.addMeasurement("Start Offset from center", 0.0, LanguageResource.getString("CHAMBEREDWOODOFFSETFROMCENTER_STR"));
-				chamberedWoodSettings.addMeasurement("End Offset from center", mCurrentBrd.getMaxWidth() / 2.0, LanguageResource.getString("CHAMBEREDWOODENDOFFSET_STR"));
-				chamberedWoodSettings.addMeasurement("Plank thickness", 2.54, LanguageResource.getString("CHAMBEREDWOODPLANKTHICKNESS_STR"));
-				chamberedWoodSettings.addMeasurement("Deck/Bottom thickness", 0.8, LanguageResource.getString("CHAMBEREDWOODDECKANDBOTTOMTHICKNESS_STR"));
-				chamberedWoodSettings.addBoolean("Draw chambering", true, LanguageResource.getString("CHAMBEREDDRAWCHAMBERING_STR"));
-				chamberedWoodSettings.addBoolean("Draw alignment marks", true, LanguageResource.getString("CHAMBEREDDRAWALIGNEMNETMARKS_STR"));
+				chamberedWoodSettings.addMeasurement("Start Offset from center", 0.0,
+						LanguageResource.getString("CHAMBEREDWOODOFFSETFROMCENTER_STR"));
+				chamberedWoodSettings.addMeasurement("End Offset from center", mCurrentBrd.getMaxWidth() / 2.0,
+						LanguageResource.getString("CHAMBEREDWOODENDOFFSET_STR"));
+				chamberedWoodSettings.addMeasurement("Plank thickness", 2.54,
+						LanguageResource.getString("CHAMBEREDWOODPLANKTHICKNESS_STR"));
+				chamberedWoodSettings.addMeasurement("Deck/Bottom thickness", 0.8,
+						LanguageResource.getString("CHAMBEREDWOODDECKANDBOTTOMTHICKNESS_STR"));
+				chamberedWoodSettings.addBoolean("Draw chambering", true,
+						LanguageResource.getString("CHAMBEREDDRAWCHAMBERING_STR"));
+				chamberedWoodSettings.addBoolean("Draw alignment marks", true,
+						LanguageResource.getString("CHAMBEREDDRAWALIGNEMNETMARKS_STR"));
 
-				chamberedWoodSettings.addBoolean("Print multiple", false, LanguageResource.getString("CHAMBEREDPRINTMULTIPLETEMPLATES_STR"));
+				chamberedWoodSettings.addBoolean("Print multiple", false,
+						LanguageResource.getString("CHAMBEREDPRINTMULTIPLETEMPLATES_STR"));
 
 				settings.getPreferences();
 
@@ -2099,7 +2159,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 					int numberOfTemplates = (int) ((end - start) / plankThickness);
 
-					int selection = JOptionPane.showConfirmDialog(BoardCAD.getInstance().getFrame(), String.valueOf(numberOfTemplates) + " " + LanguageResource.getString("PRINTCHAMBEREDWOODMULTIPLETEMPLATESMSG_STR"), LanguageResource.getString("PRINTCHAMBEREDWOODMULTIPLETEMPLATESTITLE_STR"),
+					int selection = JOptionPane.showConfirmDialog(BoardCAD.getInstance().getFrame(),
+							String.valueOf(numberOfTemplates) + " "
+									+ LanguageResource.getString("PRINTCHAMBEREDWOODMULTIPLETEMPLATESMSG_STR"),
+							LanguageResource.getString("PRINTCHAMBEREDWOODMULTIPLETEMPLATESTITLE_STR"),
 							JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION);
 					if (selection != JOptionPane.YES_OPTION) {
 
@@ -2108,7 +2171,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 				}
 
-				mPrintChamberedWoodTemplate.printTemplate(chamberedWoodSettings.getBoolean("Draw grid"), start, end, plankThickness, chamberedWoodSettings.getMeasurement("Deck/Bottom thickness"), chamberedWoodSettings.getBoolean("Draw chambering"),
+				mPrintChamberedWoodTemplate.printTemplate(chamberedWoodSettings.getBoolean("Draw grid"), start, end,
+						plankThickness, chamberedWoodSettings.getMeasurement("Deck/Bottom thickness"),
+						chamberedWoodSettings.getBoolean("Draw chambering"),
 						chamberedWoodSettings.getBoolean("Draw alignment marks"), printMultiple);
 
 				settingsDialog.dispose();
@@ -2183,7 +2248,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					width = (int) resDialog.getValue1();
 					height = (int) resDialog.getValue2();
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), LanguageResource.getString("PRINTSPECSHEETTOFILEINVALIDPARAMETERSMSG_STR"), LanguageResource.getString("PRINTSPECSHEETTOFILEINVALIDPARAMETERSTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
+							LanguageResource.getString("PRINTSPECSHEETTOFILEINVALIDPARAMETERSMSG_STR"),
+							LanguageResource.getString("PRINTSPECSHEETTOFILEINVALIDPARAMETERSTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 
@@ -2196,9 +2264,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				g2d.setRenderingHint(
 
-				RenderingHints.KEY_ANTIALIASING,
+						RenderingHints.KEY_ANTIALIASING,
 
-				RenderingHints.VALUE_ANTIALIAS_ON);
+						RenderingHints.VALUE_ANTIALIAS_ON);
 
 				Paper paper = new Paper();
 				paper.setImageableArea(0, 0, width, height);
@@ -2227,7 +2295,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						}
 
 						String extension = FileTools.getExtension(f);
-						if (extension != null && (extension.equals("png") || extension.equals("gif") || extension.equals("bmp") || extension.equals("jpg"))) {
+						if (extension != null && (extension.equals("png") || extension.equals("gif")
+								|| extension.equals("bmp") || extension.equals("jpg"))) {
 							return true;
 						}
 
@@ -2265,7 +2334,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					ImageIO.write(img, FileTools.getExtension(filename), outputfile);
 				} catch (Exception e) {
 					String str = LanguageResource.getString("PRINTSPECSHEETTOFILEERRORMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("PRINTSPECSHEETTOFILEERRORTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("PRINTSPECSHEETTOFILEERRORTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2326,119 +2397,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		final JMenu exportMenu = new JMenu(LanguageResource.getString("EXPORTMENU_STR"));
 
-		final AbstractAction exportStep = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("EXPORTNURBSTOSTEP_STR"));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				final JFileChooser fc = new JFileChooser();
-
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-				int returnVal = fc.showSaveDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display
-				// selection
-				if (filename == null)
-					return;
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-				try {
-					board_handler.export_board(new PrintStream(new File(filename)), filename);
-				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTNURBSTOSTEPFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTNURBSTOSTEPFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
-
-				}
-			}
-
-		};
-
-		exportMenu.add(exportStep);
-
-		final AbstractAction exportDxf3D = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("EXPORTNURBSTODXF_STR"));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				final JFileChooser fc = new JFileChooser();
-
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-
-				int returnVal = fc.showSaveDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display
-				// selection
-				if (filename == null)
-					return;
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-				try {
-					board_handler.export_board_dxf(new PrintStream(new File(filename)), filename);
-				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTNURBSTODXFFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTNURBSTODXFFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
-
-				}
-			}
-
-		};
-		exportMenu.add(exportDxf3D);
-
-		final AbstractAction exportStl3D = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("EXPORTNURBSTOSTL_STR"));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				final JFileChooser fc = new JFileChooser();
-
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-
-				int returnVal = fc.showSaveDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display
-				// selection
-				if (filename == null)
-					return;
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-				try {
-					board_handler.export_board_stl(new PrintStream(new File(filename)), filename);
-				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTNURBSTOSTLFAILEDTITLE_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTNURBSTOSTLFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
-
-				}
-			}
-
-		};
-
-		exportMenu.add(exportStl3D);
-		exportMenu.addSeparator();
-
 		final AbstractAction exportBezierStl = new AbstractAction() {
 			static final long serialVersionUID = 1L;
 			{
@@ -2468,7 +2426,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					StlExport.exportBezierBoard(filename, BoardCAD.getInstance().getCurrentBrd(), 50, 50, 200);
 				} catch (Exception e) {
 					String str = LanguageResource.getString("EXPORTBEZIERTOSTLFAILEDTITLE_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERTOSTLFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERTOSTLFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 
@@ -2530,7 +2489,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 				} catch (Exception e) {
 					String str = LanguageResource.getString("EXPORTBEZIEROUTLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIEROUTLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIEROUTLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 
@@ -2593,7 +2554,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 				} catch (Exception e) {
 					String str = LanguageResource.getString("EXPORTBEZIERFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 
@@ -2651,12 +2613,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					return;
 
 				try {
-					if (BrdWriter.exportCrossection(getCurrentBrd(), getCurrentBrd().getCurrentCrossSectionIndex(), filename) == false) {
+					if (BrdWriter.exportCrossection(getCurrentBrd(), getCurrentBrd().getCurrentCrossSectionIndex(),
+							filename) == false) {
 						throw new Exception();
 					}
 				} catch (Exception e) {
 					String str = LanguageResource.getString("EXPORTBEZIERFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 
@@ -2702,15 +2666,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getDeck();
 
 					for (int i = 0; i < org.getNrOfControlPoints(); i++) {
-						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i).clone();
+						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i)
+								.clone();
 						controlPoint.switch_tangents();
 						patches[1].append(controlPoint);
 					}
 
 					DxfExport.exportBezierSplines(filename, patches);
 				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTBEZIERPROFILEASDXFSPLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERPROFILEASDXFSPLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					String str = LanguageResource.getString("EXPORTBEZIERPROFILEASDXFSPLINEFAILEDMSG_STR")
+							+ e.toString();
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERPROFILEASDXFSPLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2750,7 +2718,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getOutline();
 
 					for (int i = 0; i < org.getNrOfControlPoints(); i++) {
-						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i).clone();
+						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i)
+								.clone();
 						controlPoint.switch_tangents();
 						controlPoint.getEndPoint().y = -controlPoint.getEndPoint().y;
 						controlPoint.getTangentToPrev().y = -controlPoint.getTangentToPrev().y;
@@ -2759,8 +2728,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 					DxfExport.exportBezierSplines(filename, patches);
 				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFSPLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFSPLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					String str = LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFSPLINEFAILEDMSG_STR")
+							+ e.toString();
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFSPLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2797,10 +2769,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					BezierSpline[] patches = new BezierSpline[2];
 					patches[0] = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection().getBezierSpline();
 					patches[1] = new BezierSpline();
-					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection().getBezierSpline();
+					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection()
+							.getBezierSpline();
 
 					for (int i = 0; i < org.getNrOfControlPoints(); i++) {
-						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i).clone();
+						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i)
+								.clone();
 						controlPoint.switch_tangents();
 						controlPoint.getEndPoint().x = -controlPoint.getEndPoint().x;
 						controlPoint.getTangentToPrev().x = -controlPoint.getTangentToPrev().x;
@@ -2809,8 +2783,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 					DxfExport.exportBezierSplines(filename, patches);
 				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTBEZIERCROSSSECTIONASDXFSPLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERCROSSSECTIONASDXFSPLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					String str = LanguageResource.getString("EXPORTBEZIERCROSSSECTIONASDXFSPLINEFAILEDMSG_STR")
+							+ e.toString();
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERCROSSSECTIONASDXFSPLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2852,15 +2829,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getDeck();
 
 					for (int i = 0; i < org.getNrOfControlPoints(); i++) {
-						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i).clone();
+						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i)
+								.clone();
 						controlPoint.switch_tangents();
 						patches[1].append(controlPoint);
 					}
 
 					DxfExport.exportPolylineFromSplines(filename, patches, 100);
 				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTBEZIERPROFILEASDXFPOLYLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERPROFILEASDXFPOLYLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					String str = LanguageResource.getString("EXPORTBEZIERPROFILEASDXFPOLYLINEFAILEDMSG_STR")
+							+ e.toString();
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERPROFILEASDXFPOLYLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2900,7 +2881,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getOutline();
 
 					for (int i = 0; i < org.getNrOfControlPoints(); i++) {
-						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i).clone();
+						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i)
+								.clone();
 						controlPoint.switch_tangents();
 						controlPoint.getEndPoint().y = -controlPoint.getEndPoint().y;
 						controlPoint.getTangentToPrev().y = -controlPoint.getTangentToPrev().y;
@@ -2909,8 +2891,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 					DxfExport.exportPolylineFromSplines(filename, patches, 100);
 				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFPOLYLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFPOLYLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					String str = LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFPOLYLINEFAILEDMSG_STR")
+							+ e.toString();
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIEROUTLINEASDXFPOLYLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2947,10 +2932,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					BezierSpline[] patches = new BezierSpline[2];
 					patches[0] = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection().getBezierSpline();
 					patches[1] = new BezierSpline();
-					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection().getBezierSpline();
+					BezierSpline org = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection()
+							.getBezierSpline();
 
 					for (int i = 0; i < org.getNrOfControlPoints(); i++) {
-						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i).clone();
+						BezierKnot controlPoint = (BezierKnot) org.getControlPoint((org.getNrOfControlPoints() - 1) - i)
+								.clone();
 						controlPoint.switch_tangents();
 						controlPoint.getEndPoint().x = -controlPoint.getEndPoint().x;
 						controlPoint.getTangentToPrev().x = -controlPoint.getTangentToPrev().x;
@@ -2959,8 +2946,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					}
 					DxfExport.exportPolylineFromSplines(filename, patches, 100);
 				} catch (Exception e) {
-					String str = LanguageResource.getString("EXPORTBEZIERCROSSSECTIONASDXFPOLYLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("EXPORTBEZIERCROSSECTIONASDXFPOLYLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					String str = LanguageResource.getString("EXPORTBEZIERCROSSSECTIONASDXFPOLYLINEFAILEDMSG_STR")
+							+ e.toString();
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("EXPORTBEZIERCROSSECTIONASDXFPOLYLINEFAILEDTITLE_STR"),
+							JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -2971,72 +2961,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		fileMenu.add(exportMenu);
 
 		final JMenu gcodeMenu = new JMenu(LanguageResource.getString("GCODEMENU_STR"));
-
-		AbstractAction exportGcode = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, "Nurbs to Gcode deck");
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				final JFileChooser fc = new JFileChooser();
-
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-
-				int returnVal = fc.showSaveDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display selection
-				if (filename == null)
-					return;
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-				if (board_handler.is_empty()) {
-					board_handler.approximate_bezier(getCurrentBrd(), false);
-				}
-				board_handler.generateGCodeDeck(filename);
-			}
-
-		};
-		gcodeMenu.add(exportGcode);
-
-		AbstractAction exportGcodeBottom = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, "Nurbs to Gcode bottom");
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				final JFileChooser fc = new JFileChooser();
-
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-
-				int returnVal = fc.showSaveDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display selection
-				if (filename == null)
-					return;
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-				if (board_handler.is_empty()) {
-					board_handler.approximate_bezier(getCurrentBrd(), false);
-				}
-				board_handler.generateGCodeBottom(filename);
-			}
-
-		};
-		gcodeMenu.add(exportGcodeBottom);
-
-		gcodeMenu.addSeparator();
 
 		final AbstractAction gcodeBezier = new AbstractAction() {
 			static final long serialVersionUID = 1L;
@@ -3059,7 +2983,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				// Turn of sandwich compensation so we don't use sandwich
 				// compensation by accident (lesson learned the hard way)
-				Settings sandwichCompensationSettings = machineConfig.getCategory(LanguageResource.getString("SANDWICHCOMPENSATIONCATEGORY_STR"));
+				Settings sandwichCompensationSettings = machineConfig
+						.getCategory(LanguageResource.getString("SANDWICHCOMPENSATIONCATEGORY_STR"));
 				sandwichCompensationSettings.setBoolean(SandwichCompensation.SANDWICH_DECK_COMPENSATION_ON, false);
 				sandwichCompensationSettings.setBoolean(SandwichCompensation.SANDWICH_BOTTOM_COMPENSATION_ON, false);
 				sandwichCompensationSettings.setBoolean(SandwichCompensation.SANDWICH_OUTLINE_COMPENSATION_ON, false);
@@ -3072,13 +2997,18 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						// generalSettings.getDouble(MachineConfig.TAILSTOP_POS,
 						// );
 
-						Settings supportsSettings = machineConfig.getCategory(LanguageResource.getString("BLANKHOLDINGSYSTEMCATEGORY_STR"));
+						Settings supportsSettings = machineConfig
+								.getCategory(LanguageResource.getString("BLANKHOLDINGSYSTEMCATEGORY_STR"));
 
-						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_1_POS, new Double(brd.getStrut1()[0]));
-						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_2_POS, new Double(brd.getStrut2()[0]));
+						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_1_POS,
+								new Double(brd.getStrut1()[0]));
+						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_2_POS,
+								new Double(brd.getStrut2()[0]));
 
-						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_1_HEIGHT, new Double(brd.getStrut1()[1]));
-						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_2_HEIGHT, new Double(brd.getStrut2()[1]));
+						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_1_HEIGHT,
+								new Double(brd.getStrut1()[1]));
+						supportsSettings.setObject(SupportsBlankHoldingSystem.SUPPORT_2_HEIGHT,
+								new Double(brd.getStrut2()[1]));
 					}
 
 					generalSettings.setObject(MachineConfig.BLANK, generalSettings.new FileName(brd.getBlankFile()));
@@ -3108,7 +3038,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						// generalSettings.getDouble(MachineConfig.TAILSTOP_POS,
 						// );
 
-						Settings supportsSettings = machineConfig.addCategory(LanguageResource.getString("BLANKHOLDINGSYSTEMCATEGORY_STR"));
+						Settings supportsSettings = machineConfig
+								.addCategory(LanguageResource.getString("BLANKHOLDINGSYSTEMCATEGORY_STR"));
 
 						// generalSettings.getDouble(MachineConfig.TAILSTOP_POS,
 						// );
@@ -3165,7 +3096,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HOTWIRECATEGORY_STR");
 				Settings hotwireSettings = settings.addCategory(categoryName);
-				hotwireSettings.addMeasurement("CuttingSpeed", 50.0, LanguageResource.getString("HOTWIRECUTTINGSPEED_STR"));
+				hotwireSettings.addMeasurement("CuttingSpeed", 50.0,
+						LanguageResource.getString("HOTWIRECUTTINGSPEED_STR"));
 				SettingDialog settingsDialog = new SettingDialog(settings);
 				settingsDialog.setTitle(LanguageResource.getString("HOTWIREPARAMETERSTITLE_STR"));
 				settingsDialog.setModal(true);
@@ -3199,13 +3131,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						return new double[] { point.x, point.y, point.z };
 					}
 
-				}, new GCodeWriter(), hotwireSettings.getMeasurement("CuttingSpeed") * UnitUtils.MILLIMETER_PR_CENTIMETER);
+				}, new GCodeWriter(),
+						hotwireSettings.getMeasurement("CuttingSpeed") * UnitUtils.MILLIMETER_PR_CENTIMETER);
 
 				try {
 					toolpathGenerator.writeOutline(filename, getCurrentBrd());
 				} catch (Exception e) {
 					String str = LanguageResource.getString("GCODEOUTLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("GCODEOUTLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("GCODEOUTLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -3224,8 +3158,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				CategorizedSettings settings = new CategorizedSettings();
 				String categoryName = LanguageResource.getString("HOTWIRECATEGORY_STR");
 				final Settings hotwireSettings = settings.addCategory(categoryName);
-				hotwireSettings.addMeasurement("CuttingSpeed", 50.0, LanguageResource.getString("HOTWIRECUTTINGSPEED_STR"));
-				hotwireSettings.addMeasurement("AdditionalThickness", 0.0, LanguageResource.getString("ADDITIONALTHICKNESS_STR"));
+				hotwireSettings.addMeasurement("CuttingSpeed", 50.0,
+						LanguageResource.getString("HOTWIRECUTTINGSPEED_STR"));
+				hotwireSettings.addMeasurement("AdditionalThickness", 0.0,
+						LanguageResource.getString("ADDITIONALTHICKNESS_STR"));
 				SettingDialog settingsDialog = new SettingDialog(settings);
 				settingsDialog.setTitle(LanguageResource.getString("HOTWIREPARAMETERSTITLE_STR"));
 				settingsDialog.setModal(true);
@@ -3268,13 +3204,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						return new double[] { offsetPoint.x, offsetPoint.y, offsetPoint.z };
 					}
 
-				}, new GCodeWriter(), hotwireSettings.getMeasurement("CuttingSpeed") * UnitUtils.MILLIMETER_PR_CENTIMETER, hotwireSettings.getMeasurement("AdditionalThickness") * UnitUtils.MILLIMETER_PR_CENTIMETER);
+				}, new GCodeWriter(),
+						hotwireSettings.getMeasurement("CuttingSpeed") * UnitUtils.MILLIMETER_PR_CENTIMETER,
+						hotwireSettings.getMeasurement("AdditionalThickness") * UnitUtils.MILLIMETER_PR_CENTIMETER);
 
 				try {
 					toolpathGenerator.writeProfile(filename, getCurrentBrd());
 				} catch (Exception e) {
 					String str = LanguageResource.getString("GCODEPROFILEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("GCODEPROFILEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("GCODEPROFILEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -3315,7 +3254,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						return new double[] { point.x, point.y, point.z };
 					}
 
-					public double calcSpeed(Point3d point, Vector3d normal, AbstractBoard board, boolean isCuttingStringer) {
+					public double calcSpeed(Point3d point, Vector3d normal, AbstractBoard board,
+							boolean isCuttingStringer) {
 						return 10;
 					}
 
@@ -3325,7 +3265,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					toolpathGenerator.writeToolpath(filename, getCurrentBrd(), null);
 				} catch (Exception e) {
 					String str = LanguageResource.getString("GCODEDECKFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("GCODEDECKFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("GCODEDECKFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -3366,7 +3307,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						return new double[] { point.x, point.y, point.z };
 					}
 
-					public double calcSpeed(Point3d point, Vector3d normal, AbstractBoard board, boolean isCuttingStringer) {
+					public double calcSpeed(Point3d point, Vector3d normal, AbstractBoard board,
+							boolean isCuttingStringer) {
 						return 10;
 					}
 
@@ -3376,7 +3318,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					toolpathGenerator.writeToolpath(filename, getCurrentBrd(), null);
 				} catch (Exception e) {
 					String str = LanguageResource.getString("GCODEBOTTOMFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("GCODEBOTTOMFAILEDMSG_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("GCODEBOTTOMFAILEDMSG_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -3403,7 +3346,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3425,8 +3369,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3437,15 +3383,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				gdraw.setFlipNormal(true);
 
-				BezierBoardDrawUtil.printProfile(gdraw, 0.0, 0.0, 1.0, 0.0, false, BoardCAD.getInstance().getCurrentBrd(), 0.0, skinThickness, false, tailOffset, noseOffset);
+				BezierBoardDrawUtil.printProfile(gdraw, 0.0, 0.0, 1.0, 0.0, false,
+						BoardCAD.getInstance().getCurrentBrd(), 0.0, skinThickness, false, tailOffset, noseOffset);
 
 				gdraw.setFlipNormal(false);
 
-				PrintHollowWoodTemplates.printStringerWebbing(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), skinThickness, frameThickness, webbing);
+				PrintHollowWoodTemplates.printStringerWebbing(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), skinThickness, frameThickness, webbing);
 
-				PrintHollowWoodTemplates.printStringerTailPieceCutOut(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printStringerTailPieceCutOut(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printStringerNosePieceCutOut(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printStringerNosePieceCutOut(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
 				settingsDialog.dispose();
 				gdraw.close();
@@ -3471,7 +3423,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3493,8 +3446,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("Filename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("Filename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3505,17 +3460,23 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double cutterDiam = HWSSettings.getMeasurement("CutterDiam");
 
 				//
-				int nrOfCrossSections = (int) ((BoardCAD.getInstance().getCurrentBrd().getLength() - 9.0 * UnitUtils.INCH) / UnitUtils.FOOT);
+				int nrOfCrossSections = (int) ((BoardCAD.getInstance().getCurrentBrd().getLength()
+						- 9.0 * UnitUtils.INCH) / UnitUtils.FOOT);
 				double crosssectionPos = 0.0;
 				double verticalPos = 0.0;
 				for (int i = 0; i < nrOfCrossSections; i++) {
 					crosssectionPos = (i + 1) * UnitUtils.FOOT;
 
-					PrintHollowWoodTemplates.printCrossSection(gdraw, 0.0, verticalPos, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), crosssectionPos, distanceToRail, skinThickness, frameThickness, webbing, false);
+					PrintHollowWoodTemplates.printCrossSection(gdraw, 0.0, verticalPos, 1.0, 0.0,
+							BoardCAD.getInstance().getCurrentBrd(), crosssectionPos, distanceToRail, skinThickness,
+							frameThickness, webbing, false);
 
-					PrintHollowWoodTemplates.printCrossSectionWebbing(gdraw, verticalPos, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), crosssectionPos, distanceToRail, skinThickness, frameThickness, webbing, false);
+					PrintHollowWoodTemplates.printCrossSectionWebbing(gdraw, verticalPos, 0.0, 1.0, 0.0,
+							BoardCAD.getInstance().getCurrentBrd(), crosssectionPos, distanceToRail, skinThickness,
+							frameThickness, webbing, false);
 
-					double verticalStep = BoardCAD.getInstance().getCurrentBrd().getThicknessAtPos(crosssectionPos) - skinThickness + (cutterDiam * 2.0);
+					double verticalStep = BoardCAD.getInstance().getCurrentBrd().getThicknessAtPos(crosssectionPos)
+							- skinThickness + (cutterDiam * 2.0);
 
 					verticalPos += verticalStep;
 				}
@@ -3543,7 +3504,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3565,8 +3527,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3575,13 +3539,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double noseOffset = HWSSettings.getMeasurement("NoseOffset");
 				double distanceToRail = HWSSettings.getMeasurement("DistanceFromRail");
 
-				PrintHollowWoodTemplates.printRailWebbing(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailWebbing(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printRailNotching(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailNotching(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printRailNosePieceNotches(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailNosePieceNotches(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printRailTailPieceNotches(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailTailPieceNotches(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
 				settingsDialog.dispose();
 			}
@@ -3606,7 +3578,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3628,8 +3601,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3638,13 +3613,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double noseOffset = HWSSettings.getMeasurement("NoseOffset");
 				double distanceToRail = HWSSettings.getMeasurement("DistanceFromRail");
 
-				PrintHollowWoodTemplates.printNosePiece(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, false);
+				PrintHollowWoodTemplates.printNosePiece(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, false);
 
-				PrintHollowWoodTemplates.printNosePiece(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, true);
+				PrintHollowWoodTemplates.printNosePiece(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, true);
 
-				PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, false);
+				PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, false);
 
-				PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, true);
+				PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, true);
 
 				settingsDialog.dispose();
 			}
@@ -3669,7 +3652,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3691,8 +3675,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3701,13 +3687,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double noseOffset = HWSSettings.getMeasurement("NoseOffset");
 				double distanceToRail = HWSSettings.getMeasurement("DistanceFromRail");
 
-				PrintHollowWoodTemplates.printTailPiece(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, false);
+				PrintHollowWoodTemplates.printTailPiece(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, false);
 
-				PrintHollowWoodTemplates.printTailPiece(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, true);
+				PrintHollowWoodTemplates.printTailPiece(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, true);
 
-				PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, false);
+				PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, false);
 
-				PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset, true);
+				PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, 0.0, 0.0, 1.0, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset, true);
 
 				settingsDialog.dispose();
 			}
@@ -3732,7 +3726,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3754,8 +3749,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3764,7 +3761,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double noseOffset = HWSSettings.getMeasurement("NoseOffset");
 				double distanceToRail = HWSSettings.getMeasurement("DistanceFromRail");
 
-				BezierBoardDrawUtil.printDeckSkinTemplate(gdraw, 0.0, 0.0, 1.0, 0.0, true, BoardCAD.getInstance().getCurrentBrd(), distanceToRail);
+				BezierBoardDrawUtil.printDeckSkinTemplate(gdraw, 0.0, 0.0, 1.0, 0.0, true,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail);
 
 				settingsDialog.dispose();
 			}
@@ -3789,7 +3787,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3811,8 +3810,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("StringerFilename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3821,7 +3822,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double noseOffset = HWSSettings.getMeasurement("NoseOffset");
 				double distanceToRail = HWSSettings.getMeasurement("DistanceFromRail");
 
-				BezierBoardDrawUtil.printDeckSkinTemplate(gdraw, 0.0, 0.0, 1.0, 0.0, true, BoardCAD.getInstance().getCurrentBrd(), distanceToRail);
+				BezierBoardDrawUtil.printDeckSkinTemplate(gdraw, 0.0, 0.0, 1.0, 0.0, true,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail);
 
 				settingsDialog.dispose();
 			}
@@ -3848,7 +3850,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				HWSSettings.addMeasurement("Webbing", 1.5, LanguageResource.getString("HWSWEBBING_STR"));
 				HWSSettings.addMeasurement("NoseOffset", 3.5, LanguageResource.getString("HWSNOSEOFFSET_STR"));
 				HWSSettings.addMeasurement("TailOffset", 3.5, LanguageResource.getString("HWSTAILOFFSET_STR"));
-				HWSSettings.addMeasurement("DistanceFromRail", 3.0, LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
+				HWSSettings.addMeasurement("DistanceFromRail", 3.0,
+						LanguageResource.getString("HWSDISTANCEFROMRAIL_STR"));
 				HWSSettings.addMeasurement("CutterDiam", 5.0, LanguageResource.getString("CUTTERDIAMETER_STR"));
 				HWSSettings.addMeasurement("JogHeight", 5.0, LanguageResource.getString("JOGHEIGHT_STR"));
 				HWSSettings.addMeasurement("JogSpeed", 20.0, LanguageResource.getString("JOGSPEED_STR"));
@@ -3872,11 +3875,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				settings.putPreferences();
 
-				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("Filename"), HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"), HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"), HWSSettings.getMeasurement("JogSpeed"),
-						HWSSettings.getMeasurement("SinkSpeed"));
+				GCodeDraw gdraw = new GCodeDraw(HWSSettings.getFileName("Filename"),
+						HWSSettings.getMeasurement("CutterDiam"), HWSSettings.getMeasurement("CutDepth"),
+						HWSSettings.getMeasurement("CutSpeed"), HWSSettings.getMeasurement("JogHeight"),
+						HWSSettings.getMeasurement("JogSpeed"), HWSSettings.getMeasurement("SinkSpeed"));
 
 				gdraw.writeComment("HWS Frame");
-				gdraw.writeComment(BoardCAD.getInstance().getCurrentBrd().getName() + " - " + BoardCAD.getInstance().getCurrentBrd().getAuthor());
+				gdraw.writeComment(BoardCAD.getInstance().getCurrentBrd().getName() + " - "
+						+ BoardCAD.getInstance().getCurrentBrd().getAuthor());
 
 				double skinThickness = HWSSettings.getMeasurement("SkinThickness");
 				double frameThickness = HWSSettings.getMeasurement("FrameThickness");
@@ -3931,15 +3937,25 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				// Print rails twice
 				gdraw.writeComment("Rails");
 
-				BezierBoardDrawUtil.printRailTemplate(gdraw, x, y, scale, 0.0, false, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, tailOffset, noseOffset, false);
+				BezierBoardDrawUtil.printRailTemplate(gdraw, x, y, scale, 0.0, false,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, tailOffset, noseOffset,
+						false);
 
-				PrintHollowWoodTemplates.printRailWebbing(gdraw, x, y, scale, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailWebbing(gdraw, x, y, scale, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printRailNotching(gdraw, x, y, scale, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailNotching(gdraw, x, y, scale, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printRailNosePieceNotches(gdraw, x, y, scale, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailNosePieceNotches(gdraw, x, y, scale, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 
-				PrintHollowWoodTemplates.printRailTailPieceNotches(gdraw, x, y, scale, 0.0, BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing, tailOffset, noseOffset);
+				PrintHollowWoodTemplates.printRailTailPieceNotches(gdraw, x, y, scale, 0.0,
+						BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness, frameThickness, webbing,
+						tailOffset, noseOffset);
 				settingsDialog.dispose();
 				gdraw.close();
 				return;
@@ -4107,7 +4123,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					toolpathGenerator.writeProfile(filename, getCurrentBrd(), atuaSettings.getBoolean("NoRotation"));
 				} catch (Exception e) {
 					String str = LanguageResource.getString("ATUACORESPROFILEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("ATUACORESPROFILEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("ATUACORESPROFILEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -4147,7 +4164,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					toolpathGenerator.writeOutline(filename, getCurrentBrd());
 				} catch (Exception e) {
 					String str = LanguageResource.getString("ATUACORESOUTLINEFAILEDMSG_STR") + e.toString();
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str, LanguageResource.getString("ATUACORESOUTLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), str,
+							LanguageResource.getString("ATUACORESOUTLINEFAILEDTITLE_STR"), JOptionPane.ERROR_MESSAGE);
 
 				}
 			}
@@ -4231,34 +4249,33 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				 *
 				 * int steps = 20;
 				 *
-				 * System.out.printf("----------------------------------------\n"
-				 * );
-				 * System.out.printf("----------------------------------------\n"
-				 * );
-				 * System.out.printf("---------------TEST BEGIN---------------\n"
-				 * );
-				 * System.out.printf("----------------------------------------\n"
-				 * );
+				 * System.out.printf(
+				 * "----------------------------------------\n" );
+				 * System.out.printf(
+				 * "----------------------------------------\n" ); System.out.
+				 * printf("---------------TEST BEGIN---------------\n" );
+				 * System.out.printf(
+				 * "----------------------------------------\n" );
 				 *
 				 * for(int i = 0; i < steps; i++) { double currentAngle =
 				 * b.getNormalByS((double)i/(double)steps);
 				 * System.out.printf("Angle:%f\n",
 				 * currentAngle/BezierBoard.DEG_TO_RAD); }
 				 *
-				 * System.out.printf("----------------------------------------\n"
-				 * );
-				 * System.out.printf("----------------------------------------\n"
-				 * );
+				 * System.out.printf(
+				 * "----------------------------------------\n" );
+				 * System.out.printf(
+				 * "----------------------------------------\n" );
 				 *
 				 * double angleStep = (endAngle-startAngle) / steps;
 				 *
-				 * for(int i = 0; i < steps; i++) {
-				 * System.out.printf("----------------------------------------\n"
-				 * ); double currentAngle = startAngle + (angleStep*i); double s
-				 * = b.getSByNormalReverse(currentAngle); double checkAngle =
-				 * b.getNormalByS(s);
-				 * System.out.printf("Target Angle:%f Result s:%f Angle for s:%f\n"
-				 * , currentAngle/BezierBoard.DEG_TO_RAD, s,
+				 * for(int i = 0; i < steps; i++) { System.out.printf(
+				 * "----------------------------------------\n" ); double
+				 * currentAngle = startAngle + (angleStep*i); double s =
+				 * b.getSByNormalReverse(currentAngle); double checkAngle =
+				 * b.getNormalByS(s); System.out.
+				 * printf("Target Angle:%f Result s:%f Angle for s:%f\n" ,
+				 * currentAngle/BezierBoard.DEG_TO_RAD, s,
 				 * checkAngle/BezierBoard.DEG_TO_RAD); }
 				 */
 
@@ -4380,7 +4397,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingControlPointsMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingControlPointsMenuItem);
 
-		mIsPaintingNonActiveCrossSectionsMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWNONEACTIVECROSSECTIONS_STR"));
+		mIsPaintingNonActiveCrossSectionsMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWNONEACTIVECROSSECTIONS_STR"));
 		mIsPaintingNonActiveCrossSectionsMenuItem.setMnemonic(KeyEvent.VK_N);
 		mIsPaintingNonActiveCrossSectionsMenuItem.setSelected(true);
 		mIsPaintingNonActiveCrossSectionsMenuItem.addItemListener(this);
@@ -4400,7 +4418,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingCurvatureMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingCurvatureMenuItem);
 
-		mIsPaintingVolumeDistributionMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWVOLUMEDISTRIBUTION_STR"));
+		mIsPaintingVolumeDistributionMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWVOLUMEDISTRIBUTION_STR"));
 		mIsPaintingVolumeDistributionMenuItem.setMnemonic(KeyEvent.VK_V);
 		mIsPaintingVolumeDistributionMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, 0));// ,
 																										// KeyEvent.CTRL_DOWN_MASK));
@@ -4420,7 +4439,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingSlidingInfoMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingSlidingInfoMenuItem);
 
-		mIsPaintingSlidingCrossSectionMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWSLIDINGCROSSECTION_STR"));
+		mIsPaintingSlidingCrossSectionMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWSLIDINGCROSSECTION_STR"));
 		mIsPaintingSlidingCrossSectionMenuItem.setMnemonic(KeyEvent.VK_X);
 		mIsPaintingSlidingCrossSectionMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));// ,
 																										// KeyEvent.CTRL_DOWN_MASK));
@@ -4434,7 +4454,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingFinsMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingFinsMenuItem);
 
-		mIsPaintingBackgroundImageMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWBACKGROUNDIMAGE_STR"));
+		mIsPaintingBackgroundImageMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWBACKGROUNDIMAGE_STR"));
 		mIsPaintingBackgroundImageMenuItem.setMnemonic(KeyEvent.VK_B);
 		mIsPaintingBackgroundImageMenuItem.setSelected(true);
 		mIsPaintingBackgroundImageMenuItem.addItemListener(this);
@@ -4458,14 +4479,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingCenterLineMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingCenterLineMenuItem);
 
-		mIsPaintingOverCurveMesurementsMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWOVERBOTTOMCURVEMEASUREMENTS_STR"));
+		mIsPaintingOverCurveMesurementsMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWOVERBOTTOMCURVEMEASUREMENTS_STR"));
 		mIsPaintingOverCurveMesurementsMenuItem.setMnemonic(KeyEvent.VK_D);
 		mIsPaintingOverCurveMesurementsMenuItem.setAccelerator(KeyStroke.getKeyStroke("shift V"));
 		mIsPaintingOverCurveMesurementsMenuItem.setSelected(true);
 		mIsPaintingOverCurveMesurementsMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingOverCurveMesurementsMenuItem);
 
-		mIsPaintingMomentOfInertiaMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWMOMENTOFINERTIA_STR"));
+		mIsPaintingMomentOfInertiaMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWMOMENTOFINERTIA_STR"));
 		mIsPaintingMomentOfInertiaMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingMomentOfInertiaMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
@@ -4473,7 +4496,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingMomentOfInertiaMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingMomentOfInertiaMenuItem);
 
-		mIsPaintingCrossectionsPositionsMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWCROSSECTIONSPOSITIONS_STR"));
+		mIsPaintingCrossectionsPositionsMenuItem = new JCheckBoxMenuItem(
+				LanguageResource.getString("SHOWCROSSECTIONSPOSITIONS_STR"));
 		mIsPaintingCrossectionsPositionsMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingCrossectionsPositionsMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
@@ -4582,14 +4606,18 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				setSelectedEdit(mCrossSectionEdit);
 
 				double pos = 0.0f;
-				String posStr = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("ADDCROSSECTIONMSG_STR"), LanguageResource.getString("ADDCROSSECTIONTITLE_STR"), JOptionPane.PLAIN_MESSAGE);
+				String posStr = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("ADDCROSSECTIONMSG_STR"),
+						LanguageResource.getString("ADDCROSSECTIONTITLE_STR"), JOptionPane.PLAIN_MESSAGE);
 
 				if (posStr == null)
 					return;
 
 				pos = UnitUtils.convertInputStringToInternalLengthUnit(posStr);
 				if (pos <= 0 || pos > getCurrentBrd().getLength()) {
-					JOptionPane.showMessageDialog(getFrame(), LanguageResource.getString("ADDCROSSECTIONPOSITIONINVALIDMSG_STR"), LanguageResource.getString("ADDCROSSECTIONPOSITIONINVALIDTITLE_STR"), JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(getFrame(),
+							LanguageResource.getString("ADDCROSSECTIONPOSITIONINVALIDMSG_STR"),
+							LanguageResource.getString("ADDCROSSECTIONPOSITIONINVALIDTITLE_STR"),
+							JOptionPane.WARNING_MESSAGE);
 					return;
 				}
 
@@ -4615,18 +4643,24 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				setSelectedEdit(mCrossSectionEdit);
 
 				double pos = 0.0f;
-				String posStr = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("MOVECROSSECTIONMSG_STR"), LanguageResource.getString("MOVECROSSECTIONTITLE_STR"), JOptionPane.PLAIN_MESSAGE);
+				String posStr = JOptionPane.showInputDialog(mFrame,
+						LanguageResource.getString("MOVECROSSECTIONMSG_STR"),
+						LanguageResource.getString("MOVECROSSECTIONTITLE_STR"), JOptionPane.PLAIN_MESSAGE);
 
 				if (posStr == null)
 					return;
 
 				pos = UnitUtils.convertInputStringToInternalLengthUnit(posStr);
 				if (pos <= 0 || pos > getCurrentBrd().getLength()) {
-					JOptionPane.showMessageDialog(getFrame(), LanguageResource.getString("MOVECROSSECTIONPOSITIONINVALIDMSG_STR"), LanguageResource.getString("MOVECROSSECTIONPOSITIONINVALIDTITLE_STR"), JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(getFrame(),
+							LanguageResource.getString("MOVECROSSECTIONPOSITIONINVALIDMSG_STR"),
+							LanguageResource.getString("MOVECROSSECTIONPOSITIONINVALIDTITLE_STR"),
+							JOptionPane.WARNING_MESSAGE);
 					return;
 				}
 
-				BrdMoveCrossSectionCommand cmd = new BrdMoveCrossSectionCommand(mCrossSectionEdit, mCrossSectionEdit.getCurrentBrd().getCurrentCrossSection(), pos);
+				BrdMoveCrossSectionCommand cmd = new BrdMoveCrossSectionCommand(mCrossSectionEdit,
+						mCrossSectionEdit.getCurrentBrd().getCurrentCrossSection(), pos);
 				cmd.execute();
 
 				mFrame.repaint();
@@ -4648,12 +4682,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				setSelectedEdit(mCrossSectionEdit);
 
 				if (mCrossSectionEdit.getCurrentBrd().getCrossSections().size() <= 3) {
-					JOptionPane.showMessageDialog(getFrame(), LanguageResource.getString("REMOVECROSSECTIONDELETELASTERRORMSG_STR"), LanguageResource.getString("REMOVECROSSECTIONDELETELASTERRORTITLE_STR"), JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(getFrame(),
+							LanguageResource.getString("REMOVECROSSECTIONDELETELASTERRORMSG_STR"),
+							LanguageResource.getString("REMOVECROSSECTIONDELETELASTERRORTITLE_STR"),
+							JOptionPane.WARNING_MESSAGE);
 
 					return;
 				}
 
-				BrdRemoveCrossSectionCommand cmd = new BrdRemoveCrossSectionCommand(mCrossSectionEdit, mCrossSectionEdit.getCurrentBrd().getCurrentCrossSection());
+				BrdRemoveCrossSectionCommand cmd = new BrdRemoveCrossSectionCommand(mCrossSectionEdit,
+						mCrossSectionEdit.getCurrentBrd().getCurrentCrossSection());
 				cmd.execute();
 
 				mFrame.repaint();
@@ -4696,7 +4734,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				setSelectedEdit(mCrossSectionEdit);
 
-				BrdPasteCrossSectionCommand cmd = new BrdPasteCrossSectionCommand(mCrossSectionEdit, getCurrentBrd().getCurrentCrossSection(), mCrossSectionCopy);
+				BrdPasteCrossSectionCommand cmd = new BrdPasteCrossSectionCommand(mCrossSectionEdit,
+						getCurrentBrd().getCurrentCrossSection(), mCrossSectionCopy);
 				cmd.execute();
 
 				mFrame.repaint();
@@ -4740,7 +4779,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				getGhostBrd().scale(getCurrentBrd().getLength(), getCurrentBrd().getCenterWidth(), getCurrentBrd().getThickness());
+				getGhostBrd().scale(getCurrentBrd().getLength(), getCurrentBrd().getCenterWidth(),
+						getCurrentBrd().getThickness());
 
 				mFrame.repaint();
 			}
@@ -4841,8 +4881,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				mBottomAndDeckEdit.setFlipped(!mBottomAndDeckEdit.isFlipped());
 				mCrossSectionOutlineEdit.setFlipped(!mCrossSectionOutlineEdit.isFlipped());
 
-				view1.setFlipped(!view1.isFlipped());
-				view3.setFlipped(!view2.isFlipped());
+				mQuadViewOutlineEdit.setFlipped(!mQuadViewOutlineEdit.isFlipped());
+				mQuadViewRockerEdit.setFlipped(!mQuadViewCrossSectionEdit.isFlipped());
 
 				fitAll();
 
@@ -4927,7 +4967,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 					prefs.put("Language", languageStr);
 
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), LanguageResource.getString("LANGUAGECHANGEDMSG_STR"), LanguageResource.getString("LANGUAGECHANGEDTITLE_STR"), JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
+							LanguageResource.getString("LANGUAGECHANGEDMSG_STR"),
+							LanguageResource.getString("LANGUAGECHANGEDTITLE_STR"), JOptionPane.INFORMATION_MESSAGE);
 				}
 
 				languageDlg.dispose();
@@ -4939,9 +4981,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		miscMenu.addSeparator();
 
-		final JMenu crossSectionInterpolationMenu = new JMenu(LanguageResource.getString("CROSSECTIONINTERPOLATIONMENU_STR"));
-		mControlPointInterpolationButton = new JRadioButtonMenuItem(LanguageResource.getString("CROSSECTIONINTERPOLATIONTYPECONTROLPOINT_STR"));
-		mSBlendInterpolationButton = new JRadioButtonMenuItem(LanguageResource.getString("CROSSECTIONINTERPOLATIONTYPESBLEND_STR"));
+		final JMenu crossSectionInterpolationMenu = new JMenu(
+				LanguageResource.getString("CROSSECTIONINTERPOLATIONMENU_STR"));
+		mControlPointInterpolationButton = new JRadioButtonMenuItem(
+				LanguageResource.getString("CROSSECTIONINTERPOLATIONTYPECONTROLPOINT_STR"));
+		mSBlendInterpolationButton = new JRadioButtonMenuItem(
+				LanguageResource.getString("CROSSECTIONINTERPOLATIONTYPESBLEND_STR"));
 
 		ActionListener interpolationTypeListener = new ActionListener() {
 			@Override
@@ -4971,590 +5016,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		menuBar.add(miscMenu);
 
-		final JMenu scanMenu = new JMenu("Scan");
-		scanMenu.setMnemonic(KeyEvent.VK_S);
-
-		final AbstractAction scanBoard = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Read scanned board");
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Scan myScan = new Scan();
-				myScan.readScan();
-				mFrame.repaint();
-			}
-
-		};
-		scanMenu.add(scanBoard);
-
-		scanMenu.addSeparator();
-
-		final AbstractAction manual_scan = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Fit curve to guide points");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				Scan myScan = new Scan();
-				myScan.approximateCurrentView();
-				mFrame.repaint();
-			}
-
-		};
-		scanMenu.add(manual_scan);
-
-		scanMenu.addSeparator();
-
-		final AbstractAction read_scanned_points = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Open scanned blank position");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.read_guide_points();
-				design_panel.fit_all();
-				redraw();
-			}
-
-		};
-		scanMenu.add(read_scanned_points);
-
-		final AbstractAction close_scanned_points = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Hide scanned blank position");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.close_guide_points();
-				design_panel.fit_all();
-				redraw();
-			}
-
-		};
-		scanMenu.add(close_scanned_points);
-
-		menuBar.add(scanMenu);
-
 		final JMenu menu3D = new JMenu(LanguageResource.getString("3DMODELMENU_STR"));
 		menu3D.setMnemonic(KeyEvent.VK_D);
 
-		final AbstractAction approximate = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("3DAPPROXFROMBEZIER_STR") + " (closed model)");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.approximate_bezier(getCurrentBrd(), true);
-				// design_panel.update_3d();
-				// design_panel.fit_all();
-				mBoardSpec.updateInfoInstantly();
-				panel.remove(mControlPointInfo);
-				panel.repaint();
-				// redraw();
-				// design_panel.redraw();
-			}
-
-		};
-		menu3D.add(approximate);
-
-		final AbstractAction approximate_open = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("3DAPPROXFROMBEZIER_STR") + " (open model)");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.approximate_bezier(getCurrentBrd(), false);
-				// design_panel.update_3d();
-				// design_panel.fit_all();
-				mBoardSpec.updateInfoInstantly();
-				panel.remove(mControlPointInfo);
-				panel.repaint();
-				// redraw();
-				// design_panel.redraw();
-			}
-
-		};
-		menu3D.add(approximate_open);
-
-		final AbstractAction approximate2 = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Approximate outline and rocker");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.approximate_bezier2(getCurrentBrd(), false);
-				// design_panel.update_3d();
-				// design_panel.fit_all();
-				mBoardSpec.updateInfoInstantly();
-				panel.remove(mControlPointInfo);
-				panel.repaint();
-				// redraw();
-				// design_panel.redraw();
-			}
-
-		};
-		menu3D.add(approximate2);
-
-		final AbstractAction bezier_patch = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Create Bezier patch");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				if (board_handler.approximate_bezier_patch(getCurrentBrd(), false) < 0)
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), "All cross sections must have 4 or 5 control points", "Couldn't create bezier patch", JOptionPane.ERROR_MESSAGE);
-
-				// design_panel.update_3d();
-				// design_panel.fit_all();
-				mBoardSpec.updateInfoInstantly();
-				panel.remove(mControlPointInfo);
-				panel.repaint();
-				// redraw();
-				// design_panel.redraw();
-			}
-
-		};
-		menu3D.add(bezier_patch);
-
-		// 3D object clear function
-		final AbstractAction clearApproximate = new AbstractAction() {
-			static final long serialVersionUID = 12345L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("CLEARAPPROXIMATION_STR"));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.clearBezier();
-				mBoardSpec.updateInfoInstantly();
-				panel.add(mControlPointInfo, BorderLayout.EAST);
-				panel.repaint();
-			}
-		};
-		menu3D.add(clearApproximate);
-
-		menu3D.addSeparator();
-		JRadioButtonMenuItem rbMenuItem;
-
-		/*
-		 * final ButtonGroup burbsViewGroup = new ButtonGroup(); rbMenuItem =
-		 * new JRadioButtonMenuItem(LanguageResource.getString("VIEW3D_STR"));
-		 * rbMenuItem.setSelected(true); rbMenuItem.addActionListener(this);
-		 * menu3D.add(rbMenuItem); burbsViewGroup.add(rbMenuItem); rbMenuItem =
-		 * new
-		 * JRadioButtonMenuItem(LanguageResource.getString("EDITNURBS_STR"));
-		 * rbMenuItem.addActionListener(this); burbsViewGroup.add(rbMenuItem);
-		 * menu3D.add(rbMenuItem);
-		 *
-		 * menu3D.addSeparator();
-		 */
-
-		ButtonGroup bnurbsEditGroup = new ButtonGroup();
-		rbMenuItem = new JRadioButtonMenuItem(LanguageResource.getString("SIMPLEEDITING_STR"));
-		rbMenuItem.setSelected(true);
-		rbMenuItem.addActionListener(this);
-		menu3D.add(rbMenuItem);
-		bnurbsEditGroup.add(rbMenuItem);
-		rbMenuItem = new JRadioButtonMenuItem(LanguageResource.getString("ADVANCEDEDITING_STR"));
-		rbMenuItem.addActionListener(this);
-		bnurbsEditGroup.add(rbMenuItem);
-		menu3D.add(rbMenuItem);
-
-		menu3D.addSeparator();
-
-		final AbstractAction addsegment = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("ADDSEGMENT_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("DISTANCEFROMTAIL_STR"));
-				board_handler.add_segment(Double.parseDouble(s));
-
-				design_panel.redraw();
-			}
-
-		};
-		menu3D.add(addsegment);
-
-		final AbstractAction taildesigner = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("TAILDESIGNER_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("SWALLOWTAIL_STR"));
-
-				board_handler.set_tail(Double.parseDouble(s));
-				// board_handler.set_tail(2);
-
-				design_panel.redraw();
-			}
-
-		};
-		menu3D.add(taildesigner);
-
-		final AbstractAction setnrofsegments = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SETNROFSEGMENT_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("NROFSEGMENT_STR"));
-
-				board_handler.set_nr_of_segments(Integer.parseInt(s));
-				board_handler.approximate_bezier(getCurrentBrd(), true);
-				design_panel.update_3d();
-				// design_panel.fit_all();
-				design_panel.redraw();
-			}
-
-		};
-		menu3D.add(setnrofsegments);
-
-		final AbstractAction setnrofpoints = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SETNROFPOINTS_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("NROFPOINTS_STR"));
-
-				board_handler.set_nr_of_points(Integer.parseInt(s));
-				board_handler.approximate_bezier(getCurrentBrd(), true);
-				design_panel.update_3d();
-				// design_panel.fit_all();
-				design_panel.redraw();
-			}
-
-		};
-		menu3D.add(setnrofpoints);
-
-		menu3D.addSeparator();
-
-		AbstractAction setasblank = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SETASBLANK_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				board_handler.set_as_blank();
-			}
-
-		};
-		menu3D.add(setasblank);
-
-		final JMenu transform3DMenu = new JMenu("Transform");
-
-		AbstractAction rotate = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("ROTATE_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("ROTATIONANGLE_STR"));
-				NurbsEditCommand mnurbsCommand = new NurbsEditCommand();
-				board_handler.rotate(Double.parseDouble(s));
-				mnurbsCommand.execute();
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(rotate);
-
-		AbstractAction translatex = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("TRANSLATEX_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("TRANLATIONINMM_STR"));
-
-				NurbsEditCommand mnurbsCommand = new NurbsEditCommand();
-				board_handler.translate(Double.parseDouble(s), 0.0, 0.0);
-				mnurbsCommand.execute();
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(translatex);
-
-		AbstractAction translatey = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("TRANSLATEY_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("TRANLATIONINMM_STR"));
-
-				NurbsEditCommand mnurbsCommand = new NurbsEditCommand();
-				board_handler.translate(0.0, Double.parseDouble(s), 0.0);
-				mnurbsCommand.execute();
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(translatey);
-
-		AbstractAction scale_length = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SCALELENGTH_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("SCALELENGTHFACTOR_STR"));
-
-				board_handler.scale_length(Double.parseDouble(s));
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(scale_length);
-
-		AbstractAction scale_width = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SCALEWIDTH_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("SCALEWIDTHFACTOR_STR"));
-
-				board_handler.scale_width(Double.parseDouble(s));
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(scale_width);
-
-		AbstractAction scale_thickness = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SCALETHICKNESS_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("SCALETHICKNESSFACTOR_STR"));
-
-				board_handler.scale_thickness(Double.parseDouble(s));
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(scale_thickness);
-
-		AbstractAction scale_rocker = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("SCALEROCKER_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String s = JOptionPane.showInputDialog(mFrame, LanguageResource.getString("SCALEROCKERFACTOR_STR"));
-
-				board_handler.scale_rocker(Double.parseDouble(s));
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(scale_rocker);
-
-		AbstractAction flipnurbs = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("FLIPBOARD_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				board_handler.flip();
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(flipnurbs);
-
-		AbstractAction placeboard = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("PLACEBOARD_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				board_handler.place_board();
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(placeboard);
-
-		AbstractAction placeblank = new AbstractAction() {
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("PLACEBLANK_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				board_handler.place_blank();
-				design_panel.redraw();
-			}
-
-		};
-		transform3DMenu.add(placeblank);
-
-		menu3D.add(transform3DMenu);
-
-		/*
-		 *
-		 * AbstractAction repair = new AbstractAction() { {
-		 * this.putValue(Action.NAME, LanguageResource.getString("REPAIR_STR"));
-		 * // this.putValue(Action.ACCELERATOR_KEY,
-		 * KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0)); };
-		 *
-		 * public void actionPerformed(ActionEvent arg0) {
-		 *
-		 * board_handler.repair(); design_panel.redraw(); }
-		 *
-		 * }; menu3D.add(repair);
-		 */
-		/*
-		 * AbstractAction loadairbrush = new AbstractAction() { {
-		 * this.putValue(Action.NAME, "Load airbrush"); //
-		 * this.putValue(Action.ACCELERATOR_KEY,
-		 * KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0)); };
-		 *
-		 * public void actionPerformed(ActionEvent arg0) {
-		 *
-		 * design_panel2.set_airbrush("airbrush.jpg"); design_panel2.redraw(); }
-		 *
-		 * }; menu3D.add(loadairbrush);
-		 */
-
-		/*
-		 * AbstractAction settolerance = new AbstractAction() { {
-		 * this.putValue(Action.NAME, "Set tolerance"); //
-		 * this.putValue(Action.ACCELERATOR_KEY,
-		 * KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0)); };
-		 *
-		 * public void actionPerformed(ActionEvent arg0) { String
-		 * s=(String)JOptionPane.showInputDialog(mFrame, "Set tolerance (mm)");
-		 *
-		 * board_handler.set_tolerance(Double.parseDouble(s)); } };
-		 * menu3D.add(settolerance);
-		 *
-		 * AbstractAction setmaxiterations = new AbstractAction() { {
-		 * this.putValue(Action.NAME, "Set max iterations"); //
-		 * this.putValue(Action.ACCELERATOR_KEY,
-		 * KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0)); };
-		 *
-		 * public void actionPerformed(ActionEvent arg0) { String
-		 * s=(String)JOptionPane.showInputDialog(mFrame, "Max iterations");
-		 *
-		 * board_handler.set_iterations(Integer.parseInt(s)); } };
-		 * menu3D.add(setmaxiterations);
-		 */
 
 		menuBar.add(menu3D);
 
 		final JMenu menuRender = new JMenu(LanguageResource.getString("RENDERMENU_STR"));
 		menuRender.setMnemonic(KeyEvent.VK_R);
-
-		final AbstractAction update3d = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, LanguageResource.getString("RENDER_STR"));
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (board_handler.is_empty()) {
-					board_handler.approximate_bezier(getCurrentBrd(), false);
-				}
-				design_panel2.update_3d();
-				design_panel3.update_3d();
-			}
-
-		};
-		menuRender.add(update3d);
 
 		mShowRenderInwireframe = new JCheckBoxMenuItem(LanguageResource.getString("SHOWWIREFRAME_STR"));
 		mShowRenderInwireframe.setMnemonic(KeyEvent.VK_S);
@@ -5600,62 +5069,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					design_panel3.getBezier3DModel().setAppearance(a);
 				}
 
-				if (design_panel2.getShape() != null) {
-					design_panel2.getShape().setAppearance(a);
-				}
-
-				if (design_panel3.getShape() != null) {
-					design_panel3.getShape().setAppearance(a);
-				}
-
 			}
 
 		});
 		menuRender.add(mShowRenderInwireframe);
-
-		final AbstractAction loadairbrush = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Load airbrush");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_I,
-				// KeyEvent.CTRL_DOWN_MASK));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				final JFileChooser fc = new JFileChooser();
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-
-				int returnVal = fc.showOpenDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display
-				// selection
-				if (filename == null)
-					return;
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-				design_panel2.set_airbrush(filename);
-				design_panel2.redraw();
-
-				design_panel3.set_airbrush(filename);
-				design_panel3.redraw();
-
-				/*
-				 * BoardEdit edit = getSelectedEdit(); if (edit == null) return;
-				 *
-				 * edit.loadBackgroundImage(filename); edit.repaint();
-				 */
-			}
-
-		};
-		menuRender.add(loadairbrush);
 
 		mShowBezier3DModelMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWBEZIER3DMODEL_STR"));
 		mShowBezier3DModelMenuItem.setMnemonic(KeyEvent.VK_B);
@@ -5700,7 +5117,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			static final long serialVersionUID = 1L;
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("ABOUT_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/Information16.gif")));
+				this.putValue(Action.SMALL_ICON,
+						new ImageIcon(getClass().getResource("../../icons/Information16.gif")));
 				// this.putValue(Action.ACCELERATOR_KEY,
 				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
 			};
@@ -5809,8 +5227,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mToolBar.addSeparator();
 		mToolBar.addSeparator();
 
-		board_handler = new BoardHandler();
-
 		final SetCurrentCommandAction edit = new SetCurrentCommandAction(new BrdEditCommand());
 		edit.putValue(Action.NAME, LanguageResource.getString("EDITBUTTON_STR"));
 		edit.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("EDITBUTTON_STR"));
@@ -5828,48 +5244,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mToolBar.add(pan);
 
-		final SetCurrentCommandAction rotate_view = new SetCurrentCommandAction(new BrdRotateViewCommand());
-		rotate_view.putValue(Action.NAME, LanguageResource.getString("ROTATEVIEWBUTTON_STR"));
-		rotate_view.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ROTATEVIEWBUTTON_STR"));
-		rotate_view.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/BoardCADrotateview24.gif")));
-
-		mToolBar.add(rotate_view);
-
 		mToolBar.addSeparator();
-
-		popupMenu.addSeparator();
-
-		mIsLockedX = new JCheckBoxMenuItem(LanguageResource.getString("NURBSCONTROLPOINTXLOCKED_STR"));
-		mIsLockedX.setSelected(true);
-		mIsLockedX.addItemListener(this);
-		popupMenu.add(mIsLockedX);
-
-		mIsLockedY = new JCheckBoxMenuItem(LanguageResource.getString("NURBSCONTROLPOINTYLOCKED_STR"));
-		mIsLockedY.setSelected(false);
-		mIsLockedY.addItemListener(this);
-		popupMenu.add(mIsLockedY);
-
-		mIsLockedZ = new JCheckBoxMenuItem(LanguageResource.getString("NURBSCONTROLPOINTZLOCKED_STR"));
-		mIsLockedZ.setSelected(false);
-		mIsLockedZ.addItemListener(this);
-		popupMenu.add(mIsLockedZ);
-
-		popupMenu.addSeparator();
-
-		mViewBlank = new JCheckBoxMenuItem(LanguageResource.getString("VIEWBLANK_STR"));
-		mViewBlank.setSelected(false);
-		mViewBlank.addItemListener(this);
-		popupMenu.add(mViewBlank);
-
-		mViewDeckCut = new JCheckBoxMenuItem(LanguageResource.getString("VIEWDECKCUT_STR"));
-		mViewDeckCut.setSelected(false);
-		mViewDeckCut.addItemListener(this);
-		popupMenu.add(mViewDeckCut);
-
-		mViewBottomCut = new JCheckBoxMenuItem(LanguageResource.getString("VIEWBOTTOMCUT_STR"));
-		mViewBottomCut.setSelected(false);
-		mViewBottomCut.addItemListener(this);
-		popupMenu.add(mViewBottomCut);
 
 		popupMenu.addSeparator();
 
@@ -5920,8 +5295,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		};
 
 		toggleDeckAndBottom.putValue(Action.NAME, LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
-		toggleDeckAndBottom.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
-		toggleDeckAndBottom.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/BoardCADtoggle24x35.png")));
+		toggleDeckAndBottom.putValue(Action.SHORT_DESCRIPTION,
+				LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
+		toggleDeckAndBottom.putValue(Action.SMALL_ICON,
+				new ImageIcon(getClass().getResource("../../icons/BoardCADtoggle24x35.png")));
 		mToolBar.add(toggleDeckAndBottom);
 		popupMenu.add(toggleDeckAndBottom);
 
@@ -5930,15 +5307,18 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final SetCurrentCommandAction addGuidePoint = new SetCurrentCommandAction(new BrdAddGuidePointCommand());
 		addGuidePoint.putValue(Action.NAME, LanguageResource.getString("ADDGUIDEPOINTBUTTON_STR"));
 		addGuidePoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ADDGUIDEPOINTBUTTON_STR"));
-		addGuidePoint.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/add-guidepoint.png")));
+		addGuidePoint.putValue(Action.SMALL_ICON,
+				new ImageIcon(getClass().getResource("../../icons/add-guidepoint.png")));
 		mToolBar.add(addGuidePoint);
 		popupMenu.add(addGuidePoint);
 		popupMenu.add(guidePoints);
 
-		final SetCurrentCommandAction addControlPoint = new SetCurrentOneShotCommandAction(new BrdAddControlPointCommand());
+		final SetCurrentCommandAction addControlPoint = new SetCurrentOneShotCommandAction(
+				new BrdAddControlPointCommand());
 		addControlPoint.putValue(Action.NAME, LanguageResource.getString("ADDCONTROLPOINTBUTTON_STR"));
 		addControlPoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ADDCONTROLPOINTBUTTON_STR"));
-		addControlPoint.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/add-controlpoint.png")));
+		addControlPoint.putValue(Action.SMALL_ICON,
+				new ImageIcon(getClass().getResource("../../icons/add-controlpoint.png")));
 		mToolBar.add(addControlPoint);
 		popupMenu.add(addControlPoint);
 
@@ -5953,11 +5333,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				ArrayList<BezierKnot> selectedControlPoints = edit.getSelectedControlPoints();
 
 				if (selectedControlPoints.size() == 0) {
-					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(), LanguageResource.getString("NOCONTROLPOINTSELECTEDMSG_STR"), LanguageResource.getString("NOCONTROLPOINTSELECTEDTITLE_STR"), JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
+							LanguageResource.getString("NOCONTROLPOINTSELECTEDMSG_STR"),
+							LanguageResource.getString("NOCONTROLPOINTSELECTEDTITLE_STR"), JOptionPane.WARNING_MESSAGE);
 					return;
 				}
 
-				int selection = JOptionPane.showConfirmDialog(BoardCAD.getInstance().getFrame(), LanguageResource.getString("DELETECONTROLPOINTSMSG_STR"), LanguageResource.getString("DELETECONTROLPOINTSTITLE_STR"), JOptionPane.WARNING_MESSAGE, JOptionPane.YES_NO_OPTION);
+				int selection = JOptionPane.showConfirmDialog(BoardCAD.getInstance().getFrame(),
+						LanguageResource.getString("DELETECONTROLPOINTSMSG_STR"),
+						LanguageResource.getString("DELETECONTROLPOINTSTITLE_STR"), JOptionPane.WARNING_MESSAGE,
+						JOptionPane.YES_NO_OPTION);
 
 				if (selection == JOptionPane.NO_OPTION) {
 
@@ -5973,11 +5358,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					for (int i = 0; i < selectedControlPoints.size(); i++) {
 						BezierKnot ControlPoint = selectedControlPoints.get(i);
 
-						if (ControlPoint == splines[j].getControlPoint(0) || ControlPoint == splines[j].getControlPoint(splines[j].getNrOfControlPoints() - 1)) {
+						if (ControlPoint == splines[j].getControlPoint(0)
+								|| ControlPoint == splines[j].getControlPoint(splines[j].getNrOfControlPoints() - 1)) {
 							continue;
 						}
 
-						BrdDeleteControlPointCommand deleteControlPointCommand = new BrdDeleteControlPointCommand(edit, ControlPoint, splines[j]);
+						BrdDeleteControlPointCommand deleteControlPointCommand = new BrdDeleteControlPointCommand(edit,
+								ControlPoint, splines[j]);
 
 						macroCmd.add(deleteControlPointCommand);
 
@@ -5991,8 +5378,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		};
 		deleteControlPoint.putValue(Action.NAME, LanguageResource.getString("DELETECONTROLPOINTSBUTTON_STR"));
-		deleteControlPoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("DELETECONTROLPOINTSBUTTON_STR"));
-		deleteControlPoint.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/remove-controlpoint.png")));
+		deleteControlPoint.putValue(Action.SHORT_DESCRIPTION,
+				LanguageResource.getString("DELETECONTROLPOINTSBUTTON_STR"));
+		deleteControlPoint.putValue(Action.SMALL_ICON,
+				new ImageIcon(getClass().getResource("../../icons/remove-controlpoint.png")));
 		mToolBar.add(deleteControlPoint);
 		popupMenu.add(deleteControlPoint);
 
@@ -6060,7 +5449,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		unitLabel.setForeground(getTextColor());
 		mToolBar.add(unitLabel);
 
-		String[] unitsStrList = new String[] { LanguageResource.getString("FEETINCHESRADIOBUTTON_STR"), LanguageResource.getString("DECIMALFEETINCHESRADIOBUTTON_STR"), LanguageResource.getString("MILLIMETERSRADIOBUTTON_STR"), LanguageResource.getString("CENTIMETERSRADIOBUTTON_STR"),
+		String[] unitsStrList = new String[] { LanguageResource.getString("FEETINCHESRADIOBUTTON_STR"),
+				LanguageResource.getString("DECIMALFEETINCHESRADIOBUTTON_STR"),
+				LanguageResource.getString("MILLIMETERSRADIOBUTTON_STR"),
+				LanguageResource.getString("CENTIMETERSRADIOBUTTON_STR"),
 				LanguageResource.getString("METERSRADIOBUTTON_STR") };
 		JComboBox unitComboBox = new JComboBox(unitsStrList);
 		unitComboBox.setForeground(getTextColor());
@@ -6108,9 +5500,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mTabbedPane = new JTabbedPane();
 
-		fourView = new QuadView();
+		mQuadView = new QuadView();
 
-		view1 = new BoardEdit() {
+		mQuadViewOutlineEdit = new BoardEdit() {
 			static final long serialVersionUID = 1L;
 			{
 				setPreferredSize(new Dimension(300, 200));
@@ -6128,7 +5520,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 				super.drawPart(g, color, stroke, brd, fill);
 				if (isPaintingCenterLine()) {
 					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getCenterWidth() * 1.1);
@@ -6139,7 +5532,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					drawOutlineFlowlines(this, g, getFlowLinesColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
 					drawOutlineTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
-				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode()) || (brd == getOriginalBrd() && isOrgFocus())))
+				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
+						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawOutlineFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				drawStringer(g, getStringerColor(), stroke, brd);
 				if (isPaintingFins()) {
@@ -6148,7 +5542,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 				drawOutlineSlidingInfo(this, g, color, stroke, brd);
 			}
 
@@ -6157,7 +5552,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				getCurrentBrd().onOutlineChanged();
 
 				super.onBrdChanged();
-				view2.repaint();
+				mQuadViewCrossSectionEdit.repaint();
 			}
 
 			@Override
@@ -6169,22 +5564,26 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					final Point2D.Double brdPos = screenCoordinateToBrdCoordinate(pos);
 					final int index = getCurrentBrd().getNearestCrossSectionIndex(brdPos.x);
 					double tolerance = 5.0;
-					if (index != -1 && Math.abs(getCurrentBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
+					if (index != -1 && Math
+							.abs(getCurrentBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
 						getCurrentBrd().setCurrentCrossSection(index);
 					}
 					if (getOriginalBrd() != null) {
 						final int indexOriginal = getOriginalBrd().getNearestCrossSectionIndex(brdPos.x);
-						if (indexOriginal != -1 && Math.abs(getOriginalBrd().getCrossSections().get(indexOriginal).getPosition() - brdPos.x) < tolerance) {
+						if (indexOriginal != -1
+								&& Math.abs(getOriginalBrd().getCrossSections().get(indexOriginal).getPosition()
+										- brdPos.x) < tolerance) {
 							getOriginalBrd().setCurrentCrossSection(indexOriginal);
 						}
 					}
 					if (getGhostBrd() != null) {
 						final int indexGhost = getGhostBrd().getNearestCrossSectionIndex(brdPos.x);
-						if (indexGhost != -1 && Math.abs(getGhostBrd().getCrossSections().get(indexGhost).getPosition() - brdPos.x) < tolerance) {
+						if (indexGhost != -1 && Math.abs(getGhostBrd().getCrossSections().get(indexGhost).getPosition()
+								- brdPos.x) < tolerance) {
 							getGhostBrd().setCurrentCrossSection(indexGhost);
 						}
 					}
-					view2.repaint();
+					mQuadViewCrossSectionEdit.repaint();
 				}
 
 			}
@@ -6193,13 +5592,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			public void mouseMoved(final MouseEvent e) {
 
 				super.mouseMoved(e);
-				view2.repaint();
+				mQuadViewCrossSectionEdit.repaint();
 			}
 
 		};
-		view1.add(popupMenu);
+		mQuadViewOutlineEdit.add(popupMenu);
 
-		view2 = new BoardEdit() {
+		mQuadViewCrossSectionEdit = new BoardEdit() {
 
 			static final long serialVersionUID = 1L;
 
@@ -6221,7 +5620,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public ArrayList<Point2D.Double> getGuidePoints() {
-				final BezierBoardCrossSection currentCrossSection = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection();
+				final BezierBoardCrossSection currentCrossSection = BoardCAD.getInstance().getCurrentBrd()
+						.getCurrentCrossSection();
 				if (currentCrossSection == null)
 					return null;
 
@@ -6234,7 +5634,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 
 				if (brd.isEmpty())
 					return;
@@ -6245,7 +5646,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					final BasicStroke bs = (BasicStroke) stroke;
 
 					final float[] dashPattern = new float[] { 0.8f, 0.2f };
-					final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(), bs.getLineJoin(), bs.getMiterLimit(), dashPattern, 0f);
+					final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(),
+							bs.getLineJoin(), bs.getMiterLimit(), dashPattern, 0f);
 					final Color noneActiveColor = color.brighter();
 
 					double currentCrossSectionRocker = brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
@@ -6256,11 +5658,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 							double rockerOffset = 0;
 							if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
-								rockerOffset = brd.getRockerAtPos(crossSections.get(i).getPosition()) - currentCrossSectionRocker;
+								rockerOffset = brd.getRockerAtPos(crossSections.get(i).getPosition())
+										- currentCrossSectionRocker;
 								rockerOffset *= this.mScale;
 							}
 
-							BezierBoardDrawUtil.paintBezierSpline(d, mOffsetX, mOffsetY - rockerOffset, mScale, 0.0, noneActiveColor, stapled, crossSections.get(i).getBezierSpline(), mDrawControl, fill);
+							BezierBoardDrawUtil.paintBezierSpline(d, mOffsetX, mOffsetY - rockerOffset, mScale, 0.0,
+									noneActiveColor, stapled, crossSections.get(i).getBezierSpline(), mDrawControl,
+									fill);
 						}
 
 					}
@@ -6271,11 +5676,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 					final Color col = (isGhostMode()) ? color : Color.GRAY;
 
-					double pos = view3.hasMouse() ? view3.mBrdCoord.x : view1.mBrdCoord.x;
+					double pos = mQuadViewRockerEdit.hasMouse() ? mQuadViewRockerEdit.mBrdCoord.x : mQuadViewOutlineEdit.mBrdCoord.x;
 
 					double rockerOffset = 0;
 					if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
-						double currentCrossSectionRocker = brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
+						double currentCrossSectionRocker = brd
+								.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
 						rockerOffset = brd.getRockerAtPos(pos) - currentCrossSectionRocker;
 						rockerOffset *= this.mScale;
 					}
@@ -6283,15 +5689,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					// DEBUG System.out.printf("rockerOffset: %f\n",
 					// rockerOffset);
 
-					BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset, mScale, 0.0, col, stroke, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, (mDrawControl & BezierBoardDrawUtil.FlipY) != 0, pos, brd);
+					BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
+							mScale, 0.0, col, stroke, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, pos, brd);
 
 					if (isGhostMode()) {
 						if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
-							double currentCrossSectionRocker = getCurrentBrd().getRockerAtPos(getCurrentBrd().getCurrentCrossSection().getPosition());
+							double currentCrossSectionRocker = getCurrentBrd()
+									.getRockerAtPos(getCurrentBrd().getCurrentCrossSection().getPosition());
 							rockerOffset = getCurrentBrd().getRockerAtPos(pos) - currentCrossSectionRocker;
 							rockerOffset *= this.mScale;
 						}
-						BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset, mScale, 0.0, getGhostBrdColor(), stroke, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, (mDrawControl & BezierBoardDrawUtil.FlipY) != 0, pos, getCurrentBrd());
+						BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
+								mScale, 0.0, getGhostBrdColor(), stroke,
+								(mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+								(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, pos, getCurrentBrd());
 					}
 
 				}
@@ -6330,26 +5742,32 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				// context
 				int hgt = metrics.getHeight();
 
-				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR") + UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLengthByX(crs.getPosition()) : crs.getPosition(), false) + (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
+				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected()
+								? brd.getBottom().getLengthByX(crs.getPosition()) : crs.getPosition(), false)
+						+ (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
 
 				g.drawString(posStr, 10, hgt * 3);
 
 				// get the height of a line of text in this font and render
 				// context
 
-				String widthStr = LanguageResource.getString("CROSSECTIONWIDTH_STR") + UnitUtils.convertLengthToCurrentUnit(crs.getWidth(), false);
+				String widthStr = LanguageResource.getString("CROSSECTIONWIDTH_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(crs.getWidth(), false);
 
 				g.drawString(widthStr, 10, hgt * 4);
 
 				final Dimension dim = getSize();
 
-				String releaseAngleStr = LanguageResource.getString("RELEASEANGLE_STR") + String.format("%1$.1f degrees", crs.getReleaseAngle() / MathUtils.DEG_TO_RAD);
+				String releaseAngleStr = LanguageResource.getString("RELEASEANGLE_STR")
+						+ String.format("%1$.1f degrees", crs.getReleaseAngle() / MathUtils.DEG_TO_RAD);
 
 				final int releaseAngleStrLength = metrics.stringWidth(releaseAngleStr);
 
 				g.drawString(releaseAngleStr, dim.width - releaseAngleStrLength - 10, hgt * 1);
 
-				String tuckUnderRadiusStr = LanguageResource.getString("TUCKRADIUS_STR") + UnitUtils.convertLengthToCurrentUnit(crs.getTuckRadius(), false);
+				String tuckUnderRadiusStr = LanguageResource.getString("TUCKRADIUS_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(crs.getTuckRadius(), false);
 
 				final int tuckUnderRadiusStrLength = metrics.stringWidth(tuckUnderRadiusStr);
 
@@ -6358,7 +5776,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 
 				if (brd.getCrossSections().size() == 0)
 					return;
@@ -6389,7 +5808,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				final Dimension dim = getSize();
 
 				String thicknessStr = LanguageResource.getString("CROSSECTIONSLIDINGINFOTHICKNESS_STR");
-				mSlidingInfoString = thicknessStr + UnitUtils.convertLengthToCurrentUnit(thickness, false) + String.format("(%02d%%)", (int) ((thickness * 100) / centerThickness));
+				mSlidingInfoString = thicknessStr + UnitUtils.convertLengthToCurrentUnit(thickness, false)
+						+ String.format("(%02d%%)", (int) ((thickness * 100) / centerThickness));
 
 				g.setColor(Color.BLUE);
 
@@ -6417,7 +5837,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				g.setStroke(new BasicStroke((float) (1.0 / mScale)));
 				g.drawString(mSlidingInfoString, textX, dim.height - (size.height * 2 + 5));
 
-				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOBOTTOM_STR") + UnitUtils.convertLengthToCurrentUnit(bottom, false);
+				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOBOTTOM_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(bottom, false);
 
 				g.setColor(Color.RED);
 
@@ -6429,20 +5850,24 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				final double fromRail = crs.getWidth() / 2 - Math.abs(mBrdCoord.x);
 
-				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMRAIL_STR") + UnitUtils.convertLengthToCurrentUnit(fromRail, false);
+				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMRAIL_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(fromRail, false);
 
 				g.drawString(mSlidingInfoString, textX, dim.height - (size.height + 2) * 4);
 
-				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMCENTER_STR") + UnitUtils.convertLengthToCurrentUnit(fromCenter, false);
+				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMCENTER_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(fromCenter, false);
 
 				g.drawString(mSlidingInfoString, textX, dim.height - (size.height + 2) * 3);
 
 				// sets the color of the +ve sliding info (above Y base line)
 				g.setColor(Color.BLUE);
 
-				final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);
+				final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX,
+						mOffsetY, mScale, 0.0);
 
-				mSlidingInfoLine.setLine(mBrdCoord.x * mulX, bottom * mulY, mBrdCoord.x * mulX, (bottom + thickness) * mulY);
+				mSlidingInfoLine.setLine(mBrdCoord.x * mulX, bottom * mulY, mBrdCoord.x * mulX,
+						(bottom + thickness) * mulY);
 				g.draw(mSlidingInfoLine);
 
 				// sets the color of the Bottom sliding info (-ve# when concaved
@@ -6461,12 +5886,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				final BezierBoard brd = getCurrentBrd();
 				final Dimension dim = getSize();
 
-				double width = board_handler.get_segment_width() / 10;
-				if (width < 10)
-					width = 10;
-
-				if (width < brd.getCenterWidth())
-					width = brd.getCenterWidth();
+				double width = brd.getCenterWidth();
 
 				mScale = (dim.width - ((BORDER * dim.width / 100) * 2)) / width;
 
@@ -6481,15 +5901,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			public void onBrdChanged() {
 				getCurrentBrd().onCrossSectionChanged();
 
-				view1.repaint();
-				view3.repaint();
+				mQuadViewOutlineEdit.repaint();
+				mQuadViewRockerEdit.repaint();
 				super.onBrdChanged();
 			}
 
 			@Override
 			Point2D.Double getTail() {
 				final BezierBoard brd = getCurrentBrd();
-				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0).getEndPoint().clone();
+				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
+						.getEndPoint().clone();
 
 				return tail;
 			}
@@ -6497,8 +5918,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			Point2D.Double getNose() {
 				final BezierBoard brd = getCurrentBrd();
-				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0).getEndPoint().clone();
-				final Point2D.Double nose = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(getActiveBezierSplines(brd)[0].getNrOfControlPoints() - 1).getEndPoint().clone();
+				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
+						.getEndPoint().clone();
+				final Point2D.Double nose = (Point2D.Double) getActiveBezierSplines(brd)[0]
+						.getControlPoint(getActiveBezierSplines(brd)[0].getNrOfControlPoints() - 1).getEndPoint()
+						.clone();
 				nose.y = tail.y;
 				nose.x = getActiveBezierSplines(brd)[0].getMaxX();
 				return nose;
@@ -6512,9 +5936,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 		};
-		view2.add(popupMenu);
+		mQuadViewCrossSectionEdit.add(popupMenu);
 
-		view3 = new BoardEdit() {
+		mQuadViewRockerEdit = new BoardEdit() {
 			static final long serialVersionUID = 1L;
 
 			{
@@ -6555,10 +5979,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 
 				if (isPaintingBaseLine()) {
-					drawStringer(g, mColorSettings.getColor(BASELINECOLOR), new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
+					drawStringer(g, mColorSettings.getColor(BASELINECOLOR),
+							new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
 				}
 				if (isPaintingFlowlines())
 					drawProfileFlowlines(this, g, getFlowLinesColor(), stroke, brd);
@@ -6566,22 +5992,26 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					drawProfileApexline(this, g, getApexLineColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
 					drawProfileTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
-				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode()) || (brd == getOriginalBrd() && isOrgFocus())))
+				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
+						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawProfileFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				if (isPaintingBaseLine()) {
-					drawStringer(g, mColorSettings.getColor(BASELINECOLOR), new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
+					drawStringer(g, mColorSettings.getColor(BASELINECOLOR),
+							new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
 				}
 				if (isPaintingCenterLine()) {
 					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getThickness() * 2.2);
 				}
 
-				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke, new BezierSpline[] { brd.getBottom(), brd.getDeck() }, mDrawControl, fill);
+				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke,
+						new BezierSpline[] { brd.getBottom(), brd.getDeck() }, mDrawControl, fill);
 
 				super.drawPart(g, color, stroke, brd, false);
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 				drawProfileSlidingInfo(this, g, color, stroke, brd);
 			}
 
@@ -6590,7 +6020,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				getCurrentBrd().onRockerChanged();
 
 				super.onBrdChanged();
-				view2.repaint();
+				mQuadViewCrossSectionEdit.repaint();
 			}
 
 			@Override
@@ -6602,22 +6032,25 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					final Point2D.Double brdPos = screenCoordinateToBrdCoordinate(pos);
 					final int index = getCurrentBrd().getNearestCrossSectionIndex(brdPos.x);
 					double tolerance = 5.0;
-					if (index != -1 && Math.abs(getCurrentBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
+					if (index != -1 && Math
+							.abs(getCurrentBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
 						getCurrentBrd().setCurrentCrossSection(index);
 					}
 					if (getOriginalBrd() != null) {
 						final int indexOriginal = getOriginalBrd().getNearestCrossSectionIndex(brdPos.x);
-						if (indexOriginal != -1 && Math.abs(getOriginalBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
+						if (indexOriginal != -1 && Math.abs(
+								getOriginalBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
 							getOriginalBrd().setCurrentCrossSection(indexOriginal);
 						}
 					}
 					if (getGhostBrd() != null) {
 						final int indexOriginal = getGhostBrd().getNearestCrossSectionIndex(brdPos.x);
-						if (indexOriginal != -1 && Math.abs(getGhostBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
+						if (indexOriginal != -1 && Math.abs(
+								getGhostBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
 							getGhostBrd().setCurrentCrossSection(indexOriginal);
 						}
 					}
-					view2.repaint();
+					mQuadViewCrossSectionEdit.repaint();
 				}
 
 			}
@@ -6626,141 +6059,27 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			public void mouseMoved(final MouseEvent e) {
 
 				super.mouseMoved(e);
-				view2.repaint();
+				mQuadViewCrossSectionEdit.repaint();
 			}
 
 		};
-		view3.add(popupMenu);
+		mQuadViewRockerEdit.add(popupMenu);
 
-		view4 = new BoardEdit() {
-			static final long serialVersionUID = 1L;
-			{
-				setPreferredSize(new Dimension(300, 200));
-				// mDrawControl = BezierBoardDrawUtil.MirrorY;
-				mDrawControl = 0;
+		design_panel2 = new DesignPanel(mStatusPanel);
+		design_panel3 = new DesignPanel(mStatusPanel);
 
-			}
+		mStatusPanel = new StatusPanel();
 
-			@Override
-			public BezierSpline[] getActiveBezierSplines(final BezierBoard brd) {
-				return new BezierSpline[] { brd.getOutline() };
-			}
+		mQuadViewOutlineEdit.setParentContainer(mQuadView);
+		mQuadViewCrossSectionEdit.setParentContainer(mQuadView);
+		mQuadViewRockerEdit.setParentContainer(mQuadView);
 
-			@Override
-			public ArrayList<Point2D.Double> getGuidePoints() {
-				return BoardCAD.getInstance().getCurrentBrd().getOutlineGuidePoints();
-			}
-
-			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
-				super.drawPart(g, color, stroke, brd, fill);
-				if (isPaintingCenterLine()) {
-					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getCenterWidth() * 1.1);
-				}
-				if (isPaintingCrossectionsPositions())
-					drawOutlineCrossections(this, g, color, stroke, brd);
-				if (isPaintingFlowlines())
-					drawOutlineFlowlines(this, g, getFlowLinesColor(), stroke, brd);
-				if (isPaintingTuckUnderLine())
-					drawOutlineTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
-				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode()) || (brd == getOriginalBrd() && isOrgFocus())))
-					drawOutlineFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
-				drawStringer(g, getStringerColor(), stroke, brd);
-				if (isPaintingFins()) {
-					drawFins(g, getFinsColor(), stroke, brd);
-				}
-			}
-
-			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
-				drawOutlineSlidingInfo(this, g, color, stroke, brd);
-			}
-
-			@Override
-			public void onBrdChanged() {
-				getCurrentBrd().onOutlineChanged();
-
-				super.onBrdChanged();
-				view2.repaint();
-			}
-
-			@Override
-			public void mousePressed(final MouseEvent e) {
-				super.mousePressed(e);
-
-				if (mSelectedControlPoints.size() == 0) {
-					final Point pos = e.getPoint();
-					final Point2D.Double brdPos = screenCoordinateToBrdCoordinate(pos);
-					final int index = getCurrentBrd().getNearestCrossSectionIndex(brdPos.x);
-					double tolerance = 5.0;
-					if (index != -1 && Math.abs(getCurrentBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
-						getCurrentBrd().setCurrentCrossSection(index);
-					}
-					if (getOriginalBrd() != null) {
-						final int indexOriginal = getOriginalBrd().getNearestCrossSectionIndex(brdPos.x);
-						if (indexOriginal != -1 && Math.abs(getOriginalBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
-							getOriginalBrd().setCurrentCrossSection(indexOriginal);
-						}
-					}
-					if (getGhostBrd() != null) {
-						final int indexOriginal = getGhostBrd().getNearestCrossSectionIndex(brdPos.x);
-						if (indexOriginal != -1 && Math.abs(getGhostBrd().getCrossSections().get(index).getPosition() - brdPos.x) < tolerance) {
-							getGhostBrd().setCurrentCrossSection(indexOriginal);
-						}
-					}
-					view2.repaint();
-				}
-
-			}
-
-			@Override
-			public void mouseMoved(final MouseEvent e) {
-
-				super.mouseMoved(e);
-				view2.repaint();
-			}
-
-		};
-		view4.add(popupMenu);
-
-		mNurbspanel = new JPanel();
-		mNurbspanel.setLayout(new BorderLayout());
-
-		// board_handler = new BoardHandler();
-
-		// window.setMenuBar(menu);
-		// window.setBackground(Color.lightGray);
-		status_panel = new StatusPanel();
-		// window.add("South", status_panel);
-		design_panel = new DesignPanel(board_handler, status_panel);
-		design_panel.view_3d();
-
-		mNurbspanel.add(design_panel, BorderLayout.CENTER);
-		mNurbspanel.add(status_panel, BorderLayout.SOUTH);
-
-		// window.add("Center", design_panel);
-
-		// mTabbedPane.addTab(LanguageResource.getString("3DMODELEDIT_STR"),
-		// mNurbspanel);
-		// board_handler.new_board();
-		// design_panel.update_3d();
-
-		design_panel3 = new DesignPanel(board_handler, status_panel);
-		design_panel3.view_rendered();
-
-		view1.setParentContainer(fourView);
-		view2.setParentContainer(fourView);
-		view3.setParentContainer(fourView);
-		// view4.setParentContainer(fourView);
-
-		view1.setParentContainer(fourView);
-		fourView.add(view1);
-		fourView.add(view2);
-		fourView.add(view3);
-		// fourView.add(view4);
-		// fourView.add(mNurbspanel);
-		fourView.add(design_panel3);
-		mTabbedPane.add(LanguageResource.getString("QUADVIEW_STR"), fourView);
+		mQuadViewOutlineEdit.setParentContainer(mQuadView);
+		mQuadView.add(mQuadViewOutlineEdit);
+		mQuadView.add(mQuadViewCrossSectionEdit);
+		mQuadView.add(mQuadViewRockerEdit);
+		mQuadView.add(design_panel3);
+		mTabbedPane.add(LanguageResource.getString("QUADVIEW_STR"), mQuadView);
 
 		mOutlineEdit = new BoardEdit() {
 			static final long serialVersionUID = 1L;
@@ -6779,13 +6098,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 				super.drawPart(g, color, stroke, brd, fill);
 				if (isPaintingFlowlines())
 					drawOutlineFlowlines(this, g, getFlowLinesColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
 					drawOutlineTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
-				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode()) || (brd == getOriginalBrd() && isOrgFocus())))
+				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
+						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawOutlineFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				if (isPaintingCenterLine()) {
 					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getCenterWidth() * 1.1);
@@ -6797,7 +6118,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 				drawOutlineSlidingInfo(this, g, color, stroke, brd);
 			}
 
@@ -6853,29 +6175,34 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 				if (isPaintingFlowlines())
 					drawProfileFlowlines(this, g, getFlowLinesColor(), stroke, brd);
 				if (isPaintingApexline())
 					drawProfileApexline(this, g, getApexLineColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
 					drawProfileTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
-				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode()) || (brd == getOriginalBrd() && isOrgFocus())))
+				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
+						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawProfileFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				if (isPaintingBaseLine()) {
-					drawStringer(g, mColorSettings.getColor(BASELINECOLOR), new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
+					drawStringer(g, mColorSettings.getColor(BASELINECOLOR),
+							new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
 				}
 				if (isPaintingCenterLine()) {
 					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getThickness() * 2.2);
 				}
 
-				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke, new BezierSpline[] { brd.getBottom(), brd.getDeck() }, mDrawControl, fill);
+				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke,
+						new BezierSpline[] { brd.getBottom(), brd.getDeck() }, mDrawControl, fill);
 
 				super.drawPart(g, color, stroke, brd, false);
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 				drawProfileSlidingInfo(this, g, color, stroke, brd);
 			}
 
@@ -6922,7 +6249,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public ArrayList<Point2D.Double> getGuidePoints() {
-				final BezierBoardCrossSection currentCrossSection = BoardCAD.getInstance().getCurrentBrd().getCurrentCrossSection();
+				final BezierBoardCrossSection currentCrossSection = BoardCAD.getInstance().getCurrentBrd()
+						.getCurrentCrossSection();
 				if (currentCrossSection == null)
 					return null;
 
@@ -6935,7 +6263,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 				if (brd.isEmpty())
 					return;
 
@@ -6945,7 +6274,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					final BasicStroke bs = (BasicStroke) stroke;
 
 					final float[] dashPattern = new float[] { 0.8f, 0.2f };
-					final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(), bs.getLineJoin(), bs.getMiterLimit(), dashPattern, 0f);
+					final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(),
+							bs.getLineJoin(), bs.getMiterLimit(), dashPattern, 0f);
 					final Color noneActiveColor = color.brighter();
 
 					double currentCrossSectionRocker = brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
@@ -6955,11 +6285,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 							double rockerOffset = 0;
 							if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
-								rockerOffset = brd.getRockerAtPos(crossSections.get(i).getPosition()) - currentCrossSectionRocker;
+								rockerOffset = brd.getRockerAtPos(crossSections.get(i).getPosition())
+										- currentCrossSectionRocker;
 								rockerOffset *= this.mScale;
 							}
 
-							BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset, mScale, 0.0, noneActiveColor, stapled, crossSections.get(i).getBezierSpline(), mDrawControl, fill);
+							BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
+									mScale, 0.0, noneActiveColor, stapled, crossSections.get(i).getBezierSpline(),
+									mDrawControl, fill);
 						}
 
 					}
@@ -6971,20 +6304,29 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 					double rockerOffset = 0;
 					if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
-						double currentCrossSectionRocker = brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
-						rockerOffset = brd.getRockerAtPos(mCrossSectionOutlineEdit.mBrdCoord.x) - currentCrossSectionRocker;
+						double currentCrossSectionRocker = brd
+								.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
+						rockerOffset = brd.getRockerAtPos(mCrossSectionOutlineEdit.mBrdCoord.x)
+								- currentCrossSectionRocker;
 						rockerOffset *= this.mScale;
 					}
 
-					BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset, mScale, 0.0, col, stroke, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, (mDrawControl & BezierBoardDrawUtil.FlipY) != 0, mCrossSectionOutlineEdit.mBrdCoord.x, brd);
+					BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
+							mScale, 0.0, col, stroke, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, mCrossSectionOutlineEdit.mBrdCoord.x, brd);
 
 					if (isGhostMode()) {
 						if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
-							double currentCrossSectionRocker = getCurrentBrd().getRockerAtPos(getCurrentBrd().getCurrentCrossSection().getPosition());
-							rockerOffset = getCurrentBrd().getRockerAtPos(mCrossSectionOutlineEdit.mBrdCoord.x) - currentCrossSectionRocker;
+							double currentCrossSectionRocker = getCurrentBrd()
+									.getRockerAtPos(getCurrentBrd().getCurrentCrossSection().getPosition());
+							rockerOffset = getCurrentBrd().getRockerAtPos(mCrossSectionOutlineEdit.mBrdCoord.x)
+									- currentCrossSectionRocker;
 							rockerOffset *= this.mScale;
 						}
-						BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset, 0.0, mScale, getGhostBrdColor(), stroke, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, (mDrawControl & BezierBoardDrawUtil.FlipY) != 0, mCrossSectionOutlineEdit.mBrdCoord.x,
+						BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
+								0.0, mScale, getGhostBrdColor(), stroke,
+								(mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+								(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, mCrossSectionOutlineEdit.mBrdCoord.x,
 								getCurrentBrd());
 					}
 
@@ -7020,26 +6362,32 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				// context
 				int hgt = metrics.getHeight();
 
-				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR") + UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLengthByX(crs.getPosition()) : crs.getPosition(), false) + (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
+				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected()
+								? brd.getBottom().getLengthByX(crs.getPosition()) : crs.getPosition(), false)
+						+ (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
 
 				g.drawString(posStr, 10, hgt * 3);
 
 				// get the height of a line of text in this font and render
 				// context
 
-				String widthStr = LanguageResource.getString("CROSSECTIONWIDTH_STR") + UnitUtils.convertLengthToCurrentUnit(crs.getWidth(), false);
+				String widthStr = LanguageResource.getString("CROSSECTIONWIDTH_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(crs.getWidth(), false);
 
 				g.drawString(widthStr, 10, hgt * 4);
 
 				final Dimension dim = getSize();
 
-				String releaseAngleStr = LanguageResource.getString("RELEASEANGLE_STR") + String.format("%1$.1f degrees", crs.getReleaseAngle() / MathUtils.DEG_TO_RAD);
+				String releaseAngleStr = LanguageResource.getString("RELEASEANGLE_STR")
+						+ String.format("%1$.1f degrees", crs.getReleaseAngle() / MathUtils.DEG_TO_RAD);
 
 				final int releaseAngleStrLength = metrics.stringWidth(releaseAngleStr);
 
 				g.drawString(releaseAngleStr, dim.width - releaseAngleStrLength - 10, hgt * 1);
 
-				String tuckUnderRadiusStr = LanguageResource.getString("TUCKRADIUS_STR") + UnitUtils.convertLengthToCurrentUnit(crs.getTuckRadius(), false);
+				String tuckUnderRadiusStr = LanguageResource.getString("TUCKRADIUS_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(crs.getTuckRadius(), false);
 
 				final int tuckUnderRadiusStrLength = metrics.stringWidth(tuckUnderRadiusStr);
 
@@ -7047,7 +6395,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 				if (brd.getCrossSections().size() == 0)
 					return;
 
@@ -7075,7 +6424,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				final Dimension dim = getSize();
 
 				String thicknessStr = LanguageResource.getString("CROSSECTIONSLIDINGINFOTHICKNESS_STR");
-				mSlidingInfoString = thicknessStr + UnitUtils.convertLengthToCurrentUnit(thickness, false) + String.format("(%02d%%)", (int) ((thickness * 100) / centerThickness));
+				mSlidingInfoString = thicknessStr + UnitUtils.convertLengthToCurrentUnit(thickness, false)
+						+ String.format("(%02d%%)", (int) ((thickness * 100) / centerThickness));
 
 				g.setColor(Color.BLUE);
 
@@ -7103,7 +6453,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				g.setStroke(new BasicStroke((float) (1.0 / mScale)));
 				g.drawString(mSlidingInfoString, textX, dim.height - (size.height * 2 + 5));
 
-				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOBOTTOM_STR") + UnitUtils.convertLengthToCurrentUnit(bottom, false);
+				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOBOTTOM_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(bottom, false);
 				g.setColor(Color.RED);
 
 				g.drawString(mSlidingInfoString, textX, dim.height - size.height);
@@ -7114,20 +6465,24 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				final double fromRail = crs.getWidth() / 2.0 - Math.abs(mBrdCoord.x);
 
-				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMRAIL_STR") + UnitUtils.convertLengthToCurrentUnit(fromRail, false);
+				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMRAIL_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(fromRail, false);
 
 				g.drawString(mSlidingInfoString, textX, dim.height - (size.height + 2) * 4);
 
-				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMCENTER_STR") + UnitUtils.convertLengthToCurrentUnit(fromCenter, false);
+				mSlidingInfoString = LanguageResource.getString("CROSSECTIONSLIDINGINFOFROMCENTER_STR")
+						+ UnitUtils.convertLengthToCurrentUnit(fromCenter, false);
 
 				g.drawString(mSlidingInfoString, textX, dim.height - (size.height + 2) * 3);
 
 				// sets the color of the +ve sliding info (above Y base line)
 				g.setColor(Color.BLUE);
 
-				final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);
+				final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX,
+						mOffsetY, mScale, 0.0);
 
-				mSlidingInfoLine.setLine(mBrdCoord.x * mulX, bottom * mulY, mBrdCoord.x * mulX, (bottom + thickness) * mulY);
+				mSlidingInfoLine.setLine(mBrdCoord.x * mulX, bottom * mulY, mBrdCoord.x * mulX,
+						(bottom + thickness) * mulY);
 				g.draw(mSlidingInfoLine);
 
 				// sets the color of the Bottom sliding info (-ve# when concaved
@@ -7146,12 +6501,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				final BezierBoard brd = getCurrentBrd();
 				final Dimension dim = getSize();
 
-				double width = board_handler.get_segment_width() / 10;
-				if (width < 10)
-					width = 10;
-
-				if (width < brd.getCenterWidth())
-					width = brd.getCenterWidth();
+				double width = brd.getCenterWidth();
 
 				mScale = (dim.width - ((BORDER * dim.width / 100) * 2)) / width;
 
@@ -7172,7 +6522,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			Point2D.Double getTail() {
 				final BezierBoard brd = getCurrentBrd();
-				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0).getEndPoint().clone();
+				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
+						.getEndPoint().clone();
 
 				return tail;
 			}
@@ -7180,8 +6531,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			Point2D.Double getNose() {
 				final BezierBoard brd = getCurrentBrd();
-				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0).getEndPoint().clone();
-				final Point2D.Double nose = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(getActiveBezierSplines(brd)[0].getNrOfControlPoints() - 1).getEndPoint().clone();
+				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
+						.getEndPoint().clone();
+				final Point2D.Double nose = (Point2D.Double) getActiveBezierSplines(brd)[0]
+						.getControlPoint(getActiveBezierSplines(brd)[0].getNrOfControlPoints() - 1).getEndPoint()
+						.clone();
 				nose.y = tail.y;
 				nose.x = getActiveBezierSplines(brd)[0].getMaxX();
 				return nose;
@@ -7235,47 +6589,68 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd, boolean fill) {
+			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
+					boolean fill) {
 
 				Color brdColor = BoardCAD.getInstance().getBrdColor();
-				Color current = BoardCAD.getInstance().isGhostMode() ? BoardCAD.getInstance().getGhostBrdColor() : color;
+				Color current = BoardCAD.getInstance().isGhostMode() ? BoardCAD.getInstance().getGhostBrdColor()
+						: color;
 				current = BoardCAD.getInstance().isOrgFocus() ? BoardCAD.getInstance().getOriginalBrdColor() : current;
 
-				BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, current, stroke, brd.getOutline(), mDrawControl, fill);
+				BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, current, stroke,
+						brd.getOutline(), mDrawControl, fill);
 
 				if (isPaintingFlowlines())
-					BezierBoardDrawUtil.paintOutlineFlowLines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+					BezierBoardDrawUtil.paintOutlineFlowLines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0,
+							getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 
 				if (isPaintingTuckUnderLine())
-					BezierBoardDrawUtil.paintOutlineTuckUnderLine(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, getTuckUnderLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+					BezierBoardDrawUtil.paintOutlineTuckUnderLine(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0,
+							getTuckUnderLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							true);
 
-				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY + ((brd.getCenterWidth() / 2.0 + brd.getMaxRocker()) * mScale), mScale, 0.0, current, stroke, new BezierSpline[] { brd.getDeck(), brd.getBottom() }, (mDrawControl & BezierBoardDrawUtil.FlipX)
-						| BezierBoardDrawUtil.FlipY, fill);
+				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX,
+						mOffsetY + ((brd.getCenterWidth() / 2.0 + brd.getMaxRocker()) * mScale), mScale, 0.0, current,
+						stroke, new BezierSpline[] { brd.getDeck(), brd.getBottom() },
+						(mDrawControl & BezierBoardDrawUtil.FlipX) | BezierBoardDrawUtil.FlipY, fill);
 
 				if (isPaintingFlowlines())
-					BezierBoardDrawUtil.paintProfileFlowLines(new JavaDraw(g), mOffsetX, mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0, getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+					BezierBoardDrawUtil.paintProfileFlowLines(new JavaDraw(g), mOffsetX,
+							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
+							getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 
 				if (isPaintingApexline())
-					BezierBoardDrawUtil.paintProfileApexline(new JavaDraw(g), mOffsetX, mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0, getApexLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+					BezierBoardDrawUtil.paintProfileApexline(new JavaDraw(g), mOffsetX,
+							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
+							getApexLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 
 				if (isPaintingTuckUnderLine())
-					BezierBoardDrawUtil.paintProfileTuckUnderLine(new JavaDraw(g), mOffsetX, mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0, getTuckUnderLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+					BezierBoardDrawUtil.paintProfileTuckUnderLine(new JavaDraw(g), mOffsetX,
+							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
+							getTuckUnderLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							true);
 
 				BezierBoard ghost = BoardCAD.getInstance().getGhostBrd();
 				if (BoardCAD.getInstance().isGhostMode() && ghost != null && !ghost.isEmpty()) {
-					BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, brdColor, stroke, ghost.getOutline(), mDrawControl, fill);
+					BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, brdColor,
+							stroke, ghost.getOutline(), mDrawControl, fill);
 
-					BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0, brdColor, stroke, new BezierSpline[] { ghost.getDeck(), ghost.getBottom() }, (mDrawControl & BezierBoardDrawUtil.FlipX)
-							| BezierBoardDrawUtil.FlipY, fill);
+					BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX,
+							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
+							brdColor, stroke, new BezierSpline[] { ghost.getDeck(), ghost.getBottom() },
+							(mDrawControl & BezierBoardDrawUtil.FlipX) | BezierBoardDrawUtil.FlipY, fill);
 
 				}
 
 				BezierBoard org = BoardCAD.getInstance().getOriginalBrd();
 				if (BoardCAD.getInstance().isOrgFocus() && org != null && !org.isEmpty()) {
-					BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, brdColor, stroke, org.getOutline(), mDrawControl, fill);
+					BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, brdColor,
+							stroke, org.getOutline(), mDrawControl, fill);
 
-					BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0, brdColor, stroke, new BezierSpline[] { org.getDeck(), org.getBottom() }, (mDrawControl & BezierBoardDrawUtil.FlipX)
-							| BezierBoardDrawUtil.FlipY, fill);
+					BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX,
+							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
+							brdColor, stroke, new BezierSpline[] { org.getDeck(), org.getBottom() },
+							(mDrawControl & BezierBoardDrawUtil.FlipX) | BezierBoardDrawUtil.FlipY, fill);
 
 				}
 
@@ -7352,7 +6727,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+			public void drawSlidingInfo(final Graphics2D g, final Color color, final Stroke stroke,
+					final BezierBoard brd) {
 				drawOutlineSlidingInfo(this, g, color, stroke, brd);
 			}
 
@@ -7395,20 +6771,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mTabbedPane.add(LanguageResource.getString("CROSSECTIONEDIT_STR"), mCrossSectionSplitPane);
 
-		mRenderedpanel = new JPanel();
-		mRenderedpanel.setLayout(new BorderLayout());
+		mRenderedPanel = new JPanel();
+		mRenderedPanel.setLayout(new BorderLayout());
 
-		design_panel2 = new DesignPanel(board_handler, status_panel);
-		design_panel2.view_rendered();
+		mRenderedPanel.add(design_panel2, BorderLayout.CENTER);
+		mRenderedPanel.add(mStatusPanel, BorderLayout.SOUTH);
 
-		mRenderedpanel.add(design_panel2, BorderLayout.CENTER);
-		mRenderedpanel.add(status_panel, BorderLayout.SOUTH);
-
-		// window.add("Center", design_panel);
-
-		mTabbedPane.addTab(LanguageResource.getString("3DRENDEREDVIEW_STR"), mRenderedpanel);
-		// board_handler.new_board();
-		// design_panel.update_3d();
+		mTabbedPane.addTab(LanguageResource.getString("3DRENDEREDVIEW_STR"), mRenderedPanel);
 
 		// DEBUG!
 		mTabbedPane.add("PrintBrd", mPrintBrd); // Only for debugging
@@ -7428,40 +6797,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			public void stateChanged(final ChangeEvent e) {
 				mGuidePointsDialog.update();
 
-				if (mTabbedPane.getSelectedComponent() == mRenderedpanel || mTabbedPane.getSelectedComponent() == fourView) {
+				if (mTabbedPane.getSelectedComponent() == mRenderedPanel
+						|| mTabbedPane.getSelectedComponent() == mQuadView) {
 
 					boolean selected = mShowBezier3DModelMenuItem.getModel().isSelected();
 					if (selected) {
 						updateBezier3DModel();
 					}
 
-					// design_panel2.update_3d();
 					design_panel2.fit_all();
 					design_panel2.redraw();
 					design_panel3.redraw();
 				}
-				/*
-				 * if (mTabbedPane.getSelectedComponent() == mNurbspanel) { if
-				 * (mNeverApproximateNurbs == true) return;
-				 *
-				 * if (mAlwaysApproximateNurbs == false) {
-				 *
-				 * final Object[] options = { "Always", "Yes", "No", "Never" };
-				 * final int n = JOptionPane.showOptionDialog(mFrame,
-				 * "Approximate Nurbs/3D from beziers?", "Nurbs/3D",
-				 * JOptionPane.YES_NO_CANCEL_OPTION,
-				 * JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
-				 *
-				 * switch (n) { case 0: mAlwaysApproximateNurbs = true; break;
-				 * case 1: break; case 3: mNeverApproximateNurbs = true; case 2:
-				 * return; // break out
-				 *
-				 * } } board_handler.approximate_bezier(getCurrentBrd(), false);
-				 * design_panel.update_3d(); // design_panel.fit_all();
-				 * design_panel.redraw();
-				 *
-				 * }
-				 */
+
 			}
 		});
 
@@ -7485,8 +6833,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			menuBar.add(pluginMenu);
 		}
 
-		// mFrame.getContentPane().add(mTabbedPane, BorderLayout.CENTER);
-
 		getPreferences();
 
 		mTabbedPane2 = new JTabbedPane(SwingConstants.BOTTOM);
@@ -7495,7 +6841,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		panel.setLayout(new BorderLayout());
 
-		panel.add(status_panel, BorderLayout.NORTH);
+		panel.add(mStatusPanel, BorderLayout.NORTH);
 
 		mControlPointInfo = new ControlPointInfo();
 		panel.add(mControlPointInfo, BorderLayout.EAST);
@@ -7570,8 +6916,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * DefaultBrds.getInstance().getBoardArray("Funboard"), "funboard");
 		 * mOriginalBrd.set(getCurrentBrd()); fitAll(); onBrdChanged();
 		 *
-		 * getSelectedEdit().loadBackgroundImage("F:\\Gfx\\Misc\\Surfboards\\horan
-		 * 6'8 keelboard outline.jpg");
+		 * getSelectedEdit().loadBackgroundImage("F:\\Gfx\\Misc\\Surfboards\\
+		 * horan 6'8 keelboard outline.jpg");
 		 */
 
 		mBlockGUI = false;
@@ -7596,7 +6942,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				return;
 			}
 
-			mPrintBrd.printOutline(printOutlineSettings.getBoolean("PrintGrid"), printOutlineSettings.getBoolean("OverCurve"));
+			mPrintBrd.printOutline(printOutlineSettings.getBoolean("PrintGrid"),
+					printOutlineSettings.getBoolean("OverCurve"));
 
 		} else if (cmdStr == LanguageResource.getString("PRINTSPINTEMPLATE_STR")) {
 			CategorizedSettings settings = new CategorizedSettings();
@@ -7613,7 +6960,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				return;
 			}
 
-			mPrintBrd.printSpinTemplate(printOutlineSettings.getBoolean("PrintGrid"), printOutlineSettings.getBoolean("OverCurve"));
+			mPrintBrd.printSpinTemplate(printOutlineSettings.getBoolean("PrintGrid"),
+					printOutlineSettings.getBoolean("OverCurve"));
 		} else if (cmdStr == LanguageResource.getString("PRINTPROFILE_STR")) {
 			mPrintBrd.printProfile();
 		} else if (cmdStr == LanguageResource.getString("PRINTCROSSECTION_STR")) {
@@ -7627,14 +6975,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			// {
 			// design_panel.view_all();
 			// design_panel.fit_all();
-		} else if (cmdStr == LanguageResource.getString("SIMPLEEDITING_STR")) {
-			board_handler.set_single_point_editing(false);
-			// design_panel.fit_all();
-			redraw();
-		} else if (cmdStr == LanguageResource.getString("ADVANCEDEDITING_STR")) {
-			board_handler.set_single_point_editing(true);
-			// design_panel.fit_all();
-			redraw();
 		}
 
 	}
@@ -7654,7 +6994,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		if (mGuidePointsDialog != null && mGuidePointsDialog.isVisible() && mGuidePointsDialog.isFocused())
 			return false;
 
-		if (mWeightCalculatorDialog != null && mWeightCalculatorDialog.isVisible() && mWeightCalculatorDialog.isFocused())
+		if (mWeightCalculatorDialog != null && mWeightCalculatorDialog.isVisible()
+				&& mWeightCalculatorDialog.isFocused())
 			return false;
 
 		BoardEdit edit = getSelectedEdit();
@@ -7870,7 +7211,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		BoardCAD.getInstance();
 	}
 
-	public void drawOutlineFootMarks(final BoardEdit source, final Graphics2D g, final Stroke stroke, final BezierBoard brd) {
+	public void drawOutlineFootMarks(final BoardEdit source, final Graphics2D g, final Stroke stroke,
+			final BezierBoard brd) {
 
 		if (brd.isEmpty())
 			return;
@@ -7894,10 +7236,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				label = UnitUtils.convertLengthToCurrentUnit(pos, false);
 			} else if (i == 3) {
 				pos = brd.getMaxWidthPos();
-				label = "W.P:" + UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected() ? brd.getBottom().getPointByCurveLength(pos).x - brd.getBottom().getPointByCurveLength(brd.getLength() / 2.0).x : pos - brd.getLength() / 2.0, false);
+				label = "W.P:" + UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected()
+						? brd.getBottom().getPointByCurveLength(pos).x
+								- brd.getBottom().getPointByCurveLength(brd.getLength() / 2.0).x
+						: pos - brd.getLength() / 2.0, false);
 			} else {
-				pos = (mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLength() : brd.getLength()) - ((i == 6) ? UnitUtils.INCH : (6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT);
-				label = UnitUtils.convertLengthToCurrentUnit(-((i == 6) ? UnitUtils.INCH : (6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT), false);
+				pos = (mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLength() : brd.getLength())
+						- ((i == 6) ? UnitUtils.INCH : (6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT);
+				label = UnitUtils.convertLengthToCurrentUnit(
+						-((i == 6) ? UnitUtils.INCH : (6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT), false);
 			}
 
 			if (mBoardSpec.isOverCurveSelected()) {
@@ -7938,12 +7285,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	}
 
-	public void drawProfileFootMarks(final BoardEdit source, final Graphics2D g, final Stroke stroke, final BezierBoard brd) {
+	public void drawProfileFootMarks(final BoardEdit source, final Graphics2D g, final Stroke stroke,
+			final BezierBoard brd) {
 
 		g.setStroke(stroke);
 
 		Point centerPoint = source.brdCoordinateToScreenCoordinateTo(new Point2D.Double(brd.getLength() / 2.0, 0.0));
-		Point maxThicknessPoint = source.brdCoordinateToScreenCoordinateTo(new Point2D.Double(0, brd.getMaxThickness()));
+		Point maxThicknessPoint = source
+				.brdCoordinateToScreenCoordinateTo(new Point2D.Double(0, brd.getMaxThickness()));
 		Point maxRockerPoint = source.brdCoordinateToScreenCoordinateTo(new Point2D.Double(0, brd.getMaxRocker()));
 		Point bottomPoint = source.brdCoordinateToScreenCoordinateTo(new Point2D.Double(0, 0));
 
@@ -7961,10 +7310,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				label = (i == 0) ? "" : UnitUtils.convertLengthToCurrentUnit(pos, false);
 			} else if (i == 3) {
 				pos = brd.getLength() / 2.0;
-				label = "Center: " + UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected() ? brd.getBottom().getPointByCurveLength(pos).x : pos, false);
+				label = "Center: " + UnitUtils.convertLengthToCurrentUnit(
+						mBoardSpec.isOverCurveSelected() ? brd.getBottom().getPointByCurveLength(pos).x : pos, false);
 			} else {
-				pos = (mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLength() : brd.getLength()) - ((i == 6) ? 0.005 : (6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT);
-				label = (i == 6) ? "" : UnitUtils.convertLengthToCurrentUnit(-(6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT, false);
+				pos = (mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLength() : brd.getLength())
+						- ((i == 6) ? 0.005 : (6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT);
+				label = (i == 6) ? ""
+						: UnitUtils.convertLengthToCurrentUnit(-(6 - i) * UnitUtils.INCH * UnitUtils.INCHES_PR_FOOT,
+								false);
 			}
 
 			if (mBoardSpec.isOverCurveSelected()) {
@@ -8011,7 +7364,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	}
 
-	public void drawOutlineSlidingInfo(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawOutlineSlidingInfo(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 
 		final double width = brd.getWidthAtPos(source.mBrdCoord.x);
 		if (width <= 0.0)
@@ -8061,11 +7415,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			final double fromTail = brd.getFromTailOverBottomCurveAtPos(source.mBrdCoord.x);
 
-			source.mSlidingInfoString = LanguageResource.getString("OUTLINESLIDINGINFOFROMTAIL_STR") + UnitUtils.convertLengthToCurrentUnit(fromTail, false);
+			source.mSlidingInfoString = LanguageResource.getString("OUTLINESLIDINGINFOFROMTAIL_STR")
+					+ UnitUtils.convertLengthToCurrentUnit(fromTail, false);
 
 			g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * 3);
 
-			source.mSlidingInfoString = LanguageResource.getString("OUTLINESLIDINGINFOFROMNOSE_STR") + (" ") + UnitUtils.convertLengthToCurrentUnit(fromNose, false);
+			source.mSlidingInfoString = LanguageResource.getString("OUTLINESLIDINGINFOFROMNOSE_STR") + (" ")
+					+ UnitUtils.convertLengthToCurrentUnit(fromNose, false);
 
 			g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * 2);
 
@@ -8074,29 +7430,37 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		if (BoardCAD.getInstance().isPaintingMomentOfInertia()) {
 			final double momentOfInertia = brd.getMomentOfInertia(source.mBrdCoord.x, source.mBrdCoord.y);
 
-			source.mSlidingInfoString = LanguageResource.getString("SLIDINGINFOMOMENTOFINERTIA_STR") + UnitUtils.convertMomentOfInertiaToCurrentUnit(momentOfInertia);
+			source.mSlidingInfoString = LanguageResource.getString("SLIDINGINFOMOMENTOFINERTIA_STR")
+					+ UnitUtils.convertMomentOfInertiaToCurrentUnit(momentOfInertia);
 
-			g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * (BoardCAD.getInstance().isPaintingOverCurveMeasurements() ? 5 : 2));
+			g.drawString(source.mSlidingInfoString, textX, dim.height
+					- (size.height + 2) * (BoardCAD.getInstance().isPaintingOverCurveMeasurements() ? 5 : 2));
 		}
 
-		source.mSlidingInfoString = LanguageResource.getString("OUTLINESLIDINGINFOWIDTH_STR") + UnitUtils.convertLengthToCurrentUnit(width, false);
+		source.mSlidingInfoString = LanguageResource.getString("OUTLINESLIDINGINFOWIDTH_STR")
+				+ UnitUtils.convertLengthToCurrentUnit(width, false);
 
 		g.setColor(Color.BLUE);
 
 		g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * 1);
 
-		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0);
+		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY, source.mScale, 0.0);
 
-		source.mSlidingInfoLine.setLine(source.mBrdCoord.x * mulX, -(width / 2) * mulY, source.mBrdCoord.x * mulX, (width / 2) * mulY);
+		source.mSlidingInfoLine.setLine(source.mBrdCoord.x * mulX, -(width / 2) * mulY, source.mBrdCoord.x * mulX,
+				(width / 2) * mulY);
 
 		g.draw(source.mSlidingInfoLine);
 
 		g.setTransform(savedTransform);
 	}
 
-	public void drawOutlineCrossections(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawOutlineCrossections(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 
-		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, (source.mDrawControl & BezierBoardDrawUtil.FlipY) != 0);
+		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY, source.mScale, 0.0, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+				(source.mDrawControl & BezierBoardDrawUtil.FlipY) != 0);
 
 		Line2D.Double crossSectionLine = new Line2D.Double(); // @jve:decl-index=0:
 
@@ -8104,7 +7468,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		final float[] dashPattern = new float[] { 5.0f, 1.0f };
 		final BasicStroke bs = (BasicStroke) stroke;
-		final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(), bs.getLineJoin(), bs.getMiterLimit(), dashPattern, 0f);
+		final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(), bs.getLineJoin(),
+				bs.getMiterLimit(), dashPattern, 0f);
 		final Color noneActiveColor = color.brighter();
 
 		for (int i = 0; i < brd.getCrossSections().size(); i++) {
@@ -8132,7 +7497,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		g.setTransform(savedTransform);
 	}
 
-	public void drawProfileSlidingInfo(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawProfileSlidingInfo(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 
 		final double thickness = brd.getThicknessAtPos(source.mBrdCoord.x);
 		if (thickness <= 0.0)
@@ -8180,11 +7546,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		g.setColor(Color.RED);
 
-		source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFOROCKER_STR") + UnitUtils.convertLengthToCurrentUnit(rocker, false);
+		source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFOROCKER_STR")
+				+ UnitUtils.convertLengthToCurrentUnit(rocker, false);
 
 		g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * 2);
 
-		source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFORADIUS_STR") + UnitUtils.convertLengthToCurrentUnit(radius, true);
+		source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFORADIUS_STR")
+				+ UnitUtils.convertLengthToCurrentUnit(radius, true);
 
 		g.setColor(new Color(102, 102, 102));
 
@@ -8201,22 +7569,26 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			final double fromTail = brd.getFromTailOverBottomCurveAtPos(source.mBrdCoord.x);
 
-			source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFOFROMTAIL_STR") + UnitUtils.convertLengthToCurrentUnit(fromTail, false);
+			source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFOFROMTAIL_STR")
+					+ UnitUtils.convertLengthToCurrentUnit(fromTail, false);
 
 			g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * 5);
 
-			source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFOFROMNOSE_STR") + UnitUtils.convertLengthToCurrentUnit(fromNose, false);
+			source.mSlidingInfoString = LanguageResource.getString("PROFILESLIDINGINFOFROMNOSE_STR")
+					+ UnitUtils.convertLengthToCurrentUnit(fromNose, false);
 
 			g.drawString(source.mSlidingInfoString, textX, dim.height - (size.height + 2) * 4);
 
 		}
 
-		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0);
+		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY, source.mScale, 0.0);
 
 		// sets the color of the thickness sliding info bar (inside board)
 		g.setColor(Color.BLUE);
 
-		source.mSlidingInfoLine.setLine(source.mBrdCoord.x * mulX, rocker * mulY, source.mBrdCoord.x * mulX, (rocker + thickness) * mulY);
+		source.mSlidingInfoLine.setLine(source.mBrdCoord.x * mulX, rocker * mulY, source.mBrdCoord.x * mulX,
+				(rocker + thickness) * mulY);
 
 		g.draw(source.mSlidingInfoLine);
 
@@ -8231,12 +7603,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	}
 
-	public void drawProfileCrossections(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawProfileCrossections(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 
 		final double mulX = (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0 ? -1 : 1;
 		final double mulY = (source.mDrawControl & BezierBoardDrawUtil.FlipY) != 0 ? -1 : 1;
 
-		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0);
+		final AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY, source.mScale, 0.0);
 
 		Line2D.Double crossSectionLine = new Line2D.Double(); // @jve:decl-index=0:
 
@@ -8244,7 +7618,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		final float[] dashPattern = new float[] { 5.0f, 1.0f };
 		final BasicStroke bs = (BasicStroke) stroke;
-		final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(), bs.getLineJoin(), bs.getMiterLimit(), dashPattern, 0f);
+		final BasicStroke stapled = new BasicStroke((float) (bs.getLineWidth() / 2.0), bs.getEndCap(), bs.getLineJoin(),
+				bs.getMiterLimit(), dashPattern, 0f);
 		final Color noneActiveColor = color.brighter();
 
 		for (int i = 0; i < brd.getCrossSections().size(); i++) {
@@ -8273,44 +7648,70 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		g.setTransform(savedTransform);
 	}
 
-	public void drawOutlineFlowlines(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
-		BezierBoardDrawUtil.paintOutlineFlowLines(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+	public void drawOutlineFlowlines(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke,
+			final BezierBoard brd) {
+		BezierBoardDrawUtil.paintOutlineFlowLines(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0,
+				color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 	}
 
-	public void drawOutlineTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
-		BezierBoardDrawUtil.paintOutlineTuckUnderLine(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+	public void drawOutlineTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
+		BezierBoardDrawUtil.paintOutlineTuckUnderLine(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale,
+				0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 	}
 
-	public void drawProfileFlowlines(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
-		BezierBoardDrawUtil.paintProfileFlowLines(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+	public void drawProfileFlowlines(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke,
+			final BezierBoard brd) {
+		BezierBoardDrawUtil.paintProfileFlowLines(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0,
+				color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 	}
 
-	public void drawProfileApexline(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
-		BezierBoardDrawUtil.paintProfileApexline(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+	public void drawProfileApexline(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke,
+			final BezierBoard brd) {
+		BezierBoardDrawUtil.paintProfileApexline(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0,
+				color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 	}
 
-	public void drawProfileTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
-		BezierBoardDrawUtil.paintProfileTuckUnderLine(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale, 0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+	public void drawProfileTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
+		BezierBoardDrawUtil.paintProfileTuckUnderLine(new JavaDraw(g), source.mOffsetX, source.mOffsetY, source.mScale,
+				0.0, color, stroke, brd, (source.mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 	}
 
-	public void drawCrossSectionCenterline(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawCrossSectionCenterline(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
-		BezierBoardDrawUtil.paintCrossSectionCenterline(new JavaDraw(g), source.mOffsetX, source.mOffsetY + (isCompensatedForRocker ? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0), source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
+		BezierBoardDrawUtil.paintCrossSectionCenterline(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY + (isCompensatedForRocker
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
-	public void drawCrossSectionFlowlines(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawCrossSectionFlowlines(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
-		BezierBoardDrawUtil.paintCrossSectionFlowLines(new JavaDraw(g), source.mOffsetX, source.mOffsetY + (isCompensatedForRocker ? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0), source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
+		BezierBoardDrawUtil.paintCrossSectionFlowLines(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY + (isCompensatedForRocker
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
-	public void drawCrossSectionApexline(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawCrossSectionApexline(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
-		BezierBoardDrawUtil.paintCrossSectionApexline(new JavaDraw(g), source.mOffsetX, source.mOffsetY + (isCompensatedForRocker ? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0), source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
+		BezierBoardDrawUtil.paintCrossSectionApexline(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY + (isCompensatedForRocker
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
-	public void drawCrossSectionTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd) {
+	public void drawCrossSectionTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color,
+			final Stroke stroke, final BezierBoard brd) {
 		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
-		BezierBoardDrawUtil.paintCrossSectionTuckUnderLine(new JavaDraw(g), source.mOffsetX, source.mOffsetY + (isCompensatedForRocker ? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0), source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
+		BezierBoardDrawUtil.paintCrossSectionTuckUnderLine(new JavaDraw(g), source.mOffsetX,
+				source.mOffsetY + (isCompensatedForRocker
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
 	static public Frame findParentFrame(Container container) {

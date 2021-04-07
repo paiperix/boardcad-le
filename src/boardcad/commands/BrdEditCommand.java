@@ -10,12 +10,9 @@ import java.util.ArrayList;
 import boardcad.gui.jdk.BezierBoardDrawUtil;
 import boardcad.gui.jdk.BoardCAD;
 import boardcad.gui.jdk.BoardEdit;
-import boardcad.gui.jdk.BoardHandler;
 import boardcad.i18n.LanguageResource;
 import cadcore.BezierKnot;
 import cadcore.BezierSpline;
-import cadcore.MathUtils;
-import cadcore.NurbsPoint;
 import cadcore.VecMath;
 
 public class BrdEditCommand extends BrdAbstractEditCommand
@@ -37,21 +34,11 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	BrdPanCommand mPanCommand = new BrdPanCommand();
 	BrdZoomCommand mZoomCommand = new BrdZoomCommand();
-	NurbsEditCommand mNurbsCommand = new NurbsEditCommand();
-	
+
 	boolean mIsPaning = false;
 
 	final double MAX_OFF = 4.0f;
 
-	private static int clicked_x;
-	private static int clicked_y;
-	private static int dragged_x;
-	private static int dragged_y;
-	protected static boolean is_marked=false;
-
-	private NurbsPoint p;
-	
-	
 	public BrdEditCommand()
 	{
 	}
@@ -152,11 +139,11 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 						(double)(-sy*ol) + selectedControlPoints.get(0).getPoints()[0].y);
 			}
 
-			/*Debug			
+			/*Debug
 	        System.out.println("Tangent to Prev angle: " + mSelectedControlPointsCopy.get(0).getTangentToPrevAngle() + " Tangent to Next angle: " + mSelectedControlPointsCopy.get(0).getTangentToNextAngle());
 	        double a = mSelectedControlPointsCopy.get(0).getTangentToPrevAngle();
 	        a = Math.abs(Math.PI - a);
-	        double b = mSelectedControlPointsCopy.get(0).getTangentToNextAngle();	        
+	        double b = mSelectedControlPointsCopy.get(0).getTangentToNextAngle();
 			boolean cont = (Math.abs(a-b) < 0.02)?true:false;
 	        System.out.println("a: " + a + " b: " + b + " cont:" + cont);
 			 */
@@ -168,55 +155,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void onLeftMouseButtonPressed(BoardEdit source, MouseEvent event)
 	{
-	
-		//marking nurbs points
-		
-		clicked_x=event.getX();
-		clicked_y=event.getY();
-
-		BoardHandler board_handler=BoardCAD.getInstance().getBoardHandler();				
-
-		if(source.mDrawControl == 0)
-		{
-			clicked_x=event.getX();
-			clicked_y=event.getY();
-			board_handler.set_x((clicked_x-source.mOffsetX)/(source.mScale/10));
-			board_handler.set_z((clicked_y-source.mOffsetY)/(source.mScale/10));
-			is_marked=board_handler.outline_mark(source.mScale/10, source.mRotationMatrix);
-			if(is_marked)
-			{
-				p=new NurbsPoint(board_handler.get_x(), board_handler.get_y(), board_handler.get_z());
-			}		
-		}		
-		else if(source.mDrawControl == BezierBoardDrawUtil.MirrorY)
-		{
-			board_handler.set_x((clicked_x-source.mOffsetX)/(source.mScale/10));
-			board_handler.set_z((clicked_y-source.mOffsetY)/(source.mScale/10));
-			is_marked=board_handler.outline_mark(source.mScale/10);
-		}
-		else if(source.mDrawControl == BezierBoardDrawUtil.FlipY)
-		{
-			board_handler.set_x((clicked_x-source.mOffsetX)/(source.mScale/10));
-			board_handler.set_y((-clicked_y+source.mOffsetY)/(source.mScale/10));
-			is_marked=board_handler.rocker_mark(source.mScale/10);
-		}
-		else if(source.mDrawControl == (BezierBoardDrawUtil.MirrorX | BezierBoardDrawUtil.FlipY))
-		{
-			board_handler.set_z((clicked_x-source.mOffsetX)/(source.mScale/10));
-			board_handler.set_y((-clicked_y+source.mOffsetY)/(source.mScale/10));
-			is_marked=board_handler.edge_mark(source.mScale/10);
-		}
-		
-		if(is_marked)
-		{
-			BoardCAD.getInstance().status_panel.set_point_name(board_handler.get_point_name());
-			BoardCAD.getInstance().status_panel.set_coordinates(board_handler.get_x(), board_handler.get_y(), board_handler.get_z());
-			mNurbsCommand = new NurbsEditCommand();
-		}
-			
-		
-		//marking bezier point
-	
+		//Select point
 		Point pos = event.getPoint();
 		Point2D.Double brdPos = source.screenCoordinateToBrdCoordinate(pos);
 
@@ -237,7 +176,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 					break;
 			}
 		}
-		
+
 		if(bestMatch == null)
 		{
 			mSource = source;
@@ -288,62 +227,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void onMouseDragged(BoardEdit source, MouseEvent event)
 	{
-
-
-		//dragging nurbs points
-		
-//		clicked_x=event.getX();
-//		clicked_y=event.getY();
-
-		BoardHandler board_handler=BoardCAD.getInstance().getBoardHandler();				
-		
-		if(is_marked)
-		{		
-			if(source.mDrawControl == 0)
-			{
-
-				double[][] m=MathUtils.invert(source.mRotationMatrix);
-				double myy=(source.mRotationMatrix[1][0]*p.x+source.mRotationMatrix[1][1]*p.y+source.mRotationMatrix[1][2]*p.z);
-
-				board_handler.set_x( m[0][0]*(event.getX()-source.mOffsetX)/(source.mScale/10) + m[0][1]*myy + m[0][2]*(event.getY()-source.mOffsetY)/(source.mScale/10) );// + m[0][2]*100);
-				board_handler.set_y( m[1][0]*(event.getX()-source.mOffsetX)/(source.mScale/10) + m[1][1]*myy + m[1][2]*(event.getY()-source.mOffsetY)/(source.mScale/10) );// + m[1][2]*100);
-				board_handler.set_z( m[2][0]*(event.getX()-source.mOffsetX)/(source.mScale/10) + m[2][1]*myy + m[2][2]*(event.getY()-source.mOffsetY)/(source.mScale/10) );// + m[2][2]*100);					
-
-				board_handler.set_point(source.mRotationMatrix);
-			}
-			else if(source.mDrawControl == BezierBoardDrawUtil.MirrorY)
-			{
-				if(!BoardCAD.getInstance().mIsLockedX.getState())
-					board_handler.set_x((event.getX()-source.mOffsetX)/(source.mScale/10));
-				if(!BoardCAD.getInstance().mIsLockedZ.getState())
-					board_handler.set_z((event.getY()-source.mOffsetY)/(source.mScale/10));
-				board_handler.set_point();
-			}
-			else if(source.mDrawControl == BezierBoardDrawUtil.FlipY)
-			{
-	
-				if(!BoardCAD.getInstance().mIsLockedX.getState())
-					board_handler.set_x((event.getX()-source.mOffsetX)/(source.mScale/10));
-				if(!BoardCAD.getInstance().mIsLockedY.getState())
-					board_handler.set_y((source.mOffsetY-event.getY())/(source.mScale/10));
-				board_handler.set_point();
-			}
-			else if(source.mDrawControl == (BezierBoardDrawUtil.MirrorX | BezierBoardDrawUtil.FlipY))
-			{
-				if(!BoardCAD.getInstance().mIsLockedY.getState())
-					board_handler.set_y((-event.getY()+source.mOffsetY)/(source.mScale/10));
-				if(!BoardCAD.getInstance().mIsLockedZ.getState())
-					board_handler.set_z((event.getX()-source.mOffsetX)/(source.mScale/10));
-				board_handler.set_point();			
-			}
-						
-			BoardCAD.getInstance().redraw();
-		}
-		
-
-		//dragging bezier points
-
-
+		//Dragging points
 		if(mIsKeyEditing)
 			return;
 
@@ -404,12 +288,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void onLeftMouseButtonReleased(BoardEdit source, MouseEvent event)
 	{
-		if(is_marked)
-		{
-			mNurbsCommand.execute();
-			is_marked=false;
-		}
-		
 		if(mIsBoxSelecting)
 		{
 			mSource.disableDrawZoomRectangle();
@@ -445,16 +323,16 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 					for(int j = 0; j < 3; j++)
 					{
 						Point2D.Double p = point.getPoints()[j];
-	
+
 						if(p.x > boxStartPos.x && p.x < boxEndPos.x && p.y > boxStartPos.y && p.y < boxEndPos.y )	//Check within box
 						{
 							setWhich(j);
-	
+
 							if(event.isControlDown())
 								source.toggleSelectedControlPoint(point);
 							else
 								source.addSelectedControlPoint(point);
-	
+
 							break;
 						}
 					}
@@ -463,7 +341,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 			BoardCAD.getInstance().onControlPointChanged();
 			source.repaint();
-			mIsBoxSelecting = false;			
+			mIsBoxSelecting = false;
 		}
 
 		ArrayList<BezierKnot> selectedControlPoints = source.getSelectedControlPoints();
@@ -489,7 +367,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 			}
 			else
 			{
-				mZoomCommand.zoomOutStep(source, event.isAltDown());				
+				mZoomCommand.zoomOutStep(source, event.isAltDown());
 			}
 
 		}
@@ -560,7 +438,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 				if(getWhich() < 0)
 					setWhich(2);
 
-				source.repaint();			
+				source.repaint();
 				break;
 
 			case KeyEvent.VK_C:
@@ -576,14 +454,14 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 					int currentIndex = splines[i].indexOf(selectedControlPoints.get(0));
 					if(currentIndex == -1)
 						continue;
-	
+
 					int newIndex = ++currentIndex%splines[i].getNrOfControlPoints();
-	
+
 					selectedControlPoints.clear();
-	
+
 					selectedControlPoints.add(splines[i].getControlPoint(newIndex));
 
-					source.repaint();			
+					source.repaint();
 				}
 				break;
 
@@ -665,7 +543,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 	{
 		if(source.getSelectedControlPoints().size() == 0)
 			return;
-		
+
 		mSource = source;
 
 		saveControlPointsBeforeChange(mSource);
@@ -836,7 +714,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 	public String getCommandString()
 	{
 		return LanguageResource.getString("EDITCMD_STR");
-	}	
+	}
 
 	public int getWhich() {
 		return mWhich;

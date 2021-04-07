@@ -50,7 +50,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	public int mDrawControl = 0;
 	public double theta=30;
-	public double zeta=45;	
+	public double zeta=45;
 
 	public double[][] mRotationMatrix;
 
@@ -59,7 +59,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	double mLastWidth = 800;
 	double mLastHeight = 600;
 
-	Rectangle mZoomRectangle = new Rectangle(); 
+	Rectangle mZoomRectangle = new Rectangle();
 	boolean mDrawZoomRectangle;
 
 	boolean mHasMouse = false;
@@ -76,7 +76,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	double mCurvatureScale = 500;
 	double mVolumeDistributionScale = 0.1;
-	
+
 	Image mBackgroundImage = null;
 //	AffineTransform mBackgroundImageTransform = new AffineTransform();
 	double mBackgroundImageOffsetX = 0;
@@ -85,9 +85,9 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	double mBackgroundImageRot = 0;
 
 	BrdEditParentContainer mParentContainer = null;
-	
+
 	JPopupMenu mPopupMenu = null;
-	
+
 	boolean mIsLifeSize = false;
 	static double mLifeSizeScale = 1.0;
 	protected double mLifeSizeOffsetX=0.0;
@@ -95,30 +95,27 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	double mPreviousScale = 1.0;
 	protected double mPreviousOffsetX=0.0;
 	protected double mPreviousOffsetY=0.0;
-	
+
 	public boolean mIsCrossSectionEdit=false;
-	
+
 	public BoardEdit()
 	{
 		super();
 
 		double[][] m1 = {{Math.cos(-theta*Math.PI/180.0), 0.0, -Math.sin(-theta*Math.PI/180.0)},
 				{0.0, 1.0, 0.0},
-		                {Math.sin(-theta*Math.PI/180.0), 0.0, Math.cos(-theta*Math.PI/180.0)}}; 
+		                {Math.sin(-theta*Math.PI/180.0), 0.0, Math.cos(-theta*Math.PI/180.0)}};
 		double[][] m2 = {{1.0, 0.0, 0.0},
 				{0.0, Math.cos(-zeta*Math.PI/180.0), -Math.sin(-zeta*Math.PI/180.0)},
-		                {0.0, Math.sin(-zeta*Math.PI/180.0), Math.cos(-zeta*Math.PI/180.0)}}; 
+		                {0.0, Math.sin(-zeta*Math.PI/180.0), Math.cos(-zeta*Math.PI/180.0)}};
 
 		mRotationMatrix=MathUtils.cross_product(m1,m2);
 
 //		Hint at good sizes for this component.
-
 		setPreferredSize(new Dimension(800, 600));
-
 		setMinimumSize(new Dimension(400, 300));
 
 //		Request a black line around this component.
-
 		setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		setFocusable(true);
 
@@ -131,7 +128,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	{
 		mPopupMenu = menu;
 	}
-	
+
 	public void setParentContainer(BrdEditParentContainer parent)
 	{
 		mParentContainer = parent;
@@ -173,7 +170,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		mLifeSizeOffsetX = mOffsetX;
 		mLifeSizeOffsetY = mOffsetY;
 	}
-	
+
 	public boolean isLifeSize()
 	{
 		return mIsLifeSize;
@@ -183,7 +180,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	{
 		if(mIsLifeSize == lifeSize)
 			return;
-		
+
 		mIsLifeSize = lifeSize;
 
 		if(mIsLifeSize)
@@ -199,10 +196,10 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		else
 		{
 			mLifeSizeOffsetX = mOffsetX;
-			mLifeSizeOffsetY = mOffsetY;			
+			mLifeSizeOffsetY = mOffsetY;
 		}
 	}
-	
+
 	public void resetToPreviousScale()
 	{
 		mScale = mPreviousScale;
@@ -221,7 +218,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		mDrawZoomRectangle = false;
 
 	}
-	
+
 	public void setFlipped(boolean flipped)
 	{
 		if(flipped && !isFlipped())
@@ -233,11 +230,11 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			mDrawControl &= ~BezierBoardDrawUtil.FlipX;
 		}
 	}
-	
+
 	public boolean isFlipped()
 	{
 		return (mDrawControl&BezierBoardDrawUtil.FlipX) != 0;
-	
+
 	}
 	protected boolean isPaintingVolumeDistribution()
 	{
@@ -258,35 +255,24 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	{
 		return BoardCAD.getInstance().getGhostBrd();
 	}
-	
+
 	protected BrdCommand getCurrentCommand()
 	{
 		return BoardCAD.getInstance().getCurrentCommand();
-	}
-	
-	protected BoardHandler getBoardHandler()
-	{
-		return BoardCAD.getInstance().getBoardHandler();
 	}
 
 	public void fitBrd()
 	{
 		Dimension dim = getSize();
-		
+
 		double maxlength = 200.0;
 
-		BoardHandler bh=getBoardHandler();
-		
-		if(bh != null)
-		{
-			maxlength=bh.get_board_length()/10;
-		}
 
 		if(getCurrentBrd() != null && getCurrentBrd().getLength()>maxlength)
 		{
 			maxlength=getCurrentBrd().getLength();
 		}
-		
+
 		mScale = (dim.width-((BORDER*dim.width/100)*2))/maxlength;
 
 		boolean noseToTheLeft = (mDrawControl&BezierBoardDrawUtil.FlipX)!=0;
@@ -371,7 +357,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		return brdPoint;
 	}
-	
+
 	public Point brdCoordinateToScreenCoordinateTo(Point2D.Double brdPoint)
 	{
 		Point scrPoint = new Point();
@@ -385,7 +371,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 	public void loadBackgroundImage(String filename)
 	{
 		mBackgroundImage = Toolkit.getDefaultToolkit().getImage(filename);
-		
+
 
 		int height = mBackgroundImage.getHeight(this);
 		while(height == -1)
@@ -394,11 +380,11 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 				wait(20);
 			}
 			catch(Exception e){
-				//System.out.println("BoardEdit.loadBackgroundImage() Exception: " + e.toString());				
+				//System.out.println("BoardEdit.loadBackgroundImage() Exception: " + e.toString());
 			};
 			height = mBackgroundImage.getHeight(this);
 		}
-		
+
 		int width = mBackgroundImage.getWidth(this);
 		while(width == -1)
 		{
@@ -406,24 +392,24 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 				wait(20);
 			}
 			catch(Exception e){
-				//System.out.println("BoardEdit.loadBackgroundImage() Exception: " + e.toString());								
+				//System.out.println("BoardEdit.loadBackgroundImage() Exception: " + e.toString());
 			};
 			width = mBackgroundImage.getWidth(this);
 		}
-		
+
 		Point2D.Double tail = getTail();
 		Point2D.Double nose = getNose();
-		
+
 		Point2D.Double brdVec = new Point2D.Double();
 		VecMath.subVector(tail, nose, brdVec);
 
 		double brdVecLen = VecMath.getVecLength(brdVec);
-		
+
 		mBackgroundImageScale = 1;
 		mBackgroundImageOffsetX = 0;
 		mBackgroundImageOffsetY = 0;
 		mBackgroundImageRot = 0;
-		
+
 		if(width > height)
 		{
 			mBackgroundImageScale = (brdVecLen/width);
@@ -434,22 +420,22 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			mBackgroundImageRot = -Math.PI/2;
 			mBackgroundImageScale = (brdVecLen/height);
 			mBackgroundImageOffsetY = (width/2)*mBackgroundImageScale;
-		}	
+		}
 		repaint();
 	}
-	
+
 	public void adjustBackgroundImageTail(Point clickedScreenCoord)
 	{
 //		double mulX = ((mDrawControl&Brd.FlipX)!=0?-1.0f:1.0f);
 		double mulY = ((mDrawControl&BezierBoardDrawUtil.FlipY)!=0?-1.0f:1.0f);
-		
+
 		Point2D.Double pos = screenCoordinateToBrdCoordinate(clickedScreenCoord);
 		Point2D.Double tail = getTail();
 		Point2D.Double nose = getNose();
 
 		Point2D.Double brdVec = new Point2D.Double();
 		VecMath.subVector(tail, nose, brdVec);
-		
+
 		Point2D.Double imgVec = new Point2D.Double();
 		VecMath.subVector(pos, nose, imgVec);
 
@@ -457,19 +443,19 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		double imgVecLen = VecMath.getVecLength(imgVec);
 		double rot = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulY;
 		double newScale = (brdVecLen/imgVecLen);
-		
+
 		mBackgroundImageRot += rot;
-		
+
 		mBackgroundImageOffsetX = (mBackgroundImageOffsetX + (tail.x - pos.x))*newScale;
 		mBackgroundImageOffsetY = (mBackgroundImageOffsetY + (tail.y - pos.y)*mulY)*newScale;
-		
+
 		mBackgroundImageScale *= newScale;
-		
+
 //		System.out.printf("adjustBackgroundImageTail() rot:%f mulY:%f mBackgroundImageRot: %f, mBackgroundImageOffsetX: %f, mBackgroundImageOffsetY: %f, mBackgroundImageScale: %f", rot, mulY, mBackgroundImageRot, mBackgroundImageOffsetX, mBackgroundImageOffsetY, mBackgroundImageScale);
-		
+
 		repaint();
 	}
-	
+
 	public void adjustBackgroundImageNose(Point clickedScreenCoord)
 	{
 //		double mulX = ((mDrawControl&Brd.FlipX)!=0?-1.0f:1.0f);
@@ -478,42 +464,42 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		Point2D.Double pos = screenCoordinateToBrdCoordinate(clickedScreenCoord);
 		Point2D.Double tail = getTail();
 		Point2D.Double nose =  getNose();
-		
+
 		Point2D.Double brdVec = new Point2D.Double();
 		VecMath.subVector(tail, nose, brdVec);
-		
+
 		Point2D.Double imgVec = new Point2D.Double();
 		VecMath.subVector(tail, pos, imgVec);
 
 		double brdVecLen = VecMath.getVecLength(brdVec);
 		double imgVecLen = VecMath.getVecLength(imgVec);
-		double newScale = (brdVecLen/imgVecLen);		
+		double newScale = (brdVecLen/imgVecLen);
 		double rot = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulY;
-		
+
 		mBackgroundImageRot += rot;
-				
+
 		mBackgroundImageOffsetX *=newScale;
 		mBackgroundImageOffsetY *=newScale;
 
 		mBackgroundImageScale *= newScale;
-	
+
 //		System.out.printf("adjustBackgroundImageNose() rot:%f mulY:%f mBackgroundImageRot: %f, mBackgroundImageOffsetX: %f, mBackgroundImageOffsetY: %f, mBackgroundImageScale: %f\n", rot, mulY, mBackgroundImageRot, mBackgroundImageOffsetX, mBackgroundImageOffsetY, mBackgroundImageScale);
 
 		repaint();
 	}
-	
+
 	Point2D.Double getTail()
 	{
 		return (Point2D.Double)getActiveBezierSplines(getCurrentBrd())[0].getControlPoint(0).getEndPoint().clone();
 	}
-	
+
 	Point2D.Double getNose()
 	{
 		return (Point2D.Double)getActiveBezierSplines(getCurrentBrd())[0].getControlPoint(getActiveBezierSplines(getCurrentBrd())[0].getNrOfControlPoints()-1).getEndPoint().clone();
 	}
-	
 
-	
+
+
 	@Override
 	public void paintComponent(Graphics g) {
 
@@ -528,9 +514,10 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		 */
 
 		Graphics2D g2d = (Graphics2D)g.create();
-		
+
 //		Turn on antialiasing, so painting is smooth.
-		if(BoardCAD.getInstance().isAntialiasing())
+		BoardCAD boardCAD = BoardCAD.getInstance();
+		if(boardCAD.isAntialiasing())
 		{
 			g2d.setRenderingHint(
 
@@ -543,10 +530,10 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		}
 
 //		Paint the background.
-		Color bkgColor = BoardCAD.getInstance().getBackgroundColor();
+		Color bkgColor = boardCAD.getBackgroundColor();
 		if(mParentContainer != null && !mParentContainer.isActive(this))
 		{
-			bkgColor = BoardCAD.getInstance().getUnselectedBackgroundColor();
+			bkgColor = boardCAD.getUnselectedBackgroundColor();
 		}
 
 		g2d.setColor(bkgColor);
@@ -555,218 +542,210 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		if(mDrawControl == 0)
 		{
-			//draw nurbs board
-			
-			BoardHandler bh=getBoardHandler();
-			
-			bh.draw_outline3D(g2d, 800, 600, mScale/10, (int)mOffsetX, (int)mOffsetY, false, BoardCAD.getInstance().mViewBottomCut.isSelected(), BoardCAD.getInstance().mViewDeckCut.isSelected(), mRotationMatrix);
-			//bh.draw_outline(g2d, 800, 600, mScale/10, (int)mOffsetX, (int)mOffsetY, false, false, false);
-
-
 			if(mDrawZoomRectangle == true)
 			{
 				g2d.setColor(Color.blue);
-				g2d.drawRect(mZoomRectangle.x, mZoomRectangle.y, mZoomRectangle.width, mZoomRectangle.height);			
+				g2d.drawRect(mZoomRectangle.x, mZoomRectangle.y, mZoomRectangle.width, mZoomRectangle.height);
 			}
 
-			BoardCAD.getInstance().status_panel.set_mode(BoardCAD.getInstance().getCurrentCommand().getCommandString() + " " + LanguageResource.getString("MODE_STR"));
+			boardCAD.mStatusPanel.setMode(boardCAD.getCurrentCommand().getCommandString() + " " + LanguageResource.getString("MODE_STR"));
 
 			//drawBrdCoordinate(g2d);
 
 			return;
 		}
 
-	if(!BoardCAD.getInstance().mViewBlank.isSelected())
+	if(!boardCAD.mViewBlank.isSelected())
 	{
 
 		BezierBoard currentBrd = getCurrentBrd();
 		if(currentBrd == null)
 			return;
 
-		if(BoardCAD.getInstance().isPaintingBackgroundImage())
+		if(boardCAD.isPaintingBackgroundImage())
 		{
 			drawBackgroundImage(g2d);
 		}
 
 		Stroke stroke;
-		stroke = new BasicStroke((float)(BoardCAD.getInstance().getBezierThickness()/mScale));
+		stroke = new BasicStroke((float)(boardCAD.getBezierThickness()/mScale));
 
-		if(BoardCAD.getInstance().isPaintingGrid())
+		if(boardCAD.isPaintingGrid())
 		{
-			BezierBoardDrawUtil.paintGrid(new JavaDraw(g2d), mOffsetX, mOffsetY, mScale, 0.0, BoardCAD.getInstance().getGridColor(), currentBrd.getLength(), currentBrd.getMaxWidth()/2.0, (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, (mDrawControl&BezierBoardDrawUtil.FlipY)!=0);
+			BezierBoardDrawUtil.paintGrid(new JavaDraw(g2d), mOffsetX, mOffsetY, mScale, 0.0, boardCAD.getGridColor(), currentBrd.getLength(), currentBrd.getMaxWidth()/2.0, (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, (mDrawControl&BezierBoardDrawUtil.FlipY)!=0);
 		}
 
-		
+
 		BezierBoard ghostBrd = getGhostBrd();
 		BezierBoard orgBrd = getOriginalBrd();
-		if(BoardCAD.getInstance().mGhostMode && ghostBrd.isEmpty() == false)
+		if(boardCAD.mGhostMode && ghostBrd.isEmpty() == false)
 		{
-			if(BoardCAD.getInstance().isPaintingOriginalBrd())
+			if(boardCAD.isPaintingOriginalBrd())
 			{
 				if(orgBrd != null && getActiveBezierSplines(orgBrd) != null)
 				{
-					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mOriginalOffsetX*mScale, mOriginalOffsetY*mScale, 1.0, 0.0);	
-					drawPart(g2d, BoardCAD.getInstance().getOriginalBrdColor(), stroke, orgBrd, BoardCAD.getInstance().useFill());
+					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mOriginalOffsetX*mScale, mOriginalOffsetY*mScale, 1.0, 0.0);
+					drawPart(g2d, boardCAD.getOriginalBrdColor(), stroke, orgBrd, boardCAD.useFill());
 					g2d.setTransform(savedTransform);
 				}
 			}
 
-			drawPart(g2d, BoardCAD.getInstance().getGhostBrdColor(), stroke, currentBrd, BoardCAD.getInstance().useFill());
-			if(BoardCAD.getInstance().isPaintingCurvature())
+			drawPart(g2d, boardCAD.getGhostBrdColor(), stroke, currentBrd, boardCAD.useFill());
+			if(boardCAD.isPaintingCurvature())
 			{
-				drawCurvature(g2d, BoardCAD.getInstance().getGhostBrdColor(), new BasicStroke((float)(BoardCAD.getInstance().getCurvatureThickness()/mScale)), currentBrd);
+				drawCurvature(g2d, boardCAD.getGhostBrdColor(), new BasicStroke((float)(boardCAD.getCurvatureThickness()/mScale)), currentBrd);
 			}
-			
+
 			if(isPaintingVolumeDistribution())
 			{
-				drawVolumeDistribution(g2d, BoardCAD.getInstance().getGhostBrdColor(), new BasicStroke((float)(BoardCAD.getInstance().getVolumeDistributionThickness()/mScale)), currentBrd);
+				drawVolumeDistribution(g2d, boardCAD.getGhostBrdColor(), new BasicStroke((float)(boardCAD.getVolumeDistributionThickness()/mScale)), currentBrd);
 			}
-					 
-			if(BoardCAD.getInstance().isPaintingCenterOfMass())
+
+			if(boardCAD.isPaintingCenterOfMass())
 			{
 				double x = ghostBrd.getCenterOfMass();
-				drawCircle(g2d, BoardCAD.getInstance().getCenterOfMassColor(), new BasicStroke((float)(BoardCAD.getInstance().getSelectedControlPointOutlineThickness()/mScale)), new Point2D.Double(x*Math.cos(mGhostRot)+(mGhostOffsetX*mScale),x*Math.sin(mGhostRot)+(mGhostOffsetY*mScale)));				
+				drawCircle(g2d, boardCAD.getCenterOfMassColor(), new BasicStroke((float)(boardCAD.getSelectedControlPointOutlineThickness()/mScale)), new Point2D.Double(x*Math.cos(mGhostRot)+(mGhostOffsetX*mScale),x*Math.sin(mGhostRot)+(mGhostOffsetY*mScale)));
 			}
 			if(ghostBrd != null && getActiveBezierSplines(ghostBrd) != null)
 			{
-				AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mGhostOffsetX*mScale, mGhostOffsetY*mScale, 1.0, mGhostRot);	
-				
-				drawPart(g2d, BoardCAD.getInstance().getBrdColor(), stroke, ghostBrd, BoardCAD.getInstance().useFill());
-		
-				if(BoardCAD.getInstance().isPaintingSlidingInfo())
+				AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mGhostOffsetX*mScale, mGhostOffsetY*mScale, 1.0, mGhostRot);
+
+				drawPart(g2d, boardCAD.getBrdColor(), stroke, ghostBrd, boardCAD.useFill());
+
+				if(boardCAD.isPaintingSlidingInfo())
 				{
-					drawSlidingInfo(g2d, BoardCAD.getInstance().getBrdColor(), stroke, ghostBrd);
+					drawSlidingInfo(g2d, boardCAD.getBrdColor(), stroke, ghostBrd);
 				}
-		
-				if(BoardCAD.getInstance().isPaintingCurvature())
+
+				if(boardCAD.isPaintingCurvature())
 				{
-					drawCurvature(g2d, BoardCAD.getInstance().getCurvatureColor(), new BasicStroke((float)(BoardCAD.getInstance().getCurvatureThickness()/mScale)), ghostBrd);
+					drawCurvature(g2d, boardCAD.getCurvatureColor(), new BasicStroke((float)(boardCAD.getCurvatureThickness()/mScale)), ghostBrd);
 				}
-				
+
 				if(isPaintingVolumeDistribution())
 				{
-					drawVolumeDistribution(g2d, BoardCAD.getInstance().getVolumeDistributionColor(), new BasicStroke((float)(BoardCAD.getInstance().getVolumeDistributionThickness()/mScale)), ghostBrd);
+					drawVolumeDistribution(g2d, boardCAD.getVolumeDistributionColor(), new BasicStroke((float)(boardCAD.getVolumeDistributionThickness()/mScale)), ghostBrd);
 				}
-		
-				if(BoardCAD.getInstance().isPaintingControlPoints())
+
+				if(boardCAD.isPaintingControlPoints())
 				{
-					drawControlPoints(g2d, new BasicStroke((float)(BoardCAD.getInstance().getUnselectedControlPointOutlineThickness()/mScale)), ghostBrd);
+					drawControlPoints(g2d, new BasicStroke((float)(boardCAD.getUnselectedControlPointOutlineThickness()/mScale)), ghostBrd);
 				}
-				
+
 				g2d.setTransform(savedTransform);
 			}
 
 		}
-		else if(BoardCAD.getInstance().mOrgFocus && orgBrd.isEmpty() == false)
+		else if(boardCAD.mOrgFocus && orgBrd.isEmpty() == false)
 		{
-			if(BoardCAD.getInstance().isPaintingGhostBrd())
+			if(boardCAD.isPaintingGhostBrd())
 			{
 				if(ghostBrd != null && getActiveBezierSplines(ghostBrd) != null)
 				{
-					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mGhostOffsetX*mScale, mGhostOffsetY*mScale, 1.0, mGhostRot);	
-					drawPart(g2d, BoardCAD.getInstance().getGhostBrdColor(), stroke, ghostBrd, BoardCAD.getInstance().useFill());
+					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mGhostOffsetX*mScale, mGhostOffsetY*mScale, 1.0, mGhostRot);
+					drawPart(g2d, boardCAD.getGhostBrdColor(), stroke, ghostBrd, boardCAD.useFill());
 					g2d.setTransform(savedTransform);
 				}
 			}
 
-			drawPart(g2d, BoardCAD.getInstance().getOriginalBrdColor(), stroke, currentBrd, BoardCAD.getInstance().useFill());
-			if(BoardCAD.getInstance().isPaintingCurvature())
+			drawPart(g2d, boardCAD.getOriginalBrdColor(), stroke, currentBrd, boardCAD.useFill());
+			if(boardCAD.isPaintingCurvature())
 			{
-				drawCurvature(g2d, BoardCAD.getInstance().getOriginalBrdColor(), new BasicStroke((float)(BoardCAD.getInstance().getCurvatureThickness()/mScale)), currentBrd);
+				drawCurvature(g2d, boardCAD.getOriginalBrdColor(), new BasicStroke((float)(boardCAD.getCurvatureThickness()/mScale)), currentBrd);
 			}
-			
+
 			if(isPaintingVolumeDistribution())
 			{
-				drawVolumeDistribution(g2d, BoardCAD.getInstance().getOriginalBrdColor(), new BasicStroke((float)(BoardCAD.getInstance().getVolumeDistributionThickness()/mScale)), currentBrd);
+				drawVolumeDistribution(g2d, boardCAD.getOriginalBrdColor(), new BasicStroke((float)(boardCAD.getVolumeDistributionThickness()/mScale)), currentBrd);
 			}
-						
-			if(BoardCAD.getInstance().isPaintingCenterOfMass())
+
+			if(boardCAD.isPaintingCenterOfMass())
 			{
 				double x = orgBrd.getCenterOfMass();
-				drawCircle(g2d, BoardCAD.getInstance().getCenterOfMassColor(), new BasicStroke((float)(BoardCAD.getInstance().getUnselectedControlPointOutlineThickness()/mScale)), new Point2D.Double(x,0));				
+				drawCircle(g2d, boardCAD.getCenterOfMassColor(), new BasicStroke((float)(boardCAD.getUnselectedControlPointOutlineThickness()/mScale)), new Point2D.Double(x,0));
 			}
 
 			if(orgBrd != null && getActiveBezierSplines(orgBrd) != null)
 			{
-				AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mOriginalOffsetX*mScale, mOriginalOffsetY*mScale, 1.0, 0.0);	
-				
-				drawPart(g2d, BoardCAD.getInstance().getBrdColor(), stroke, orgBrd, BoardCAD.getInstance().useFill());
-		
-				if(BoardCAD.getInstance().isPaintingSlidingInfo())
+				AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mOriginalOffsetX*mScale, mOriginalOffsetY*mScale, 1.0, 0.0);
+
+				drawPart(g2d, boardCAD.getBrdColor(), stroke, orgBrd, boardCAD.useFill());
+
+				if(boardCAD.isPaintingSlidingInfo())
 				{
-					drawSlidingInfo(g2d, BoardCAD.getInstance().getBrdColor(), stroke, orgBrd);
+					drawSlidingInfo(g2d, boardCAD.getBrdColor(), stroke, orgBrd);
 				}
-		
-				if(BoardCAD.getInstance().isPaintingCurvature())
+
+				if(boardCAD.isPaintingCurvature())
 				{
-					drawCurvature(g2d, BoardCAD.getInstance().getCurvatureColor(), new BasicStroke((float)(BoardCAD.getInstance().getCurvatureThickness()/mScale)), orgBrd);
+					drawCurvature(g2d, boardCAD.getCurvatureColor(), new BasicStroke((float)(boardCAD.getCurvatureThickness()/mScale)), orgBrd);
 				}
 				if(isPaintingVolumeDistribution())
 				{
-					drawVolumeDistribution(g2d, BoardCAD.getInstance().getVolumeDistributionColor(), new BasicStroke((float)(BoardCAD.getInstance().getVolumeDistributionThickness()/mScale)), orgBrd);
+					drawVolumeDistribution(g2d, boardCAD.getVolumeDistributionColor(), new BasicStroke((float)(boardCAD.getVolumeDistributionThickness()/mScale)), orgBrd);
 				}
 
-				if(BoardCAD.getInstance().isPaintingControlPoints())
+				if(boardCAD.isPaintingControlPoints())
 				{
-					drawControlPoints(g2d, new BasicStroke((float)(BoardCAD.getInstance().getUnselectedControlPointOutlineThickness()/mScale)), orgBrd);
+					drawControlPoints(g2d, new BasicStroke((float)(boardCAD.getUnselectedControlPointOutlineThickness()/mScale)), orgBrd);
 				}
-				
+
 				g2d.setTransform(savedTransform);
 			}
 
 		}
 		else
 		{
-			if(BoardCAD.getInstance().isPaintingOriginalBrd())
+			if(boardCAD.isPaintingOriginalBrd())
 			{
 				if(orgBrd != null && getActiveBezierSplines(orgBrd) != null)
 				{
-					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mOriginalOffsetX*mScale, mOriginalOffsetY*mScale, 1.0, 0.0);	
-					drawPart(g2d, BoardCAD.getInstance().getOriginalBrdColor(), stroke, orgBrd, BoardCAD.getInstance().useFill());
+					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mOriginalOffsetX*mScale, mOriginalOffsetY*mScale, 1.0, 0.0);
+					drawPart(g2d, boardCAD.getOriginalBrdColor(), stroke, orgBrd, boardCAD.useFill());
 					g2d.setTransform(savedTransform);
 				}
 			}
-	
-			if(BoardCAD.getInstance().isPaintingGhostBrd())
+
+			if(boardCAD.isPaintingGhostBrd())
 			{
 				if(ghostBrd != null && getActiveBezierSplines(ghostBrd) != null)
 				{
-					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mGhostOffsetX*mScale, mGhostOffsetY*mScale, 1.0, mGhostRot);	
-					drawPart(g2d, BoardCAD.getInstance().getGhostBrdColor(), stroke, ghostBrd, BoardCAD.getInstance().useFill());
+					AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g2d), mGhostOffsetX*mScale, mGhostOffsetY*mScale, 1.0, mGhostRot);
+					drawPart(g2d, boardCAD.getGhostBrdColor(), stroke, ghostBrd, boardCAD.useFill());
 					g2d.setTransform(savedTransform);
 				}
 			}
-					
-			drawPart(g2d, BoardCAD.getInstance().getBrdColor(), stroke, currentBrd, BoardCAD.getInstance().useFill());
 
-			if(BoardCAD.getInstance().isPaintingSlidingInfo())
+			drawPart(g2d, boardCAD.getBrdColor(), stroke, currentBrd, boardCAD.useFill());
+
+			if(boardCAD.isPaintingSlidingInfo())
 			{
-				drawSlidingInfo(g2d, BoardCAD.getInstance().getBrdColor(), stroke, currentBrd);
+				drawSlidingInfo(g2d, boardCAD.getBrdColor(), stroke, currentBrd);
 			}
-	
-			if(BoardCAD.getInstance().isPaintingCurvature())
+
+			if(boardCAD.isPaintingCurvature())
 			{
-				drawCurvature(g2d, BoardCAD.getInstance().getCurvatureColor(), new BasicStroke((float)(BoardCAD.getInstance().getCurvatureThickness()/mScale)), currentBrd);
+				drawCurvature(g2d, boardCAD.getCurvatureColor(), new BasicStroke((float)(boardCAD.getCurvatureThickness()/mScale)), currentBrd);
 			}
-			
+
 			if(isPaintingVolumeDistribution())
 			{
-				drawVolumeDistribution(g2d, BoardCAD.getInstance().getVolumeDistributionColor(), new BasicStroke((float)(BoardCAD.getInstance().getVolumeDistributionThickness()/mScale)), currentBrd);
+				drawVolumeDistribution(g2d, boardCAD.getVolumeDistributionColor(), new BasicStroke((float)(boardCAD.getVolumeDistributionThickness()/mScale)), currentBrd);
 			}
 
-			if(BoardCAD.getInstance().isPaintingCenterOfMass() && currentBrd.isEmpty() == false)
+			if(boardCAD.isPaintingCenterOfMass() && currentBrd.isEmpty() == false)
 			{
 				double x = currentBrd.getCenterOfMass();
-				drawCircle(g2d, BoardCAD.getInstance().getCenterOfMassColor(), new BasicStroke((float)(BoardCAD.getInstance().getUnselectedControlPointOutlineThickness()/mScale)), new Point2D.Double(x,0));				
+				drawCircle(g2d, boardCAD.getCenterOfMassColor(), new BasicStroke((float)(boardCAD.getUnselectedControlPointOutlineThickness()/mScale)), new Point2D.Double(x,0));
 			}
-	
-			if(BoardCAD.getInstance().isPaintingControlPoints())
+
+			if(boardCAD.isPaintingControlPoints())
 			{
-				drawControlPoints(g2d, new BasicStroke((float)(BoardCAD.getInstance().getUnselectedControlPointOutlineThickness()/mScale)), currentBrd);
+				drawControlPoints(g2d, new BasicStroke((float)(boardCAD.getUnselectedControlPointOutlineThickness()/mScale)), currentBrd);
 			}
 		}
 }
-		if(BoardCAD.getInstance().isPaintingGuidePoints())
+		if(boardCAD.isPaintingGuidePoints())
 		{
 			drawGuidePoints(g2d);
 		}
@@ -775,111 +754,93 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		if(mDrawZoomRectangle == true)
 		{
 			g2d.setColor(Color.blue);
-			g2d.drawRect(mZoomRectangle.x, mZoomRectangle.y, mZoomRectangle.width, mZoomRectangle.height);			
+			g2d.drawRect(mZoomRectangle.x, mZoomRectangle.y, mZoomRectangle.width, mZoomRectangle.height);
 		}
 
 		drawBrdCoordinate(g2d);
 
-
-		//draw nurbs board
-		
-		BoardHandler bh=getBoardHandler();
-		if(mDrawControl == BezierBoardDrawUtil.MirrorY)
-		{
-			bh.draw_outline(g2d, 800, 600, mScale/10, (int)mOffsetX, (int)mOffsetY, false, BoardCAD.getInstance().mViewBottomCut.isSelected(), BoardCAD.getInstance().mViewDeckCut.isSelected(), BoardCAD.getInstance().mViewBlank.isSelected());
-		}
-		else if(mDrawControl == BezierBoardDrawUtil.FlipY)
-		{
-			bh.draw_rocker(g2d, 800, 600, mScale/10, (int)mOffsetX, (int)mOffsetY, false, BoardCAD.getInstance().mViewBottomCut.isSelected(), BoardCAD.getInstance().mViewDeckCut.isSelected(), BoardCAD.getInstance().mViewBlank.isSelected());
-		}
-		else if(mDrawControl == (BezierBoardDrawUtil.MirrorX | BezierBoardDrawUtil.FlipY))
-		{
-			bh.draw_edge(g2d, 800, 600, mScale/10, (int)mOffsetX, (int)mOffsetY);
-		}
-
-
-	}    
+	}
 
 	public void drawCircle(Graphics2D g, Color color, Stroke stroke, Point2D.Double pos) {
 
 		BezierBoardDrawUtil.paintCircle(new JavaDraw(g),mOffsetX, mOffsetY, mScale, 0.0, color, stroke, pos, (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, (mDrawControl&BezierBoardDrawUtil.FlipY)!=0);
 	}
 
-	public void drawPart(Graphics2D g, Color color, Stroke stroke, BezierBoard brd, boolean fill) 
+	public void drawPart(Graphics2D g, Color color, Stroke stroke, BezierBoard brd, boolean fill)
 	{
-		BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g),mOffsetX, mOffsetY, mScale, 0.0, color, stroke, getActiveBezierSplines(brd), mDrawControl, fill);	  			
+		BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g),mOffsetX, mOffsetY, mScale, 0.0, color, stroke, getActiveBezierSplines(brd), mDrawControl, fill);
 	}
 
-	public void drawControlPoints(Graphics2D g, Stroke stroke, BezierBoard brd) 
+	public void drawControlPoints(Graphics2D g, Stroke stroke, BezierBoard brd)
 	{
 		BezierBoardDrawUtil.paintBezierControlPoints(new JavaDraw(g),mOffsetX, mOffsetY, mScale, 0.0, stroke, getActiveBezierSplines(brd), (mParentContainer==null || mParentContainer.isActive(this))? mSelectedControlPoints:null, (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, (mDrawControl&BezierBoardDrawUtil.FlipY)!=0);
 	}
 
-	public void drawCurvature(Graphics2D g, Color color, Stroke stroke, BezierBoard brd) 
+	public void drawCurvature(Graphics2D g, Color color, Stroke stroke, BezierBoard brd)
 	{
 		BezierBoardDrawUtil.paintCurvature(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke, getActiveBezierSplines(brd), (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, (mDrawControl&BezierBoardDrawUtil.FlipY)!=0, mCurvatureScale );
 	}
-	
-	public void drawVolumeDistribution(Graphics2D g, Color color, Stroke stroke, BezierBoard brd) 
+
+	public void drawVolumeDistribution(Graphics2D g, Color color, Stroke stroke, BezierBoard brd)
 	{
 		BezierBoardDrawUtil.paintVolumeDistribution(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke, brd, (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, true, mVolumeDistributionScale );
 	}
-		
+
 	public void drawSlidingInfo(Graphics2D g, Color color, Stroke stroke, BezierBoard brd)
 	{
 	}
-	
+
 	public void drawFins(Graphics2D g, Color color, Stroke stroke, BezierBoard brd)
 	{
 		BezierBoardDrawUtil.paintFins(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke, brd.getFins(), (mDrawControl&BezierBoardDrawUtil.FlipX)!=0, (mDrawControl&BezierBoardDrawUtil.FlipY)!=0 );
 	}
-	
+
 	public void drawStringer(Graphics2D g, Color color, Stroke stroke, BezierBoard brd)
 	{
-		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);	
+		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);
 
 		double mulX = ((mDrawControl&BezierBoardDrawUtil.FlipX)!=0)?-1:1;
 //		double mulY = ((mDrawControl&Brd.FlipY)!=0)?-1:1;
-	
+
 		g.setColor(color);
 		g.setStroke(stroke);
 
 		final Line2D tmp = new Line2D.Double();
 		tmp.setLine(0,0,brd.getLength()*mulX,0);
 		g.draw(tmp);
-	
-		g.setTransform(savedTransform);			
+
+		g.setTransform(savedTransform);
 	}
 
 	public void drawCenterLine(Graphics2D g, Color color, Stroke stroke, double pos, double length)
 	{
-		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0 );	
+		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0 );
 
 		double mulX = ((mDrawControl&BezierBoardDrawUtil.FlipX)!=0)?-1:1;
 //		double mulY = ((mDrawControl&Brd.FlipY)!=0)?-1:1;
-	
+
 		g.setColor(color);
 		g.setStroke(stroke);
 
 		final Line2D tmp = new Line2D.Double();
 		tmp.setLine(pos*mulX,-length/2.0,pos*mulX,length/2.0);
 		g.draw(tmp);
-	
-		g.setTransform(savedTransform);			
+
+		g.setTransform(savedTransform);
 	}
 
 	public void drawBackgroundImage(Graphics2D g)
 	{
 		if(mBackgroundImage != null)
 		{
-			AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);	
+			AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);
 
 			final AffineTransform tmp = new AffineTransform();
 
 			tmp.setToRotation(mBackgroundImageRot);
 
 			g.transform(tmp);
-		
+
 			tmp.setToTranslation(mBackgroundImageOffsetX, mBackgroundImageOffsetY);
 
 			g.transform(tmp);
@@ -889,21 +850,21 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			g.transform(tmp);
 
 			g.drawImage(mBackgroundImage,0,0,this);
-		
-			g.setTransform(savedTransform);	
+
+			g.setTransform(savedTransform);
 		}
-		
+
 	}
 
-	public void drawBrdCoordinate(Graphics2D g) 
+	public void drawBrdCoordinate(Graphics2D g)
 	{
 		g.setColor(Color.BLACK);
 
 		//	 get metrics from the graphics
 		FontMetrics metrics = g.getFontMetrics(mBrdCoordFont);
-		
+
 //		Dimension dim = getSize();
-		
+
 		// get the height of a line of text in this font and render context
 		int hgt = metrics.getHeight();
 
@@ -916,7 +877,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		g.drawString(mBrdCoordString, 90, hgt);
 
 		mBrdCoordString = getCurrentCommand().getCommandString() + " " + LanguageResource.getString("MODE_STR");
-		
+
 		// get the advance of my text in this font and render context
 //		int width = metrics.stringWidth(mBrdCoordString);
 
@@ -933,7 +894,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		g.setStroke(new BasicStroke((float)(BoardCAD.getInstance().getGuidePointThickness()/mScale)));
 
-		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);	
+		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);
 
 		double crossSize = 4.0f/mScale;
 
@@ -965,18 +926,18 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		
+
 		if(mParentContainer != null)
 		{
 			mParentContainer.setActive(this);
 		}
-		
+
 		if (mPopupMenu != null && e.isPopupTrigger()) {
             mPopupMenu.show(e.getComponent(),
                        e.getX(), e.getY());
             return;
         }
-		
+
 		BrdInputCommand cmd = (BrdInputCommand)getCurrentCommand();
 		if(cmd == null)
 			return;
@@ -986,7 +947,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			case MouseEvent.BUTTON1:
 				cmd.onLeftMouseButtonPressed(this, e);
 				break;
-				
+
 			case MouseEvent.BUTTON2:
 				cmd.onMouseWheelButtonPressed(this, e);
 				break;
@@ -999,7 +960,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		
+
 		if (mPopupMenu != null && e.isPopupTrigger()) {
             mPopupMenu.show(e.getComponent(),
                        e.getX(), e.getY());
@@ -1015,7 +976,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			case MouseEvent.BUTTON1:
 				cmd.onLeftMouseButtonReleased(this, e);
 				break;
-				
+
 			case MouseEvent.BUTTON2:
 				cmd.onMouseWheelButtonReleased(this, e);
 				break;
@@ -1050,34 +1011,23 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		mScreenCoord = e.getPoint();
 		mBrdCoord.setLocation(screenCoordinateToBrdCoordinate(mScreenCoord));
-		
-		BoardHandler bh=getBoardHandler();
+
 		if(mDrawControl == BezierBoardDrawUtil.MirrorY)
 		{
-			if(!bh.is_marked())
-			{
-				BoardCAD.getInstance().status_panel.set_point_name("");
-				BoardCAD.getInstance().status_panel.set_coordinates(mBrdCoord.x*10, 0, mBrdCoord.y*10);
-			}
+			BoardCAD.getInstance().mStatusPanel.set_point_name("");
+			BoardCAD.getInstance().mStatusPanel.set_coordinates(mBrdCoord.x*10, 0, mBrdCoord.y*10);
 		}
 		else if(mDrawControl == BezierBoardDrawUtil.FlipY)
 		{
-			if(!bh.is_marked())
-			{
-				BoardCAD.getInstance().status_panel.set_point_name("");
-				BoardCAD.getInstance().status_panel.set_coordinates(mBrdCoord.x*10, mBrdCoord.y*10, 0);
-			}
-
+			BoardCAD.getInstance().mStatusPanel.set_point_name("");
+			BoardCAD.getInstance().mStatusPanel.set_coordinates(mBrdCoord.x*10, mBrdCoord.y*10, 0);
 		}
 		else if(mDrawControl == (BezierBoardDrawUtil.MirrorX | BezierBoardDrawUtil.FlipY))
 		{
-			if(!bh.is_marked())
-			{
-				BoardCAD.getInstance().status_panel.set_point_name("");
-				BoardCAD.getInstance().status_panel.set_coordinates(0, mBrdCoord.y*10, mBrdCoord.x*10);
-			}
+			BoardCAD.getInstance().mStatusPanel.set_point_name("");
+			BoardCAD.getInstance().mStatusPanel.set_coordinates(0, mBrdCoord.y*10, mBrdCoord.x*10);
 		}
-		
+
 		repaint();
 
 		BrdInputCommand cmd = (BrdInputCommand)getCurrentCommand();
@@ -1098,10 +1048,10 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			return;
 
 		cmd.onMouseDragged(this, e);
-		
-	
+
+
 	}
-	
+
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e)
 	{
@@ -1110,7 +1060,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			return;
 
 		cmd.onMouseWheelMoved(this, e);
-		
+
 	}
 
 	@Override

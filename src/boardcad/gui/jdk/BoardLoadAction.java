@@ -176,21 +176,6 @@ public class BoardLoadAction extends AbstractAction {
 				errorStr = SrfReader.getErrorStr();
 			}
 		}
-		else if(ext.compareToIgnoreCase("cad")==0)
-		{
-			BoardCAD.getInstance().board_handler.open_board(filename);
-			BoardCAD.getInstance().design_panel.view_all();
-			BoardCAD.getInstance().design_panel.fit_all();
-			BoardCAD.getInstance().design_panel.update_3d();
-		}
-		else if(ext.compareToIgnoreCase("stp")==0 || ext.compareToIgnoreCase("step")==0)
-		{
-			BoardCAD.getInstance().board_handler.open_board(filename,mBrd);
-			BoardCAD.getInstance().design_panel.view_all();
-			BoardCAD.getInstance().design_panel.fit_all();
-			BoardCAD.getInstance().design_panel.update_3d();
-			mBrd.setFilename(filename);
-		}
 		else if(ext.compareToIgnoreCase("brd")==0)
 		{
 			ret = BrdReader.loadFile(mBrd, filename);
