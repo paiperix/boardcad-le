@@ -44,7 +44,6 @@ class DesignPanel extends Panel implements AbstractEditor {
 	 */
 	private static final long serialVersionUID = 1L;
 	// private UserInterface user_interface;
-	private StatusPanel status_panel;
 	private ThreeDView rendered_view;
 
 	BranchGroup mRoot;
@@ -57,9 +56,8 @@ class DesignPanel extends Panel implements AbstractEditor {
 //	Brd3DModelGenerator mBrd3DModelGenerator = new Brd3DModelGenerator();
 	FasterBrd3DModelGenerator mBrd3DModelGenerator = new FasterBrd3DModelGenerator();
 
-	public DesignPanel(StatusPanel sp) {
+	public DesignPanel() {
 		// user_interface=ui;
-		status_panel = sp;
 
 		rendered_view = new ThreeDView(this);
 

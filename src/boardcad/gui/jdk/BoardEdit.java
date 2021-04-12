@@ -555,9 +555,6 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			return;
 		}
 
-	if(!boardCAD.mViewBlank.isSelected())
-	{
-
 		BezierBoard currentBrd = getCurrentBrd();
 		if(currentBrd == null)
 			return;
@@ -744,7 +741,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 				drawControlPoints(g2d, new BasicStroke((float)(boardCAD.getUnselectedControlPointOutlineThickness()/mScale)), currentBrd);
 			}
 		}
-}
+
 		if(boardCAD.isPaintingGuidePoints())
 		{
 			drawGuidePoints(g2d);

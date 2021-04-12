@@ -99,12 +99,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	private QuadView mQuadView;
 
-	public QuadView getFourView() {
+	public QuadView getQuadView() {
 		return mQuadView;
 	}
 
 	public String getFourViewActiveName() {
-		return getFourView().getActive().getName();
+		return getQuadView().getActive().getName();
 	}
 
 	private BoardEdit mQuadViewOutlineEdit;
@@ -229,13 +229,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	WeightCalculatorDialog mWeightCalculatorDialog;
 
 	BoardGuidePointsDialog mGuidePointsDialog;
-
-	public JCheckBoxMenuItem mIsLockedX;
-	public JCheckBoxMenuItem mIsLockedY;
-	public JCheckBoxMenuItem mIsLockedZ;
-	public JCheckBoxMenuItem mViewBlank;
-	public JCheckBoxMenuItem mViewDeckCut;
-	public JCheckBoxMenuItem mViewBottomCut;
 
 	private JCheckBoxMenuItem mShowBezier3DModelMenuItem;
 
@@ -6065,8 +6058,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		};
 		mQuadViewRockerEdit.add(popupMenu);
 
-		design_panel2 = new DesignPanel(mStatusPanel);
-		design_panel3 = new DesignPanel(mStatusPanel);
+		design_panel2 = new DesignPanel();
+		design_panel3 = new DesignPanel();
 
 		mStatusPanel = new StatusPanel();
 

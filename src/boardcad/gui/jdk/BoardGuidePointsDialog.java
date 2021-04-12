@@ -164,7 +164,7 @@ public class BoardGuidePointsDialog extends JDialog{
 					case 3:
 						if (mTabbedPane.getSelectedIndex() == 5
 								|| (mTabbedPane.getSelectedIndex() == 2 
-										&& BoardCAD.getInstance().getFourView().getActive().getName() == "QuadViewCrossSection" )) {
+										&& BoardCAD.getInstance().getQuadView().getActive().getName() == "QuadViewCrossSection" )) {
 
 						}else{
 							return LanguageResource.getString("GUIDEPOINTOCCOORD_STR");
@@ -187,7 +187,7 @@ public class BoardGuidePointsDialog extends JDialog{
 				{
 
 					if (mTabbedPane.getSelectedIndex() == 5	|| (mTabbedPane.getSelectedIndex() == 2 
-							&& BoardCAD.getInstance().getFourView().getActive().getName() == "QuadViewCrossSection" )) 
+							&& BoardCAD.getInstance().getQuadView().getActive().getName() == "QuadViewCrossSection" )) 
 					{
 						return 3;
 					}else{
