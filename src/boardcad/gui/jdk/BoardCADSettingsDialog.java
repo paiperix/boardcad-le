@@ -6,11 +6,12 @@ import java.awt.Dimension;
 import javax.swing.JDialog;
 
 import boardcad.i18n.LanguageResource;
+import boardcad.settings.BoardCADSettings;
 
 class BoardCADSettingsDialog extends JDialog
 {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 813932272331942542L;
 
@@ -23,5 +24,4 @@ class BoardCADSettingsDialog extends JDialog
 		this.setLocationRelativeTo(null);
 	}
 
-
-} 
+}

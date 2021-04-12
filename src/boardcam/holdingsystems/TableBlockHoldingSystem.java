@@ -45,7 +45,7 @@ public class TableBlockHoldingSystem extends AbstractBlankHoldingSystem {
 		static String BLOCK_LENGTH = "BlockLength";
 
 		MachineConfig mConfig = null;
-		
+
 		IndexedQuadArray mBlockBox;
 		Shape3D mBlockShape;
 
@@ -61,7 +61,7 @@ public class TableBlockHoldingSystem extends AbstractBlankHoldingSystem {
 			blockSettings.putPreferences(); // Save previous
 			blockSettings.clear();
 			SettingChangedCallback cb = new Settings.SettingChangedCallback() {
-				public void onSettingChanged(Object object) {
+				public void onSettingChanged(Setting setting) {
 					calcBlankOffset();
 					update3DModel();
 				}
@@ -110,7 +110,7 @@ public class TableBlockHoldingSystem extends AbstractBlankHoldingSystem {
 		public ArrayList<double[]> handleCollision(Point3d point, AbstractCutter cutter, AbstractBoard board) {
 
 			ArrayList<double[]> res = new ArrayList<double[]>();
-			
+
 			return res;
 		}
 
@@ -140,7 +140,7 @@ public class TableBlockHoldingSystem extends AbstractBlankHoldingSystem {
 			double blockLength = holdingSystemSettings.getMeasurement(BLOCK_LENGTH);
 			double blockThickness = holdingSystemSettings.getMeasurement(BLOCK_THICKNESS);
 			double blockWidth = holdingSystemSettings.getMeasurement(BLOCK_WIDTH);
-			
+
 			// Draw offset line
 			Line2D line = new Line2D.Double();
 
@@ -148,7 +148,7 @@ public class TableBlockHoldingSystem extends AbstractBlankHoldingSystem {
 			line.setLine(-blockLength*0.05, 0, blockLength*1.1, 0);
 			g2d.setColor(Color.GRAY);
 			g2d.draw(line);
-			
+
 			// Draw blocks
 			Rectangle2D blockRect = new Rectangle2D.Double();
 			blockRect.setFrame(0, -blockThickness, blockLength, blockThickness);

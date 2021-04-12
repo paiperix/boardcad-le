@@ -21,6 +21,7 @@ import board.BezierBoard;
 import boardcad.commands.BrdCommand;
 import boardcad.commands.BrdPositionCommand;
 import boardcad.i18n.LanguageResource;
+import boardcad.settings.BoardCADSettings;
 import boardcam.MachineConfig;
 import boardcam.holdingsystems.AbstractBlankHoldingSystem;
 
@@ -68,7 +69,7 @@ public class Machine2DView extends BoardEdit {
 	};
 
 	@Override
-	public void fit_all() {
+	public void fitAll() {
 		Dimension dim = getSize();
 		double len = 0.0;
 		BezierBoard brd = mConfig.getBoard();
@@ -122,9 +123,9 @@ public class Machine2DView extends BoardEdit {
 		adjustScaleAndOffset();
 
 		/**
-		 * 
+		 *
 		 * Copy the graphics context so we can change it.
-		 * 
+		 *
 		 * Cast it to Graphics2D so we can use anti-aliasing.
 		 */
 
@@ -172,14 +173,14 @@ public class Machine2DView extends BoardEdit {
 
 		BezierBoard brd = mConfig.getBoard();
 		if (brd != null) {
-			BezierBoardDrawUtil.paintBezierSpline(jd, mOffsetX + (boardOffset.x * mScale), mOffsetY - (boardOffset.z * mScale), mScale, boardAngle, BoardCAD.getInstance().getBrdColor(), stroke, brd.getDeck(), (mShowDeck ? BezierBoardDrawUtil.FlipY : 0), false);
-			BezierBoardDrawUtil.paintBezierSpline(jd, mOffsetX + (boardOffset.x * mScale), mOffsetY - (boardOffset.z * mScale), mScale, boardAngle, BoardCAD.getInstance().getBrdColor(), stroke, brd.getBottom(), mShowDeck ? BezierBoardDrawUtil.FlipY : 0, false);
+			BezierBoardDrawUtil.paintBezierSpline(jd, mOffsetX + (boardOffset.x * mScale), mOffsetY - (boardOffset.z * mScale), mScale, boardAngle, BoardCADSettings.getInstance().getBrdColor(), stroke, brd.getDeck(), (mShowDeck ? BezierBoardDrawUtil.FlipY : 0), false);
+			BezierBoardDrawUtil.paintBezierSpline(jd, mOffsetX + (boardOffset.x * mScale), mOffsetY - (boardOffset.z * mScale), mScale, boardAngle, BoardCADSettings.getInstance().getBrdColor(), stroke, brd.getBottom(), mShowDeck ? BezierBoardDrawUtil.FlipY : 0, false);
 		}
 
 		// Draw blank
 		BezierBoard blank = mConfig.getBlank();
 		if (blank != null && !blank.isEmpty()) {
-			Color blankColor = BoardCAD.getInstance().getBlankColor();
+			Color blankColor = BoardCADSettings.getInstance().getBlankColor();
 
 			BezierBoardDrawUtil.paintBezierSpline(jd, mOffsetX + (blankOffset.x * mScale), mOffsetY - (blankOffset.z * mScale), mScale, blankAngle, blankColor, stroke, blank.getDeck(), mShowDeck ? BezierBoardDrawUtil.FlipY : 0, false);
 			BezierBoardDrawUtil.paintBezierSpline(jd, mOffsetX + (blankOffset.x * mScale), mOffsetY - (blankOffset.z * mScale), mScale, blankAngle, blankColor, stroke, blank.getBottom(), mShowDeck ? BezierBoardDrawUtil.FlipY : 0, false);

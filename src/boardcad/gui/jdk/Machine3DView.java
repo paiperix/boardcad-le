@@ -18,6 +18,7 @@ import com.sun.j3d.utils.universe.*;
 
 import cadcore.UnitUtils;
 import boardcad.i18n.LanguageResource;
+import boardcad.settings.BoardCADSettings;
 
 public class Machine3DView extends JComponent {
 	static final long serialVersionUID = 1L;
@@ -26,7 +27,7 @@ public class Machine3DView extends JComponent {
 	double mNormalsScale;
 
 	Background mBackgroundNode;
-	
+
 	DirectionalLight mHeadLight;
 
 	TransformGroup mToolpathsGroup;
@@ -91,7 +92,7 @@ public class Machine3DView extends JComponent {
 	double mBlankDeckRotation;
 	Point3d mBlankBottomOffset;
 	double mBlankBottomRotation;
-	
+
 	Switch mBrdSwitch;
 	Shape3D mBrdModel;
 	TransformGroup mBrdTransformGroup;
@@ -209,7 +210,6 @@ public class Machine3DView extends JComponent {
 		// add mouse behaviors to the ViewingPlatform
 		ViewingPlatform viewingPlatform = universe.getViewingPlatform();
 		viewingPlatform.setNominalViewingTransform();
-		ViewPlatform platform = viewingPlatform.getViewPlatform();
 
 		// add orbit behavior to the ViewingPlatform
 		OrbitBehavior orbit = new OrbitBehavior(canvas);
@@ -225,7 +225,7 @@ public class Machine3DView extends JComponent {
 
 		canvas.getView().setFrontClipPolicy(javax.media.j3d.View.VIRTUAL_EYE);
 		canvas.getView().setFrontClipDistance(0.01);
-		
+
 		// Headlight
 		PlatformGeometry pg = new PlatformGeometry();
 
@@ -239,10 +239,6 @@ public class Machine3DView extends JComponent {
 
 	}
 
-	private void initialize() {
-
-	}
-
 	private BranchGroup createSceneGraph() {
 		BranchGroup branchRoot = new BranchGroup();
 
@@ -250,7 +246,7 @@ public class Machine3DView extends JComponent {
 		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 1000.0);
 
 		// Set up the background
-		Color3f bgColor = new Color3f(BoardCAD.getInstance().getBackgroundColor());
+		Color3f bgColor = new Color3f(BoardCADSettings.getInstance().getBackgroundColor());
 		mBackgroundNode = new Background(bgColor);
 		mBackgroundNode.setApplicationBounds(bounds);
 		mBackgroundNode.setCapability(Background.ALLOW_COLOR_WRITE);
@@ -549,10 +545,10 @@ public class Machine3DView extends JComponent {
 		// Set up the material properties
 		blankApperance.setMaterial(new Material(ambient, emissive, diffuse, specular, 115.0f));
 		blankApperance.setTransparencyAttributes(blankTransparencyAttributes);
-		
+
 		mBlankModel.setAppearance(blankApperance);
 		mBlankTransformGroup.addChild(mBlankModel);
-		
+
 		// Brd
 		mBrdSwitch = new Switch();
 		mBrdSwitch.setCapability(Switch.ALLOW_SWITCH_READ);
@@ -587,7 +583,7 @@ public class Machine3DView extends JComponent {
 		// Set up the material properties
 		brdApperance.setMaterial(new Material(brdAmbient, brdEmissive, brdDiffuse, brdSpecular, 115.0f));
 		brdApperance.setTransparencyAttributes(brdTransparencyAttributes);
-		
+
 		mBrdModel.setAppearance(brdApperance);
 		mBrdTransformGroup.addChild(mBrdModel);
 
@@ -650,7 +646,6 @@ public class Machine3DView extends JComponent {
 		// BoardCAD.getInstance().getMachineView().getBoardDeckOffsetPos();
 		Vector3d deckTranslation = new Vector3d();
 		// deckTranslation.sub(deckOffset);
-		String generalStr = LanguageResource.getString("GENERALCATEGORY_STR");
 		// deckTranslation.x -=
 		// (BoardCAD.getInstance().getCurrentBrd().getLength() +
 		// (.getCategory(generalStr).getDouble(MachineConfig.TAILSTOP_POS)/UnitUtils.MILLIMETER_PR_CENTIMETER))/2.0;
@@ -863,10 +858,10 @@ public class Machine3DView extends JComponent {
 	private void setBlankOffset(Point3d pos, double angle, boolean flip) {
 		System.out.printf("setBlankOffset angle:%f", angle);
 		mBlankTransform.rotY(angle);
-		if(flip){ 
+		if(flip){
 			Transform3D flipRot = new Transform3D();
 			flipRot.rotX(Math.PI);
-			mBlankTransform.mul(flipRot); 
+			mBlankTransform.mul(flipRot);
 		}
 		Vector3d vec = new Vector3d(pos);
 		vec.scale(10);
@@ -874,7 +869,7 @@ public class Machine3DView extends JComponent {
 		mBlankTransform.setScale(10);
 		mBlankTransformGroup.setTransform(mBlankTransform);
 	}
-	
+
 	public void setBrdDeckOffset(Point3d pos, double angle) {
 		System.out.printf("setBrdDeckOffset");
 		mBrdDeckOffset = pos;
@@ -898,10 +893,10 @@ public class Machine3DView extends JComponent {
 	private void setBrdOffset(Point3d pos, double angle, boolean flip) {
 		System.out.printf("setBrdOffset angle:%f", angle);
 		mBrdTransform.rotY(angle);
-		if(flip){ 
+		if(flip){
 			Transform3D flipRot = new Transform3D();
 			flipRot.rotX(Math.PI);
-			mBrdTransform.mul(flipRot); 
+			mBrdTransform.mul(flipRot);
 		}
 		Vector3d vec = new Vector3d(pos);
 		vec.scale(10);

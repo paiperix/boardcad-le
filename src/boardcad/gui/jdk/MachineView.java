@@ -13,6 +13,10 @@ import boardcam.MachineConfig;
 
 public class MachineView extends JPanel implements AbstractEditor
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected Machine2DView mMachine2DView;
 	protected Machine3DView mMachine3DView;
 	
@@ -79,15 +83,15 @@ public class MachineView extends JPanel implements AbstractEditor
 	}
 
 	@Override
-	public void fit_all()
+	public void fitAll()
 	{
-		mMachine2DView.fit_all();
+		mMachine2DView.fitAll();
 		mMachine3DView.fit_all();
 	}
 	
 	public void update()
 	{
-		fit_all();
+		fitAll();
 		mMachine2DView.repaint();
 		mMachine3DView.update();
 	}

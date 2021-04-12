@@ -96,7 +96,7 @@ public class MachineConfig extends CategorizedSettings {
 
 	public void initialize() {
 		Settings.SettingChangedCallback onSupportSettingsChanged = new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
+			public void onSettingChanged(Setting setting) {
 				if (mMachineView != null) {
 					mMachineView.update();
 				}
@@ -104,7 +104,7 @@ public class MachineConfig extends CategorizedSettings {
 		};
 
 		Settings.SettingChangedCallback onCutterTypeChanged = new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
+			public void onSettingChanged(Setting setting) {
 				System.out.printf("Cutter Setting changed\n");
 
 				Settings cutterSettings = getCategory(LanguageResource.getString("CUTTERCATEGORY_STR"));
@@ -114,7 +114,7 @@ public class MachineConfig extends CategorizedSettings {
 
 				mMachineView.get3DView().setModelRotation(0.0);
 
-				Enumeration enu = (Enumeration) obj;
+				Enumeration enu = (Enumeration)setting.value();
 
 				switch (enu.getValue()) {
 				case 0:
@@ -147,13 +147,13 @@ public class MachineConfig extends CategorizedSettings {
 		};
 
 		Settings.SettingChangedCallback onBlankHoldingSystemChanged = new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
+			public void onSettingChanged(Setting setting) {
 				System.out.printf("Blankholdingsystem Setting changed\n");
 
 				MachineConfig.this.getCategory(LanguageResource.getString("BLANKHOLDINGSYSTEMCATEGORY_STR")).putPreferences();
 				Settings generalSettings = getCategory(LanguageResource.getString("GENERALCATEGORY_STR"));
 
-				Enumeration enu = (Enumeration) obj;
+				Enumeration enu = (Enumeration)setting.value();
 
 				Setting blankSetting = generalSettings.getSetting(BLANK);
 				switch (enu.getValue()) {
@@ -237,8 +237,8 @@ public class MachineConfig extends CategorizedSettings {
 		generalSettings.addEnumeration(BLANKHOLDINGSYSTEM_TYPE, 0, holdingSystemTypes, LanguageResource.getString("BLANKHOLDINGSYSTEMTYPE_STR"), onBlankHoldingSystemChanged);
 
 		generalSettings.addFileName(BLANK, "", LanguageResource.getString("BLANK_STR"), new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
-				String filename = obj.toString();
+			public void onSettingChanged(Setting setting) {
+				String filename = setting.stringValue();
 				if (filename == null || filename == "")
 					return;
 
@@ -268,29 +268,29 @@ public class MachineConfig extends CategorizedSettings {
 		 * Settings.SettingChangedCallback() { public void
 		 * onSettingChanged(Object obj) { final JFileChooser fc = new
 		 * JFileChooser();
-		 * 
+		 *
 		 * fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-		 * 
+		 *
 		 * int returnVal = fc.showSaveDialog(BoardCAD.getInstance()
 		 * .getFrame()); if (returnVal != JFileChooser.APPROVE_OPTION) return;
-		 * 
+		 *
 		 * File file = fc.getSelectedFile();
-		 * 
+		 *
 		 * String filename = file.getPath(); // Load and display // selection if
 		 * (filename == null) return;
-		 * 
+		 *
 		 * BoardCAD.defaultDirectory = file.getPath();
-		 * 
+		 *
 		 * SurfaceSplitsToolpathGenerator toolpathGenerator = new
 		 * SurfaceSplitsToolpathGenerator(new BullnoseCutter(),
 		 * BoardCAD.getInstance().getCurrentMachineConfig());
-		 * 
+		 *
 		 * try { toolpathGenerator.writeDeck(filename,
 		 * BoardCAD.getInstance().getCurrentBrd()); } catch (Exception e) {
 		 * String str = "Failed to write g-code file :" + e.toString();
 		 * JOptionPane.showMessageDialog(BoardCAD.getInstance() .getFrame(),
 		 * str, "Error when writing g-code file", JOptionPane.ERROR_MESSAGE);
-		 * 
+		 *
 		 * } } } );
 		 */
 		Settings cutsSettings = addCategory(LanguageResource.getString("CUTSCATEGORY_STR"));
@@ -342,8 +342,8 @@ public class MachineConfig extends CategorizedSettings {
 		homeingTypes.put(3, LanguageResource.getString("LIFTCLEAR_STR"));
 		homeingTypes.put(4, LanguageResource.getString("HOMESCRIPT_STR"));
 		controlSettings.addEnumeration(BEFORE_DECK_CUT, 1, homeingTypes, LanguageResource.getString("BEFOREDECKCUT_STR"), new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
-				Enumeration enu = (Enumeration) obj;
+			public void onSettingChanged(Setting setting) {
+				Enumeration enu = (Enumeration)setting.value();
 				switch (enu.getValue()) {
 				default:
 				case 0:
@@ -354,7 +354,6 @@ public class MachineConfig extends CategorizedSettings {
 				case 3:
 					controlSettings.removeObject(BEFORE_DECK_CUT_SCRIPT);
 					break;
-
 				case 4:
 					controlSettings.addFileName(BEFORE_DECK_CUT_SCRIPT, "", LanguageResource.getString("BEFOREDECKCUTSCRIPT_STR"));
 					break;
@@ -369,8 +368,8 @@ public class MachineConfig extends CategorizedSettings {
 		controlSettings.addEnumeration(DECK_START_POS, 1, startOnDeckTypes, LanguageResource.getString("DECKSTARTPOS_STR"));
 
 		controlSettings.addEnumeration(AFTER_DECK_CUT, 1, homeingTypes, LanguageResource.getString("AFTERDECKCUT_STR"), new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
-				Enumeration enu = (Enumeration) obj;
+			public void onSettingChanged(Setting setting) {
+				Enumeration enu = (Enumeration)setting.value();
 				switch (enu.getValue()) {
 				default:
 				case 0:
@@ -389,8 +388,8 @@ public class MachineConfig extends CategorizedSettings {
 		});
 
 		controlSettings.addEnumeration(BEFORE_BOTTOM_CUT, 1, homeingTypes, LanguageResource.getString("BEFOREBOTTOMCUT_STR"), new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
-				Enumeration enu = (Enumeration) obj;
+			public void onSettingChanged(Setting setting) {
+				Enumeration enu = (Enumeration)setting.value();
 				switch (enu.getValue()) {
 				default:
 				case 0:
@@ -415,8 +414,8 @@ public class MachineConfig extends CategorizedSettings {
 		controlSettings.addEnumeration(BOTTOM_START_POS, 0, startOnBottomTypes, LanguageResource.getString("BOTTOMSTARTPOS_STR"));
 
 		controlSettings.addEnumeration(AFTER_BOTTOM_CUT, 1, homeingTypes, LanguageResource.getString("AFTERBOTTOMCUT_STR"), new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
-				Enumeration enu = (Enumeration) obj;
+			public void onSettingChanged(Setting setting) {
+				Enumeration enu = (Enumeration)setting.value();
 				switch (enu.getValue()) {
 				default:
 				case 0:
@@ -435,7 +434,7 @@ public class MachineConfig extends CategorizedSettings {
 		});
 
 		Settings.SettingChangedCallback onCutterOffsetChanged = new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object obj) {
+			public void onSettingChanged(Setting setting) {
 				Settings cutterOffsetSettings = getCategory(LanguageResource.getString("CUTTEROFFSETCATEGORY_STR"));
 				mCutterOffset = new Point3d(cutterOffsetSettings.getMeasurement(CUTTER_X_OFFSET), cutterOffsetSettings.getMeasurement(CUTTER_Y_OFFSET), cutterOffsetSettings.getMeasurement(CUTTER_Z_OFFSET));
 				mMachineView.get2DView().setCutterOffset(mCutterOffset);

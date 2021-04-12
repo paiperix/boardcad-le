@@ -29,6 +29,7 @@ import cadcore.AbstractBezierBoardSurfaceModel;
 import cadcore.BezierBoardCrossSection;
 import boardcad.gui.jdk.BoardCAD;	//TODO: BAD DEPENDENCY
 import boardcad.i18n.LanguageResource;
+import boardcad.settings.BoardCADSettings;
 import cadcore.UnitUtils;
 import cadcore.BezierKnot;
 import cadcore.BezierSpline;
@@ -1346,7 +1347,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	{
 		mCenterOfMass = 0;
 
-		if(BoardCAD.getInstance().isUsingRockerStickAdjustment())
+		if(BoardCADSettings.getInstance().isUsingRockerStickAdjustment())
 		{
 			adjustRockerToCenterTangent();
 		}

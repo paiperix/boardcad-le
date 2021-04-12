@@ -34,7 +34,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.Locale;
 import java.util.Timer;
@@ -43,7 +42,6 @@ import java.util.prefs.*;
 import javax.imageio.ImageIO;
 import javax.media.j3d.*;
 import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.vecmath.*;
@@ -55,8 +53,6 @@ import boardcad.gui.jdk.plugin.*;
 import boardcad.DefaultBrds;
 import boardcad.FileTools;
 import boardcad.print.*;
-import boardcad.settings.Settings.Enumeration;
-import boardcad.settings.Settings;
 import boardcad.commands.*;
 import boardcad.export.DxfExport;
 import boardcad.export.GCodeDraw;
@@ -74,6 +70,10 @@ import board.writers.*;
 import boardcad.ScriptLoader;
 
 public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEventDispatcher {
+
+	protected static BoardCAD mInstance = null;
+	private static final String appname = "BoardCAD v3.2 LE";
+	public static String defaultDirectory = "";
 
 	enum DeckOrBottom {
 		DECK, BOTTOM, BOTH
@@ -95,7 +95,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	private PrintChamberedWoodTemplate mPrintChamberedWoodTemplate;
 	private PrintHollowWoodTemplates mPrintHollowWoodTemplates;
 
-	private boolean mBlockGUI = true;
+	private boolean mGUIBlocked = true;
 
 	private QuadView mQuadView;
 
@@ -103,7 +103,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		return mQuadView;
 	}
 
-	public String getFourViewActiveName() {
+	public String getQuadViewActiveName() {
 		return getQuadView().getActive().getName();
 	}
 
@@ -139,51 +139,28 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	public JTabbedPane mTabbedPane2;
 
 	private JCheckBoxMenuItem mIsPaintingGridMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingOriginalBrdMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingGhostBrdMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingControlPointsMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingNonActiveCrossSectionsMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingGuidePointsMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingCurvatureMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingVolumeDistributionMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingCenterOfMassMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingSlidingInfoMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingSlidingCrossSectionMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingFinsMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingBackgroundImageMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingBaseLineMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingCenterLineMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingOverCurveMesurementsMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingMomentOfInertiaMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingCrossectionsPositionsMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingFlowlinesMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingApexlineMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingTuckUnderLineMenuItem;
-
 	private JCheckBoxMenuItem mIsPaintingFootMarksMenuItem;
-
 	private JCheckBoxMenuItem mIsAntialiasingMenuItem;
-
 	private JCheckBoxMenuItem mUseFillMenuItem;
 
 	private final JMenu mRecentBrdFilesMenu = new JMenu();
@@ -201,28 +178,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	public JToggleButton mLifeSizeButton;
 
 	private boolean mBoardChanged = false;
-
 	protected boolean mGhostMode = false;
-
 	protected boolean mOrgFocus = false;
 
-	protected static BoardCAD mInstance = null;
-
-	private static final String appname = "BoardCAD v3.1b LE";
-
-	public static String defaultDirectory = "";
-
 	public static double mPrintMarginLeft = 72 / 4;
-
 	public static double mPrintMarginRight = 72 / 4;
-
 	public static double mPrintMarginTop = 72 / 4;
-
 	public static double mPrintMarginBottom = 72 / 4;
 
-	protected DesignPanel design_panel;
-	protected DesignPanel design_panel2;
-	protected DesignPanel design_panel3;
+	protected ThreeDView mRendered3DView;
+	protected ThreeDView mQuad3DView;
 
 	public StatusPanel mStatusPanel;
 
@@ -233,79 +198,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	private JCheckBoxMenuItem mShowBezier3DModelMenuItem;
 
 	private BoardCADSettings mSettings;
-	private Settings mColorSettings;
-	private Settings mSizeSettings;
-	private Settings mMiscSettings;
 
 	BezierBoardCrossSection mCrossSectionCopy;
 
-	static private final String TEXTCOLOR = "textcolor";
-	static private final String BACKGROUNDCOLOR = "backgroundcolor";
-	static private final String STRINGERCOLOR = "stringercolor";
-	static private final String FLOWLINESCOLOR = "flowlinescolor";
-	static private final String APEXLINECOLOR = "apexlinecolor";
-	static private final String TUCKUNDERLINECOLOR = "tuckunderlinecolor";
-	static private final String CENTERLINECOLOR = "centerlinecolor";
-	static private final String BRDCOLOR = "brdcolor";
-	static private final String ORIGINALCOLOR = "originalcolor";
-	static private final String GHOSTCOLOR = "ghostcolor";
-	static private final String BLANKCOLOR = "blankcolor";
-	static private final String GRIDCOLOR = "gridcolor";
-	static private final String FINSCOLOR = "finscolor";
-	static private final String CURVATURECOLOR = "curvaturecolor";
-	static private final String VOLUMEDISTRIBUTIONCOLOR = "volumedistributioncolor";
-	static private final String CENTEROFMASSCOLOR = "centerofmasscolor";
-	static private final String SELECTEDTANGENTCOLOR = "selectedtangentcolor";
-	static private final String SELECTEDCONTROLPOINTCENTERCOLOR = "selectedcontrolpointcentercolor";
-	static private final String SELECTEDCONTROLPOINTTANGENT1COLOR = "selectedcontrolpointtangent1color";
-	static private final String SELECTEDCONTROLPOINTTANGENT2COLOR = "selectedcontrolpointtangent2color";
-	static private final String SELECTEDCONTROLPOINTCENTEROUTLINECOLOR = "selectedcontrolpointcenteroutlinecolor";
-	static private final String SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR = "selectedcontrolpointtangent1outlinecolor";
-	static private final String SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR = "selectedcontrolpointtangent2outlinecolor";
-	static private final String UNSELECTEDTANGENTCOLOR = "unselectedtangentcolor";
-	static private final String UNSELECTEDCONTROLPOINTCENTERCOLOR = "unselectedcontrolpointcentercolor";
-	static private final String UNSELECTEDCONTROLPOINTTANGENT1COLOR = "unselectedcontrolpointtangent1color";
-	static private final String UNSELECTEDCONTROLPOINTTANGENT2COLOR = "unselectedcontrolpointtangent2color";
-	static private final String UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR = "unselectedcontrolpointcenteroutlinecolor";
-	static private final String UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR = "unselectedcontrolpointtangent1outlinecolor";
-	static private final String UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR = "unselectedcontrolpointtangent2outlinecolor";
-	static private final String UNSELECTEDBACKGROUNDCOLOR = "unselectedbackgroundcolor";
-	static private final String GUIDEPOINTCOLOR = "guidepointcolor";
-
-	static private final String SELECTEDCONTROLPOINTSIZE = "selectedcontrolpointsize";
-	static private final String SELECTEDCONTROLPOINTOUTLINETHICKNESS = "selectedctrlpntoutlinethickness";
-	static private final String UNSELECTEDCONTROLPOINTSIZE = "unselectedcontrolpointsize";
-	static private final String UNSELECTEDCONTROLPOINTOUTLINETHICKNESS = "unselectedctrlpntoutlinethickness";
-
-	static private final String BEZIERTHICKNESS = "bezierthickness";
-
-	static private final String CURVATURETHICKNESS = "curvaturethickness";
-
-	static private final String VOLUMEDISTRIBUTIONTHICKNESS = "volumedistributionthickness";
-
-	static private final String GUIDEPNTTHICKNESS = "guidepntthickness";
-
-	static private final String BASELINETHICKNESS = "baselinethickness";
-
-	static private final String BASELINECOLOR = "baselinecolor";
-
-	static private final String LOOK_AND_FEEL = "lookandfeel";
-
-	static private final String PRINTGUIDEPOINTS = "printguidepoints";
-
-	static private final String PRINTFINS = "printfins";
-
-	static private final String FRACTIONACCURACY = "fractionaccuracy";
-
-	static private final String ROCKERSTICK = "rockerstick";
-
-	static private final String OFFSETINTERPLOATION = "offsetinterpolation";
-
 	Timer mBezier3DModelUpdateTimer;
+
+	public static void main(final String[] args) {
+		BoardCAD.getInstance();
+	}
 
 	public static BoardCAD getInstance() {
 		if (mInstance == null) {
 			mInstance = new BoardCAD();
+			mInstance.init();
 		}
 		return mInstance;
 	}
@@ -329,290 +234,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 *
 		 * gdrawSquare.draw(squarePath); gdrawSquareNoOffset.draw(squarePath);
 		 */
-		/*
-		 *
-		 * Tells the event-dispatching thread (used to
-		 *
-		 * display and handle events of a Swing GUI) to
-		 *
-		 * call the run method of "this" (the ClickMeApp
-		 *
-		 * object this constructor created). The
-		 *
-		 * argument to invokeLater must implement the
-		 *
-		 * Runnable interface, which guarantees that
-		 *
-		 * it defines the run method.
-		 */
+	}
+
+	protected void init() {
 		LanguageResource.init(this);
 
 		mCurrentBrd = new BezierBoard();
 		mGhostBrd = new BezierBoard();
 		mOriginalBrd = new BezierBoard();
 
-		mSettings = new BoardCADSettings();
-
-		mColorSettings = mSettings.addCategory(LanguageResource.getString("COLORS_STR"));
-
-		mColorSettings.addColor(TEXTCOLOR, new Color(0, 0, 0), LanguageResource.getString("TEXTCOLOR_STR"));
-		mColorSettings.addColor(BACKGROUNDCOLOR, new Color(200, 200, 240),
-				LanguageResource.getString("BACKGROUNDCOLOR_STR"), new Settings.SettingChangedCallback() {
-					@Override
-					public void onSettingChanged(Object obj) {
-						if (design_panel != null)
-							design_panel.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
-						if (design_panel2 != null)
-							design_panel2.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
-						if (design_panel3 != null)
-							design_panel3.get3DView().setBackgroundColor(mColorSettings.getColor(BACKGROUNDCOLOR));
-					}
-				});
-		mColorSettings.addColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245),
-				LanguageResource.getString("UNSELECTEDBACKGROUNDCOLOR_STR"));
-		mColorSettings.addColor(STRINGERCOLOR, new Color(100, 100, 100),
-				LanguageResource.getString("STRINGERCOLOR_STR"));
-		mColorSettings.addColor(FLOWLINESCOLOR, new Color(100, 150, 100),
-				LanguageResource.getString("FLOWLINESCOLOR_STR"));
-		mColorSettings.addColor(APEXLINECOLOR, new Color(80, 80, 200), LanguageResource.getString("APEXLINECOLOR_STR"));
-		mColorSettings.addColor(TUCKUNDERLINECOLOR, new Color(150, 50, 50),
-				LanguageResource.getString("TUCKUNDERCOLOR_STR"));
-		mColorSettings.addColor(CENTERLINECOLOR, new Color(180, 180, 220),
-				LanguageResource.getString("CENTERLINECOLOR_STR"));
-
-		mColorSettings.addColor(BRDCOLOR, new Color(0, 0, 0), LanguageResource.getString("BRDCOLOR_STR"));
-		mColorSettings.addColor(ORIGINALCOLOR, new Color(240, 240, 240),
-				LanguageResource.getString("ORIGINALCOLOR_STR"));
-		mColorSettings.addColor(GHOSTCOLOR, new Color(128, 128, 128), LanguageResource.getString("GHOSTCOLOR_STR"));
-		mColorSettings.addColor(BLANKCOLOR, new Color(128, 128, 128), LanguageResource.getString("BLANKCOLOR_STR"));
-		mColorSettings.addColor(GRIDCOLOR, new Color(128, 128, 128), LanguageResource.getString("GRIDCOLOR_STR"));
-		mColorSettings.addColor(FINSCOLOR, new Color(205, 128, 128), LanguageResource.getString("FINSCOLOR_STR"));
-		mColorSettings.addColor(CURVATURECOLOR, new Color(130, 130, 180),
-				LanguageResource.getString("CURVATURECOLOR_STR"));
-		mColorSettings.addColor(VOLUMEDISTRIBUTIONCOLOR, new Color(80, 80, 80),
-				LanguageResource.getString("VOLUMEDISTRIBUTIONCOLOR_STR"));
-		mColorSettings.addColor(CENTEROFMASSCOLOR, new Color(205, 10, 10),
-				LanguageResource.getString("CENTEROFMASSCOLOR_STR"));
-		mColorSettings.addColor(SELECTEDTANGENTCOLOR, new Color(0, 0, 0),
-				LanguageResource.getString("SELECTEDTANGENTCOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTCENTERCOLOR, new Color(30, 30, 200),
-				LanguageResource.getString("SELECTEDCONTROLPOINTCENTERCOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 0),
-				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT1COLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 0, 0),
-				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT2COLOR_STR"));
-
-		mColorSettings.addColor(SELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(0, 0, 0),
-				LanguageResource.getString("SELECTEDCONTROLPOINTCENTEROUTLINECOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(0, 0, 0),
-				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR_STR"));
-		mColorSettings.addColor(SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(0, 0, 0),
-				LanguageResource.getString("SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR_STR"));
-
-		mColorSettings.addColor(UNSELECTEDTANGENTCOLOR, new Color(100, 100, 100),
-				LanguageResource.getString("UNSELECTEDTANGENTCOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTCENTERCOLOR, new Color(200, 200, 240),
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTCENTERCOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 240),
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT1COLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 200, 240),
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT2COLOR_STR"));
-
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(80, 80, 150),
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(150, 150, 80),
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR_STR"));
-		mColorSettings.addColor(UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(150, 80, 80),
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR_STR"));
-
-		mColorSettings.addColor(GUIDEPOINTCOLOR, new Color(255, 0, 0),
-				LanguageResource.getString("GUIDEPOINTCOLOR_STR"));
-		mColorSettings.addColor(BASELINECOLOR, new Color(0, 0, 0), LanguageResource.getString("GUIDEPOINTCOLOR_STR"));
-
-		mSizeSettings = mSettings.addCategory(LanguageResource.getString("SIZE_AND_THICKNESS_STR"));
-
-		mSizeSettings.addDouble(SELECTEDCONTROLPOINTSIZE, 4.0,
-				LanguageResource.getString("SELECTEDCONTROLPOINTSIZE_STR"));
-		mSizeSettings.addDouble(SELECTEDCONTROLPOINTOUTLINETHICKNESS, 1.5,
-				LanguageResource.getString("SELECTEDCONTROLPOINTOUTLINETHICKNESS_STR"));
-		mSizeSettings.addDouble(UNSELECTEDCONTROLPOINTSIZE, 3.0,
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTSIZE_STR"));
-		mSizeSettings.addDouble(UNSELECTEDCONTROLPOINTOUTLINETHICKNESS, 0.8,
-				LanguageResource.getString("UNSELECTEDCONTROLPOINTOUTLINETHICKNESS_STR"));
-
-		mSizeSettings.addDouble(BEZIERTHICKNESS, 0.8, LanguageResource.getString("BEZIERTHICKNESS_STR"));
-		mSizeSettings.addDouble(CURVATURETHICKNESS, 1.2, LanguageResource.getString("CURVATURETHICKNESS_STR"));
-		mSizeSettings.addDouble(VOLUMEDISTRIBUTIONTHICKNESS, 1.2,
-				LanguageResource.getString("VOLUMEDISTRIBUTIONTHICKNESS_STR"));
-		mSizeSettings.addDouble(GUIDEPNTTHICKNESS, 1.2, LanguageResource.getString("GUIDEPNTTHICKNESS_STR"));
-		mSizeSettings.addDouble(BASELINETHICKNESS, 1, LanguageResource.getString("BASELINETHICKNESS_STR"));
-
-		HashMap<Integer, String> looks = new HashMap<Integer, String>();
-
-		mMiscSettings = mSettings.addCategory(LanguageResource.getString("MISC_STR"));
-		String systemLookAndFeelName = UIManager.getSystemLookAndFeelClassName();
-		int systemLookAndFeelIndex = 0;
-		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-			looks.put(looks.size(), info.getName());
-			if (systemLookAndFeelName == info.getClassName()) {
-				systemLookAndFeelIndex = looks.size() - 1;
-			}
-		}
-
-		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new Enumeration(systemLookAndFeelIndex, looks),
-				LanguageResource.getString("LOOKANDFEEL_STR"), new Settings.SettingChangedCallback() {
-					@Override
-					public void onSettingChanged(Object obj) {
-						Enumeration e = (Enumeration) mMiscSettings.getObject(LOOK_AND_FEEL);
-
-						String selectedLookAndFeelName = e.getAlternatives().get(e.getValue());
-
-						if (mBlockGUI == false) {
-							JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
-									String.format(LanguageResource.getString("LOOKANDFEELCHANGEDMSG_STR"),
-											selectedLookAndFeelName),
-									LanguageResource.getString("LOOKANDFEELCHANGEDTITLE_STR"),
-									JOptionPane.INFORMATION_MESSAGE);
-						}
-					}
-				});
-		mMiscSettings.getPreferences();
-
-		try {
-			Enumeration e = (Enumeration) mMiscSettings.getObject(LOOK_AND_FEEL);
-
-			String selectedLookAndFeelName = e.getAlternatives().get(e.getValue());
-
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-				if (selectedLookAndFeelName.equals(info.getName())) {
-					UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (Exception e) {
-			System.err.println(
-					"Couldn't find class for specified look and feel:" + UIManager.getSystemLookAndFeelClassName());
-			System.err.println("Using the default look and feel.");
-		}
-
-		mMiscSettings.addBoolean(PRINTGUIDEPOINTS, false, LanguageResource.getString("PRINTGUIDEPOINTS_STR"));
-		mMiscSettings.addBoolean(PRINTFINS, false, LanguageResource.getString("PRINTFINS_STR"));
-
-		mMiscSettings.addInteger(FRACTIONACCURACY, 16, LanguageResource.getString("FRACTIONACCURACY_STR"),
-				new Settings.SettingChangedCallback() {
-
-					@Override
-					public void onSettingChanged(Object obj) {
-						UnitUtils.setFractionAccuracy(((Integer) obj).intValue());
-					}
-				});
-
-		mMiscSettings.addBoolean(ROCKERSTICK, false, LanguageResource.getString("ROCKERSTICK_STR"));
-
-		mMiscSettings.addBoolean(OFFSETINTERPLOATION, false, LanguageResource.getString("OFFSETINTERPLOATION_STR"));
+		mSettings = BoardCADSettings.getInstance();
 
 		mRecentBrdFilesMenu.setText(LanguageResource.getString("RECENTFILES_STR"));
 
+		// Run the application
 		SwingUtilities.invokeLater(this);
-	}
-
-	public void setDefaultTheme() {
-		mColorSettings.setColor(TEXTCOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(BACKGROUNDCOLOR, new Color(200, 200, 240));
-		mColorSettings.setColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245));
-		mColorSettings.setColor(STRINGERCOLOR, new Color(100, 100, 100));
-		mColorSettings.setColor(FLOWLINESCOLOR, new Color(100, 150, 100));
-		mColorSettings.setColor(APEXLINECOLOR, new Color(80, 80, 200));
-		mColorSettings.setColor(TUCKUNDERLINECOLOR, new Color(150, 50, 50));
-		mColorSettings.setColor(CENTERLINECOLOR, new Color(180, 180, 220));
-
-		mColorSettings.setColor(BRDCOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(ORIGINALCOLOR, new Color(240, 240, 240));
-		mColorSettings.setColor(GHOSTCOLOR, new Color(128, 128, 128));
-		mColorSettings.setColor(BLANKCOLOR, new Color(128, 128, 128));
-		mColorSettings.setColor(GRIDCOLOR, new Color(128, 128, 128));
-		mColorSettings.setColor(FINSCOLOR, new Color(205, 128, 128));
-		mColorSettings.setColor(CURVATURECOLOR, new Color(130, 130, 180));
-		mColorSettings.setColor(VOLUMEDISTRIBUTIONCOLOR, new Color(80, 80, 80));
-		mColorSettings.setColor(CENTEROFMASSCOLOR, new Color(205, 10, 10));
-		mColorSettings.setColor(SELECTEDTANGENTCOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTCENTERCOLOR, new Color(30, 30, 200));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 0, 0));
-
-		mColorSettings.setColor(SELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(0, 0, 0));
-
-		mColorSettings.setColor(UNSELECTEDTANGENTCOLOR, new Color(100, 100, 100));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTCENTERCOLOR, new Color(200, 200, 240));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 240));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 200, 240));
-
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(80, 80, 150));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(150, 150, 80));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(150, 80, 80));
-
-		mColorSettings.setColor(GUIDEPOINTCOLOR, new Color(255, 0, 0));
-		mColorSettings.setColor(BASELINECOLOR, new Color(0, 0, 0));
-	}
-
-	public void setDarkTheme() {
-		mColorSettings.setColor(TEXTCOLOR, new Color(200, 200, 200));
-		mColorSettings.setColor(BACKGROUNDCOLOR, new Color(200, 200, 240));
-		mColorSettings.setColor(UNSELECTEDBACKGROUNDCOLOR, new Color(220, 220, 245));
-		mColorSettings.setColor(STRINGERCOLOR, new Color(100, 100, 100));
-		mColorSettings.setColor(FLOWLINESCOLOR, new Color(100, 150, 100));
-		mColorSettings.setColor(APEXLINECOLOR, new Color(80, 80, 200));
-		mColorSettings.setColor(TUCKUNDERLINECOLOR, new Color(150, 50, 50));
-		mColorSettings.setColor(CENTERLINECOLOR, new Color(180, 180, 220));
-
-		mColorSettings.setColor(BRDCOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(ORIGINALCOLOR, new Color(240, 240, 240));
-		mColorSettings.setColor(GHOSTCOLOR, new Color(128, 128, 128));
-		mColorSettings.setColor(BLANKCOLOR, new Color(128, 128, 128));
-		mColorSettings.setColor(GRIDCOLOR, new Color(128, 128, 128));
-		mColorSettings.setColor(FINSCOLOR, new Color(205, 128, 128));
-		mColorSettings.setColor(CURVATURECOLOR, new Color(130, 130, 180));
-		mColorSettings.setColor(VOLUMEDISTRIBUTIONCOLOR, new Color(80, 80, 80));
-		mColorSettings.setColor(CENTEROFMASSCOLOR, new Color(205, 10, 10));
-		mColorSettings.setColor(SELECTEDTANGENTCOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTCENTERCOLOR, new Color(30, 30, 200));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 0, 0));
-
-		mColorSettings.setColor(SELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(0, 0, 0));
-		mColorSettings.setColor(SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(0, 0, 0));
-
-		mColorSettings.setColor(UNSELECTEDTANGENTCOLOR, new Color(100, 100, 100));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTCENTERCOLOR, new Color(200, 200, 240));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT1COLOR, new Color(200, 200, 240));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT2COLOR, new Color(200, 200, 240));
-
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR, new Color(80, 80, 150));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR, new Color(150, 150, 80));
-		mColorSettings.setColor(UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR, new Color(150, 80, 80));
-
-		mColorSettings.setColor(GUIDEPOINTCOLOR, new Color(255, 0, 0));
-		mColorSettings.setColor(BASELINECOLOR, new Color(0, 0, 0));
-	}
-
-	public static void print(Object object) throws IntrospectionException {
-		String objectName = object.getClass().getSimpleName();
-		BeanInfo info = Introspector.getBeanInfo(object.getClass());
-		System.out.println("--- Object " + objectName + " Begin ----");
-		for (PropertyDescriptor property : info.getPropertyDescriptors()) {
-			String name = property.getDisplayName();
-			Object value = null;
-			try {
-				value = property.getReadMethod().invoke(object);
-			} catch (Exception e) {
-				value = "Error - " + e.getMessage();
-			}
-			System.out.println(name + ": " + value);
-		}
-		System.out.println("--- Object " + objectName + " End ----");
 	}
 
 	public void getPreferences() {
@@ -794,9 +430,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public void updateBezier3DModel() {
 		if (mTabbedPane.getSelectedComponent() == mRenderedPanel) {
-			design_panel2.updateBezier3DModel(getCurrentBrd());
+			mRendered3DView.updateBezier3DModel(getCurrentBrd());
 		} else if (mTabbedPane.getSelectedComponent() == mQuadView) {
-			design_panel3.updateBezier3DModel(getCurrentBrd());
+			mQuad3DView.updateBezier3DModel(getCurrentBrd());
 		}
 	}
 
@@ -861,181 +497,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public ControlPointInfo getControlPointInfo() {
 		return mControlPointInfo;
-	}
-
-	public Color getBrdColor() {
-
-		return mColorSettings.getColor(BRDCOLOR);
-	}
-
-	public Color getOriginalBrdColor() {
-
-		return mColorSettings.getColor(ORIGINALCOLOR);
-	}
-
-	public Color getGhostBrdColor() {
-
-		return mColorSettings.getColor(GHOSTCOLOR);
-	}
-
-	public Color getBlankColor() {
-
-		return mColorSettings.getColor(BLANKCOLOR);
-	}
-
-	public Color getTextColor() {
-
-		return mColorSettings.getColor(TEXTCOLOR);
-	}
-
-	public Color getBackgroundColor() {
-
-		return mColorSettings.getColor(BACKGROUNDCOLOR);
-	}
-
-	public Color getUnselectedBackgroundColor() {
-
-		return mColorSettings.getColor(UNSELECTEDBACKGROUNDCOLOR);
-	}
-
-	public Color getStringerColor() {
-
-		return mColorSettings.getColor(STRINGERCOLOR);
-	}
-
-	public Color getFlowLinesColor() {
-
-		return mColorSettings.getColor(FLOWLINESCOLOR);
-	}
-
-	public Color getApexLineColor() {
-
-		return mColorSettings.getColor(APEXLINECOLOR);
-	}
-
-	public Color getTuckUnderLineColor() {
-
-		return mColorSettings.getColor(TUCKUNDERLINECOLOR);
-	}
-
-	public Color getCenterLineColor() {
-
-		return mColorSettings.getColor(CENTERLINECOLOR);
-	}
-
-	public Color getGridColor() {
-
-		return mColorSettings.getColor(GRIDCOLOR);
-	}
-
-	public Color getFinsColor() {
-
-		return mColorSettings.getColor(FINSCOLOR);
-	}
-
-	public Color getCurvatureColor() {
-
-		return mColorSettings.getColor(CURVATURECOLOR);
-	}
-
-	public Color getVolumeDistributionColor() {
-
-		return mColorSettings.getColor(VOLUMEDISTRIBUTIONCOLOR);
-	}
-
-	public Color getCenterOfMassColor() {
-
-		return mColorSettings.getColor(CENTEROFMASSCOLOR);
-	}
-
-	public Color getSelectedTangentColor() {
-
-		return mColorSettings.getColor(SELECTEDTANGENTCOLOR);
-	}
-
-	public Color getSelectedCenterControlPointColor() {
-
-		return mColorSettings.getColor(SELECTEDCONTROLPOINTCENTERCOLOR);
-	}
-
-	public Color getSelectedTangent1ControlPointColor() {
-
-		return mColorSettings.getColor(SELECTEDCONTROLPOINTTANGENT1COLOR);
-	}
-
-	public Color getSelectedOutlineTangent2ControlPointColor() {
-
-		return mColorSettings.getColor(SELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR);
-	}
-
-	public Color getSelectedOutlineCenterControlPointColor() {
-
-		return mColorSettings.getColor(SELECTEDCONTROLPOINTCENTEROUTLINECOLOR);
-	}
-
-	public Color getSelectedOutlineTangent1ControlPointColor() {
-
-		return mColorSettings.getColor(SELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR);
-	}
-
-	public Color getSelectedTangent2ControlPointColor() {
-
-		return mColorSettings.getColor(SELECTEDCONTROLPOINTTANGENT2COLOR);
-	}
-
-	public Color getUnselectedTangentColor() {
-
-		return mColorSettings.getColor(UNSELECTEDTANGENTCOLOR);
-	}
-
-	public Color getUnselectedCenterControlPointColor() {
-
-		return mColorSettings.getColor(UNSELECTEDCONTROLPOINTCENTERCOLOR);
-	}
-
-	public Color getUnselectedTangent1ControlPointColor() {
-
-		return mColorSettings.getColor(UNSELECTEDCONTROLPOINTTANGENT1COLOR);
-	}
-
-	public Color getUnselectedOutlineTangent2ControlPointColor() {
-
-		return mColorSettings.getColor(UNSELECTEDCONTROLPOINTTANGENT2OUTLINECOLOR);
-	}
-
-	public Color getUnselectedOutlineCenterControlPointColor() {
-
-		return mColorSettings.getColor(UNSELECTEDCONTROLPOINTCENTEROUTLINECOLOR);
-	}
-
-	public Color getUnselectedOutlineTangent1ControlPointColor() {
-
-		return mColorSettings.getColor(UNSELECTEDCONTROLPOINTTANGENT1OUTLINECOLOR);
-	}
-
-	public Color getUnselectedTangent2ControlPointColor() {
-
-		return mColorSettings.getColor(UNSELECTEDCONTROLPOINTTANGENT2COLOR);
-	}
-
-	public Color getGuidePointColor() {
-
-		return mColorSettings.getColor(GUIDEPOINTCOLOR);
-	}
-
-	public double getSelectedControlPointSize() {
-
-		return mSizeSettings.getDouble(SELECTEDCONTROLPOINTSIZE);
-	}
-
-	public double getUnselectedControlPointSize() {
-
-		return mSizeSettings.getDouble(UNSELECTEDCONTROLPOINTSIZE);
-	}
-
-	public int getFractionAccuracy() {
-
-		return mMiscSettings.getInt(FRACTIONACCURACY);
 	}
 
 	public boolean isPaintingOriginalBrd() {
@@ -1134,28 +595,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		return mUseFillMenuItem.isSelected();
 	}
 
-	public boolean isPrintingControlPoints() {
-		return mMiscSettings.getBoolean(PRINTGUIDEPOINTS);
-	}
-
-	public boolean isPrintingFins() {
-		return mMiscSettings.getBoolean(PRINTFINS);
-	}
-
-	public boolean isUsingRockerStickAdjustment() {
-		return mMiscSettings.getBoolean(ROCKERSTICK);
-	}
-
-	public boolean isUsingOffsetInterpolation() {
-		return mMiscSettings.getBoolean(OFFSETINTERPLOATION);
-	}
-
 	public boolean isGhostMode() {
 		return mGhostMode;
 	}
 
 	public boolean isOrgFocus() {
 		return mOrgFocus;
+	}
+
+	public boolean isGUIBlocked() {
+		return mGUIBlocked;
 	}
 
 	public AbstractBezierBoardSurfaceModel.ModelType getCrossSectionInterpolationType() {
@@ -1206,30 +655,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		}
 	}
 
-	public double getBezierThickness() {
-		return mSizeSettings.getDouble(BEZIERTHICKNESS);
-	}
-
-	public double getCurvatureThickness() {
-		return mSizeSettings.getDouble(CURVATURETHICKNESS);
-	}
-
-	public double getVolumeDistributionThickness() {
-		return mSizeSettings.getDouble(VOLUMEDISTRIBUTIONTHICKNESS);
-	}
-
-	public double getSelectedControlPointOutlineThickness() {
-		return mSizeSettings.getDouble(SELECTEDCONTROLPOINTOUTLINETHICKNESS);
-	}
-
-	public double getUnselectedControlPointOutlineThickness() {
-		return mSizeSettings.getDouble(UNSELECTEDCONTROLPOINTOUTLINETHICKNESS);
-	}
-
-	public double getGuidePointThickness() {
-		return mSizeSettings.getDouble(GUIDEPNTTHICKNESS);
-	}
-
 	public BezierBoard getCurrentBrd() {
 		return mCurrentBrd;
 	}
@@ -1262,14 +687,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	}
 
 	public void fitAll() {
-		mOutlineEdit.fit_all();
+		mOutlineEdit.fitAll();
 		// mOutlineEdit2.fit_all();
-		mBottomAndDeckEdit.fit_all();
-		mCrossSectionEdit.fit_all();
+		mBottomAndDeckEdit.fitAll();
+		mCrossSectionEdit.fitAll();
 
-		mQuadViewOutlineEdit.fit_all();
-		mQuadViewCrossSectionEdit.fit_all();
-		mQuadViewRockerEdit.fit_all();
+		mQuadViewOutlineEdit.fitAll();
+		mQuadViewCrossSectionEdit.fitAll();
+		mQuadViewRockerEdit.fitAll();
 
 		// mMachineView.fit_all();
 
@@ -1321,8 +746,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	}
 
 	void setBoardChangedFor3D() {
-		design_panel2.setBoardChangedFor3D();
-		design_panel3.setBoardChangedFor3D();
+		mRendered3DView.setBoardChangedFor3D();
+		mQuad3DView.setBoardChangedFor3D();
 	}
 
 	protected void setCurrentUnit(int unitType) {
@@ -1356,9 +781,18 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		}
 	}
 
-	public void onSettingsChanged() {
-		mControlPointInfo.setColors();
-		mFrame.repaint();
+	public void onSettingsChanged(Setting setting) {
+		if (mControlPointInfo != null) {
+			mControlPointInfo.setColors();
+			mFrame.repaint();
+		}
+
+		if (setting.key() == BoardCADSettings.RENDERBACKGROUNDCOLOR) {
+			if (mRendered3DView != null)
+				mRendered3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
+			if (mQuad3DView != null)
+				mQuad3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
+		}
 	}
 
 	private void saveAs(String filename) {
@@ -1369,8 +803,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		addRecentBoardFile(getCurrentBrd().getFilename());
 
 		onBrdChanged();
-		mBoardChanged = false; // Made a call to onBrdChanged, but
-		// we just saved the board
+		mBoardChanged = false;
 	}
 
 	private int saveChangedBoard() {
@@ -1446,9 +879,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		// Set up the layout manager.
 		mFrame.getContentPane().setLayout(new BorderLayout());
 
-		// Insert 16x16 Icon on JFrame
+		// Insert Icon on JFrame
 		try {
-			ImageIcon icon = new ImageIcon(getClass().getResource("../../icons/BoardCAD png 16x16 upright.png"));
+			ImageIcon icon = new ImageIcon(getClass().getResource("../../icons/BoardCAD icon 32x32.png"));
 			mFrame.setIconImage(icon.getImage());
 		} catch (Exception e) {
 			System.out.println("Jframe Icon error:\n" + e.getMessage());
@@ -5012,7 +4445,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final JMenu menu3D = new JMenu(LanguageResource.getString("3DMODELMENU_STR"));
 		menu3D.setMnemonic(KeyEvent.VK_D);
 
-
 		menuBar.add(menu3D);
 
 		final JMenu menuRender = new JMenu(LanguageResource.getString("RENDERMENU_STR"));
@@ -5054,12 +4486,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					a.setPolygonAttributes(pa);
 				}
 
-				if (design_panel2.getBezier3DModel() != null) {
-					design_panel2.getBezier3DModel().setAppearance(a);
+				if (mRendered3DView.getBezier3DModel() != null) {
+					mRendered3DView.getBezier3DModel().setAppearance(a);
 				}
 
-				if (design_panel3.getBezier3DModel() != null) {
-					design_panel3.getBezier3DModel().setAppearance(a);
+				if (mQuad3DView.getBezier3DModel() != null) {
+					mQuad3DView.getBezier3DModel().setAppearance(a);
 				}
 
 			}
@@ -5074,8 +4506,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				boolean selected = mShowBezier3DModelMenuItem.getModel().isSelected();
-				design_panel2.setShowBezierModel(selected);
-				design_panel3.setShowBezierModel(selected);
+				mRendered3DView.setShowBezierModel(selected);
+				mQuad3DView.setShowBezierModel(selected);
 				if (selected) {
 					updateBezier3DModel();
 				}
@@ -5439,7 +4871,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * mToolBar.add(imperialDecimalButton);
 		 */
 		JLabel unitLabel = new JLabel(LanguageResource.getString("UNIT_STR"));
-		unitLabel.setForeground(getTextColor());
+		unitLabel.setForeground(mSettings.getTextColor());
 		mToolBar.add(unitLabel);
 
 		String[] unitsStrList = new String[] { LanguageResource.getString("FEETINCHESRADIOBUTTON_STR"),
@@ -5448,13 +4880,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				LanguageResource.getString("CENTIMETERSRADIOBUTTON_STR"),
 				LanguageResource.getString("METERSRADIOBUTTON_STR") };
 		JComboBox unitComboBox = new JComboBox(unitsStrList);
-		unitComboBox.setForeground(getTextColor());
+		unitComboBox.setForeground(mSettings.getTextColor());
 		unitComboBox.setEditable(false);
 		unitComboBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				JComboBox cb = (JComboBox) e.getSource();
-				unitComboBox.setForeground(getTextColor());
+				unitComboBox.setForeground(mSettings.getTextColor());
 				switch (cb.getSelectedIndex()) {
 				default:
 				case 0:
@@ -5517,20 +4949,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					boolean fill) {
 				super.drawPart(g, color, stroke, brd, fill);
 				if (isPaintingCenterLine()) {
-					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getCenterWidth() * 1.1);
+					drawCenterLine(g, mSettings.getCenterLineColor(), stroke, brd.getLength() / 2.0,
+							brd.getCenterWidth() * 1.1);
 				}
 				if (isPaintingCrossectionsPositions())
 					drawOutlineCrossections(this, g, color, stroke, brd);
 				if (isPaintingFlowlines())
-					drawOutlineFlowlines(this, g, getFlowLinesColor(), stroke, brd);
+					drawOutlineFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
-					drawOutlineTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
+					drawOutlineTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
 						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawOutlineFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
-				drawStringer(g, getStringerColor(), stroke, brd);
+				drawStringer(g, mSettings.getStringerColor(), stroke, brd);
 				if (isPaintingFins()) {
-					drawFins(g, getFinsColor(), stroke, brd);
+					drawFins(g, mSettings.getFinsColor(), stroke, brd);
 				}
 			}
 
@@ -5650,7 +5083,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						if (crossSections.get(i) != brd.getCurrentCrossSection()) {
 
 							double rockerOffset = 0;
-							if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
+							if (mSettings.isUsingOffsetInterpolation()) {
 								rockerOffset = brd.getRockerAtPos(crossSections.get(i).getPosition())
 										- currentCrossSectionRocker;
 								rockerOffset *= this.mScale;
@@ -5669,10 +5102,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 					final Color col = (isGhostMode()) ? color : Color.GRAY;
 
-					double pos = mQuadViewRockerEdit.hasMouse() ? mQuadViewRockerEdit.mBrdCoord.x : mQuadViewOutlineEdit.mBrdCoord.x;
+					double pos = mQuadViewRockerEdit.hasMouse() ? mQuadViewRockerEdit.mBrdCoord.x
+							: mQuadViewOutlineEdit.mBrdCoord.x;
 
 					double rockerOffset = 0;
-					if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
+					if (mSettings.isUsingOffsetInterpolation()) {
 						double currentCrossSectionRocker = brd
 								.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
 						rockerOffset = brd.getRockerAtPos(pos) - currentCrossSectionRocker;
@@ -5687,14 +5121,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 							(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, pos, brd);
 
 					if (isGhostMode()) {
-						if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
+						if (mSettings.isUsingOffsetInterpolation()) {
 							double currentCrossSectionRocker = getCurrentBrd()
 									.getRockerAtPos(getCurrentBrd().getCurrentCrossSection().getPosition());
 							rockerOffset = getCurrentBrd().getRockerAtPos(pos) - currentCrossSectionRocker;
 							rockerOffset *= this.mScale;
 						}
 						BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
-								mScale, 0.0, getGhostBrdColor(), stroke,
+								mScale, 0.0, mSettings.getGhostBrdColor(), stroke,
 								(mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
 								(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, pos, getCurrentBrd());
 					}
@@ -5704,13 +5138,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				super.drawPart(g, color, stroke, brd, fill);
 
 				if (isPaintingCenterLine())
-					drawCrossSectionCenterline(this, g, getCenterLineColor(), stroke, brd);
+					drawCrossSectionCenterline(this, g, mSettings.getCenterLineColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
-					drawCrossSectionTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
+					drawCrossSectionTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFlowlines())
-					drawCrossSectionFlowlines(this, g, getFlowLinesColor(), stroke, brd);
+					drawCrossSectionFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
 				if (isPaintingApexline())
-					drawCrossSectionApexline(this, g, getApexLineColor(), stroke, brd);
+					drawCrossSectionApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
 
 			}
 
@@ -5976,24 +5410,25 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					boolean fill) {
 
 				if (isPaintingBaseLine()) {
-					drawStringer(g, mColorSettings.getColor(BASELINECOLOR),
-							new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
+					drawStringer(g, mSettings.getBaseLineColor(),
+							new BasicStroke((float) (mSettings.getBaseLineThickness() / mScale)), brd);
 				}
 				if (isPaintingFlowlines())
-					drawProfileFlowlines(this, g, getFlowLinesColor(), stroke, brd);
+					drawProfileFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
 				if (isPaintingApexline())
-					drawProfileApexline(this, g, getApexLineColor(), stroke, brd);
+					drawProfileApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
-					drawProfileTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
+					drawProfileTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
 						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawProfileFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				if (isPaintingBaseLine()) {
-					drawStringer(g, mColorSettings.getColor(BASELINECOLOR),
-							new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
+					drawStringer(g, mSettings.getBaseLineColor(),
+							new BasicStroke((float) (mSettings.getBaseLineThickness() / mScale)), brd);
 				}
 				if (isPaintingCenterLine()) {
-					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getThickness() * 2.2);
+					drawCenterLine(g, mSettings.getCenterLineColor(), stroke, brd.getLength() / 2.0,
+							brd.getThickness() * 2.2);
 				}
 
 				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke,
@@ -6058,8 +5493,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		};
 		mQuadViewRockerEdit.add(popupMenu);
 
-		design_panel2 = new DesignPanel();
-		design_panel3 = new DesignPanel();
+		mRendered3DView = new ThreeDView();
+		mQuad3DView = new ThreeDView();
+		mRendered3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
+		mQuad3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
 
 		mStatusPanel = new StatusPanel();
 
@@ -6071,7 +5508,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mQuadView.add(mQuadViewOutlineEdit);
 		mQuadView.add(mQuadViewCrossSectionEdit);
 		mQuadView.add(mQuadViewRockerEdit);
-		mQuadView.add(design_panel3);
+		mQuadView.add(mQuad3DView);
 		mTabbedPane.add(LanguageResource.getString("QUADVIEW_STR"), mQuadView);
 
 		mOutlineEdit = new BoardEdit() {
@@ -6095,18 +5532,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					boolean fill) {
 				super.drawPart(g, color, stroke, brd, fill);
 				if (isPaintingFlowlines())
-					drawOutlineFlowlines(this, g, getFlowLinesColor(), stroke, brd);
+					drawOutlineFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
-					drawOutlineTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
+					drawOutlineTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
 						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawOutlineFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				if (isPaintingCenterLine()) {
-					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getCenterWidth() * 1.1);
+					drawCenterLine(g, mSettings.getCenterLineColor(), stroke, brd.getLength() / 2.0,
+							brd.getCenterWidth() * 1.1);
 				}
-				drawStringer(g, getStringerColor(), stroke, brd);
+				drawStringer(g, mSettings.getStringerColor(), stroke, brd);
 				if (isPaintingFins()) {
-					drawFins(g, getFinsColor(), stroke, brd);
+					drawFins(g, mSettings.getFinsColor(), stroke, brd);
 				}
 			}
 
@@ -6171,20 +5609,21 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
 					boolean fill) {
 				if (isPaintingFlowlines())
-					drawProfileFlowlines(this, g, getFlowLinesColor(), stroke, brd);
+					drawProfileFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
 				if (isPaintingApexline())
-					drawProfileApexline(this, g, getApexLineColor(), stroke, brd);
+					drawProfileApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
 				if (isPaintingTuckUnderLine())
-					drawProfileTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
+					drawProfileTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
 						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawProfileFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
 				if (isPaintingBaseLine()) {
-					drawStringer(g, mColorSettings.getColor(BASELINECOLOR),
-							new BasicStroke((float) (mSizeSettings.getDouble(BASELINETHICKNESS) / mScale)), brd);
+					drawStringer(g, mSettings.getBaseLineColor(),
+							new BasicStroke((float) (mSettings.getBaseLineThickness() / mScale)), brd);
 				}
 				if (isPaintingCenterLine()) {
-					drawCenterLine(g, getCenterLineColor(), stroke, brd.getLength() / 2.0, brd.getThickness() * 2.2);
+					drawCenterLine(g, mSettings.getCenterLineColor(), stroke, brd.getLength() / 2.0,
+							brd.getThickness() * 2.2);
 				}
 
 				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, color, stroke,
@@ -6277,7 +5716,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						if (crossSections.get(i) != brd.getCurrentCrossSection()) {
 
 							double rockerOffset = 0;
-							if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
+							if (mSettings.isUsingOffsetInterpolation()) {
 								rockerOffset = brd.getRockerAtPos(crossSections.get(i).getPosition())
 										- currentCrossSectionRocker;
 								rockerOffset *= this.mScale;
@@ -6296,7 +5735,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					final Color col = (isGhostMode()) ? color : Color.GRAY;
 
 					double rockerOffset = 0;
-					if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
+					if (mSettings.isUsingOffsetInterpolation()) {
 						double currentCrossSectionRocker = brd
 								.getRockerAtPos(brd.getCurrentCrossSection().getPosition());
 						rockerOffset = brd.getRockerAtPos(mCrossSectionOutlineEdit.mBrdCoord.x)
@@ -6309,7 +5748,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 							(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, mCrossSectionOutlineEdit.mBrdCoord.x, brd);
 
 					if (isGhostMode()) {
-						if (BoardCAD.getInstance().isUsingOffsetInterpolation()) {
+						if (mSettings.isUsingOffsetInterpolation()) {
 							double currentCrossSectionRocker = getCurrentBrd()
 									.getRockerAtPos(getCurrentBrd().getCurrentCrossSection().getPosition());
 							rockerOffset = getCurrentBrd().getRockerAtPos(mCrossSectionOutlineEdit.mBrdCoord.x)
@@ -6317,7 +5756,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 							rockerOffset *= this.mScale;
 						}
 						BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g), mOffsetX, mOffsetY - rockerOffset,
-								0.0, mScale, getGhostBrdColor(), stroke,
+								0.0, mScale, mSettings.getGhostBrdColor(), stroke,
 								(mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
 								(mDrawControl & BezierBoardDrawUtil.FlipY) != 0, mCrossSectionOutlineEdit.mBrdCoord.x,
 								getCurrentBrd());
@@ -6327,11 +5766,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				super.drawPart(g, color, stroke, brd, fill);
 
 				if (isPaintingTuckUnderLine())
-					drawCrossSectionTuckUnderLine(this, g, getTuckUnderLineColor(), stroke, brd);
+					drawCrossSectionTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingApexline())
-					drawCrossSectionApexline(this, g, getApexLineColor(), stroke, brd);
+					drawCrossSectionApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
 				if (isPaintingFlowlines())
-					drawCrossSectionFlowlines(this, g, getFlowLinesColor(), stroke, brd);
+					drawCrossSectionFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
 			}
 
 			@Override
@@ -6585,22 +6024,22 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
 					boolean fill) {
 
-				Color brdColor = BoardCAD.getInstance().getBrdColor();
-				Color current = BoardCAD.getInstance().isGhostMode() ? BoardCAD.getInstance().getGhostBrdColor()
-						: color;
-				current = BoardCAD.getInstance().isOrgFocus() ? BoardCAD.getInstance().getOriginalBrdColor() : current;
+				Color brdColor = mSettings.getBrdColor();
+				Color current = BoardCAD.getInstance().isGhostMode() ? mSettings.getGhostBrdColor() : color;
+				current = BoardCAD.getInstance().isOrgFocus() ? mSettings.getOriginalBrdColor() : current;
 
 				BezierBoardDrawUtil.paintBezierSpline(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0, current, stroke,
 						brd.getOutline(), mDrawControl, fill);
 
 				if (isPaintingFlowlines())
 					BezierBoardDrawUtil.paintOutlineFlowLines(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0,
-							getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+							mSettings.getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							true);
 
 				if (isPaintingTuckUnderLine())
 					BezierBoardDrawUtil.paintOutlineTuckUnderLine(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0,
-							getTuckUnderLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
-							true);
+							mSettings.getTuckUnderLineColor(), stroke, brd,
+							(mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 
 				BezierBoardDrawUtil.paintBezierSplines(new JavaDraw(g), mOffsetX,
 						mOffsetY + ((brd.getCenterWidth() / 2.0 + brd.getMaxRocker()) * mScale), mScale, 0.0, current,
@@ -6610,18 +6049,20 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				if (isPaintingFlowlines())
 					BezierBoardDrawUtil.paintProfileFlowLines(new JavaDraw(g), mOffsetX,
 							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
-							getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+							mSettings.getFlowLinesColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							true);
 
 				if (isPaintingApexline())
 					BezierBoardDrawUtil.paintProfileApexline(new JavaDraw(g), mOffsetX,
 							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
-							getApexLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
+							mSettings.getApexLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
+							true);
 
 				if (isPaintingTuckUnderLine())
 					BezierBoardDrawUtil.paintProfileTuckUnderLine(new JavaDraw(g), mOffsetX,
 							mOffsetY + (((brd.getCenterWidth() / 2 + brd.getMaxRocker())) * mScale), mScale, 0.0,
-							getTuckUnderLineColor(), stroke, brd, (mDrawControl & BezierBoardDrawUtil.FlipX) != 0,
-							true);
+							mSettings.getTuckUnderLineColor(), stroke, brd,
+							(mDrawControl & BezierBoardDrawUtil.FlipX) != 0, true);
 
 				BezierBoard ghost = BoardCAD.getInstance().getGhostBrd();
 				if (BoardCAD.getInstance().isGhostMode() && ghost != null && !ghost.isEmpty()) {
@@ -6767,7 +6208,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mRenderedPanel = new JPanel();
 		mRenderedPanel.setLayout(new BorderLayout());
 
-		mRenderedPanel.add(design_panel2, BorderLayout.CENTER);
+		mRenderedPanel.add(mRendered3DView, BorderLayout.CENTER);
 		mRenderedPanel.add(mStatusPanel, BorderLayout.SOUTH);
 
 		mTabbedPane.addTab(LanguageResource.getString("3DRENDEREDVIEW_STR"), mRenderedPanel);
@@ -6798,9 +6239,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						updateBezier3DModel();
 					}
 
-					design_panel2.fit_all();
-					design_panel2.redraw();
-					design_panel3.redraw();
+					mRendered3DView.redraw();
+					mQuad3DView.redraw();
 				}
 
 			}
@@ -6821,12 +6261,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				mTabbedPane.add(component);
 			}
 		};
-		// pluginLoader.loadPlugins("plugins");
+		pluginLoader.loadPlugins("plugins");
 		if (pluginMenu.getItemCount() > 0) {
 			menuBar.add(pluginMenu);
 		}
-
-		getPreferences();
 
 		mTabbedPane2 = new JTabbedPane(SwingConstants.BOTTOM);
 
@@ -6845,9 +6283,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mTabbedPane2 = new JTabbedPane(SwingConstants.BOTTOM);
 		mTabbedPane2.addTab("Board specification", panel);
 
-		// mFrame.getContentPane().add(panel, BorderLayout.SOUTH);
-		// mFrame.getContentPane().add(mTabbedPane2, BorderLayout.SOUTH);
-		// mFrame.getContentPane().add(mTabbedPane, BorderLayout.CENTER);
 		mSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mTabbedPane, mTabbedPane2);
 		mSplitPane.setResizeWeight(1.0);
 		mSplitPane.setOneTouchExpandable(true);
@@ -6913,7 +6348,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * horan 6'8 keelboard outline.jpg");
 		 */
 
-		mBlockGUI = false;
+		getPreferences();
+
+		mGUIBlocked = false;
 	}
 
 	@Override
@@ -7198,10 +6635,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mBottomAndDeckEdit.mSelectedControlPoints.clear();
 
 		redraw();
-	}
-
-	public static void main(final String[] args) {
-		BoardCAD.getInstance();
 	}
 
 	public void drawOutlineFootMarks(final BoardEdit source, final Graphics2D g, final Stroke stroke,
@@ -7673,7 +7106,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public void drawCrossSectionCenterline(final BoardEdit source, final Graphics2D g, final Color color,
 			final Stroke stroke, final BezierBoard brd) {
-		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
+		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionCenterline(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
 						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
@@ -7682,7 +7115,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public void drawCrossSectionFlowlines(final BoardEdit source, final Graphics2D g, final Color color,
 			final Stroke stroke, final BezierBoard brd) {
-		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
+		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionFlowLines(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
 						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
@@ -7691,7 +7124,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public void drawCrossSectionApexline(final BoardEdit source, final Graphics2D g, final Color color,
 			final Stroke stroke, final BezierBoard brd) {
-		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
+		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionApexline(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
 						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
@@ -7700,7 +7133,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public void drawCrossSectionTuckUnderLine(final BoardEdit source, final Graphics2D g, final Color color,
 			final Stroke stroke, final BezierBoard brd) {
-		boolean isCompensatedForRocker = BoardCAD.getInstance().isUsingOffsetInterpolation();
+		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionTuckUnderLine(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
 						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
@@ -7716,83 +7149,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			container = container.getParent();
 		}
 		return null;
-	}
-}
-
-class BrowserControl {
-	/**
-	 * Display a file in the system browser. If you want to display a file, you
-	 * must include the absolute path name.
-	 *
-	 * @param url
-	 *            the file's url (the url must start with either "http://" or
-	 *            "file://").
-	 */
-	// Used to identify the windows platform.
-	private static final String WIN_ID = "Windows";
-
-	// The default system browser under windows.
-	private static final String WIN_PATH = "rundll32";
-
-	// The flag to display a url.
-	private static final String WIN_FLAG = "url.dll,FileProtocolHandler";
-
-	// The default browser under unix.
-	private static final String UNIX_PATH = "netscape";
-
-	// The flag to display a url.
-	private static final String UNIX_FLAG = "-remote openURL";
-
-	public static void displayURL(final String url) {
-		final boolean windows = isWindowsPlatform();
-		String cmd = null;
-		try {
-			if (windows) {
-				// cmd = 'rundll32 url.dll,FileProtocolHandler http://...'
-				cmd = WIN_PATH + " " + WIN_FLAG + " " + url;
-				final Process p = Runtime.getRuntime().exec(cmd);
-			} else {
-				// Under Unix, Netscape has to be running for the "-remote"
-				// command to work. So, we try sending the command and
-				// check for an exit value. If the exit command is 0,
-				// it worked, otherwise we need to start the browser.
-				// cmd = 'netscape -remote openURL(http://www.javaworld.com)'
-				cmd = UNIX_PATH + " " + UNIX_FLAG + "(" + url + ")";
-				Process p = Runtime.getRuntime().exec(cmd);
-				try {
-					// wait for exit code -- if it's 0, command worked,
-					// otherwise we need to start the browser up.
-					final int exitCode = p.waitFor();
-					if (exitCode != 0) {
-						// Command failed, start up the browser
-						// cmd = 'netscape http://www.javaworld.com'
-						cmd = UNIX_PATH + " " + url;
-						p = Runtime.getRuntime().exec(cmd);
-					}
-				} catch (final InterruptedException x) {
-					System.err.println("Error bringing up browser, cmd='" + cmd + "'");
-					System.err.println("Caught: " + x);
-				}
-			}
-		} catch (final IOException x) {
-			// couldn't exec browser
-			System.err.println("Could not invoke browser, command=" + cmd);
-			System.err.println("Caught: " + x);
-		}
-	}
-
-	/**
-	 * Try to determine whether this application is running under Windows or
-	 * some other platform by examing the "os.name" property.
-	 *
-	 * @return true if this application is running under a Windows OS
-	 */
-	public static boolean isWindowsPlatform() {
-		final String os = System.getProperty("os.name");
-		if (os != null && os.startsWith(WIN_ID))
-			return true;
-		else
-			return false;
 	}
 }
 

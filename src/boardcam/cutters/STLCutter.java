@@ -13,6 +13,7 @@ import javax.vecmath.Vector3d;
 
 import board.AbstractBoard;
 import boardcam.MachineConfig;
+import boardcad.settings.Setting;
 import boardcad.settings.Settings;
 import boardcad.settings.Settings.SettingChangedCallback;
 import boardcad.i18n.LanguageResource;
@@ -59,7 +60,7 @@ public class STLCutter extends AbstractCutter
 		cutterSettings.clear();
 		SettingChangedCallback scaleChanged = new Settings.SettingChangedCallback()
 		{
-			public void onSettingChanged(Object object)
+			public void onSettingChanged(Setting setting)
 			{
 				scale(cutterSettings.getDouble(CUTTER_SCALE_X), cutterSettings.getDouble(CUTTER_SCALE_Y), cutterSettings.getDouble(CUTTER_SCALE_Z));
 				update3DModel();
@@ -71,7 +72,7 @@ public class STLCutter extends AbstractCutter
 
 		SettingChangedCallback filenameChanged = new Settings.SettingChangedCallback()
 		{
-			public void onSettingChanged(Object object)
+			public void onSettingChanged(Setting setting)
 			{
 				try{
 					loadCutter(cutterSettings.getFileName(CUTTER_STL_FILENAME));

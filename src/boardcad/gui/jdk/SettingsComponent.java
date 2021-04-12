@@ -31,7 +31,7 @@ import boardcad.i18n.LanguageResource;
 class SettingsComponent extends JComponent
 {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 7619906218377501536L;
 
@@ -40,8 +40,8 @@ class SettingsComponent extends JComponent
 	private JScrollPane mScrollPane = null;
 
 	/**
-	 * This method initializes 
-	 * 
+	 * This method initializes
+	 *
 	 */
 	public SettingsComponent(final Settings settings)
 	{
@@ -52,9 +52,9 @@ class SettingsComponent extends JComponent
 
 	/**
 	 * This method initializes this
-	 * 
+	 *
 	 */
-	private void initialize() 
+	private void initialize()
 	{
 		this.setSize(new Dimension(352, 221));
 		this.setLayout(new BorderLayout());
@@ -62,20 +62,20 @@ class SettingsComponent extends JComponent
 	}
 
 	/**
-	 * This method initializes scrollPane	
-	 * 	
-	 * @return javax.swing.JScrollPane	
+	 * This method initializes scrollPane
+	 *
+	 * @return javax.swing.JScrollPane
 	 */
 	private JScrollPane getScrollPane() {
-		if (mScrollPane == null) 
+		if (mScrollPane == null)
 		{
 			mScrollPane = new JScrollPane();
 
-			
+
 			final JTable settingsTable = new JTable()
 			{
 				/**
-				 * 
+				 *
 				 */
 				private static final long serialVersionUID = -7686188963845803173L;
 
@@ -107,7 +107,7 @@ class SettingsComponent extends JComponent
 					}
 					else
 					{
-						return super.getDefaultEditor(c);			
+						return super.getDefaultEditor(c);
 					}
 
 				}
@@ -124,8 +124,8 @@ class SettingsComponent extends JComponent
 
 					if(className.compareTo(Color.class.getName()) == 0)
 					{
-						return new ColorRenderer();			
-					}						
+						return new ColorRenderer();
+					}
 					else
 					{
 						return super.getDefaultRenderer(theClass);
@@ -137,14 +137,14 @@ class SettingsComponent extends JComponent
 			};
 
 // JAVA 6			settingsTable.setAutoCreateRowSorter(true);
-			
+
 			settingsTable.setModel(new AbstractTableModel(){
 				/**
-				 * 
+				 *
 				 */
 				private static final long serialVersionUID = 6677672269943294175L;
 				@Override
-				public String getColumnName(final int col) 
+				public String getColumnName(final int col)
 				{
 					switch(col)
 					{
@@ -161,7 +161,7 @@ class SettingsComponent extends JComponent
 				@Override
 				public int getColumnCount() { return 2; }
 				@Override
-				public Object getValueAt(final int row, final int col) 
+				public Object getValueAt(final int row, final int col)
 				{
 					if(mSettings.isHidden(row))
 					{
@@ -182,7 +182,7 @@ class SettingsComponent extends JComponent
 				}
 				@Override
 				public boolean isCellEditable(final int row, final int col)
-				{   
+				{
 					switch(col)
 					{
 					default:
@@ -212,17 +212,17 @@ class SettingsComponent extends JComponent
 						{
 							value = mSettings.new Measurement((String)value);
 						}
-						mSettings.set(row, value);
+						Setting setting = mSettings.set(row, value);
 						if(mSettings.getCallbacks(row).size() > 0)
 						{
 							for (SettingChangedCallback cb : mSettings.getCallbacks(row))
 							{
-								cb.onSettingChanged(value);					
+								cb.onSettingChanged(setting);
 							}
 						}
 						else if(mSettings.getDefaultCallback() != null)
 						{
-							mSettings.getDefaultCallback().onSettingChanged(value);
+							mSettings.getDefaultCallback().onSettingChanged(setting);
 						}
 					}
 					catch(final Exception e)
@@ -239,12 +239,12 @@ class SettingsComponent extends JComponent
 		return mScrollPane;
 	}
 }
-	
+
 
 class ColorRenderer extends JLabel implements TableCellRenderer {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 6357536161048788938L;
 
@@ -256,7 +256,7 @@ class ColorRenderer extends JLabel implements TableCellRenderer {
 	public Component getTableCellRendererComponent(
 			final JTable table, final Object color,
 			final boolean isSelected, final boolean hasFocus,
-			final int row, final int column) 
+			final int row, final int column)
 	{
 		if(color.getClass().getSimpleName().compareTo("Color")==0)
 		{
@@ -270,7 +270,7 @@ class ColorRenderer extends JLabel implements TableCellRenderer {
 
 class ColorEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 4268145246290497799L;
 	Color currentColor;
@@ -331,7 +331,7 @@ class ColorEditor extends AbstractCellEditor implements TableCellEditor, ActionL
 
 class FileNameEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -1054238490165960482L;
 	String fileName;
@@ -379,7 +379,7 @@ class FileNameEditor extends AbstractCellEditor implements TableCellEditor, Acti
 
 		return new Settings().new FileName(fileName);
 	}
-	
+
 //	Implement the one method defined by TableCellEditor.
 	@Override
 	public Component getTableCellEditorComponent(final JTable table,
@@ -394,7 +394,7 @@ class FileNameEditor extends AbstractCellEditor implements TableCellEditor, Acti
 
 class ActionEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -1054238490165960482L;
 	JButton button;
@@ -442,7 +442,7 @@ class ActionEditor extends AbstractCellEditor implements TableCellEditor, Action
 
 class EnumEditor extends AbstractCellEditor implements TableCellEditor {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 4268145246290497799L;
 	JButton button;
@@ -468,7 +468,7 @@ class EnumEditor extends AbstractCellEditor implements TableCellEditor {
 	@Override
 	public Object getCellEditorValue() {
 		for(Map.Entry<Integer, String> entry : enu.getAlternatives().entrySet())
-		{			
+		{
 			if(entry.getValue() == comboBox.getSelectedItem())
 			{
 				result = entry.getKey();
@@ -488,12 +488,12 @@ class EnumEditor extends AbstractCellEditor implements TableCellEditor {
 		enu = (Enumeration)value;
 
 		comboBox.removeAllItems();
-		
+
 		for(Map.Entry<Integer, String> entry : enu.getAlternatives().entrySet())
-		{			
+		{
 			comboBox.addItem(entry.getValue());
 		}
-		
+
 		return comboBox;
 	}
 }

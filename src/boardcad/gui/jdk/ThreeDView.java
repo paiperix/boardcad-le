@@ -1,29 +1,14 @@
 package boardcad.gui.jdk;
 
 import java.awt.BorderLayout;
-import java.awt.Canvas;
-import java.awt.CheckboxMenuItem;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.MenuItem;
 import java.awt.Panel;
-import java.awt.PopupMenu;
-import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseMotionListener;
 
 import javax.media.j3d.*;
 import javax.swing.JCheckBoxMenuItem;
@@ -31,20 +16,17 @@ import javax.swing.JPopupMenu;
 import javax.vecmath.*;
 
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
-import com.sun.j3d.utils.image.TextureLoader;
 import com.sun.j3d.utils.universe.*;
 
 import board.BezierBoard;
-import cadcore.MathUtils;
+import boardcad.settings.BoardCADSettings;
 
 // =========================================================Design Panel
-class DesignPanel extends Panel implements AbstractEditor {
+class ThreeDView extends Panel implements ItemListener {
 	/**
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
-	// private UserInterface user_interface;
-	private ThreeDView rendered_view;
 
 	BranchGroup mRoot;
 	Switch mBezier3DOnSwitch;
@@ -56,49 +38,164 @@ class DesignPanel extends Panel implements AbstractEditor {
 //	Brd3DModelGenerator mBrd3DModelGenerator = new Brd3DModelGenerator();
 	FasterBrd3DModelGenerator mBrd3DModelGenerator = new FasterBrd3DModelGenerator();
 
-	public DesignPanel() {
-		// user_interface=ui;
+	private JPopupMenu mViewMenu;
+	private JCheckBoxMenuItem mShadeItem;
 
-		rendered_view = new ThreeDView(this);
+	private SimpleUniverse mUniverse = null;
+	public BranchGroup mScene;
+	private Shape3D mShape;
+	private Appearance mLook;
+	private Background mBackgroundNode;
 
-		/*
-		 * setLayout(new GridLayout(2,2,3,3));
-		 *
-		 * add(rocker_view); add(edge_view); add(outline_view);
-		 * add(threed_view);
-		 *
-		 * doLayout(); redraw(); // threed_view.setSize(getPreferredSize());
-		 * threed_view.doLayout();
-		 */
-		setLayout(new GridLayout(1, 1));
-		add(rendered_view);
-		doLayout();
+	private DirectionalLight mUpLight;
+	private DirectionalLight mDownLight;
+	private DirectionalLight mLeftLight;
+	private DirectionalLight mRightLight;
+	private DirectionalLight mHeadLight;
+	private AmbientLight mAmbientLight;
+
+	GraphicsConfiguration mGfxConfig;
+
+	Canvas3D mCanvas3D;
+
+	public ThreeDView() {
+		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+
+		mViewMenu = new JPopupMenu();
+		add(mViewMenu);
+
+		setLayout(new BorderLayout());
+		mGfxConfig = SimpleUniverse.getPreferredConfiguration();
+
+		mCanvas3D = new Canvas3D(mGfxConfig);
+		add("Center", mCanvas3D);
+		mShape = new Shape3D();
+		mShape.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
+		mShape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+		mShape.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+		mShape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+		mCanvas3D.addMouseListener(new ThreeDMouse(this));
+
+		mLook = new Appearance();
+
+		// Create a simple scene and attach it to the virtual universe
+		mScene = createSceneGraph();
+		mUniverse = new SimpleUniverse(mCanvas3D, 4);
+
+		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
+				100.0);
+
+		// Head light
+		ViewingPlatform viewingPlatform = mUniverse.getViewingPlatform();
+
+		PlatformGeometry pg = new PlatformGeometry();
+
+		mHeadLight = new DirectionalLight(new Color3f(0.8f, 0.8f, 0.8f),
+				new Vector3f(0.0f, 0.0f, -1.0f));
+		mHeadLight.setInfluencingBounds(bounds);
+		mHeadLight.setCapability(Light.ALLOW_STATE_WRITE);
+		mHeadLight.setEnable(true);
+		pg.addChild(mHeadLight);
+		viewingPlatform.setPlatformGeometry(pg);
+
+		// This will move the ViewPlatform back a bit so the
+		// objects in the scene can be viewed.
+		mUniverse.getViewingPlatform().setNominalViewingTransform();
+
+		// add orbit behavior to the ViewingPlatform
+		OrbitBehavior orbit = new OrbitBehavior(mCanvas3D);
+		orbit.setSchedulingBounds(bounds);
+		viewingPlatform.setViewPlatformBehavior(orbit);
+
+		mUniverse.addBranchGraph(mScene);
+
+		mShadeItem = new JCheckBoxMenuItem("Shade", false);
+
+		mShadeItem.addItemListener(this);
+
+		mViewMenu.add(mShadeItem);
+
+		JCheckBoxMenuItem toggleUpLight = new JCheckBoxMenuItem(
+				"Toggle up light");
+		toggleUpLight.setMnemonic(KeyEvent.VK_U);
+		toggleUpLight.setSelected(mUpLight.getEnable());
+		toggleUpLight.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				toggleUpLight();
+			}
+		});
+		mViewMenu.add(toggleUpLight);
+
+		JCheckBoxMenuItem toggleDownLight = new JCheckBoxMenuItem(
+				"Toggle down light");
+		toggleDownLight.setMnemonic(KeyEvent.VK_R);
+		toggleDownLight.setSelected(mDownLight.getEnable());
+		toggleDownLight.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				toggleDownLight();
+			}
+		});
+		mViewMenu.add(toggleDownLight);
+
+		JCheckBoxMenuItem toggleLeftLight = new JCheckBoxMenuItem(
+				"Toggle left light");
+		toggleLeftLight.setMnemonic(KeyEvent.VK_L);
+		toggleLeftLight.setSelected(mLeftLight.getEnable());
+		toggleLeftLight.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				toggleLeftLight();
+			}
+		});
+		mViewMenu.add(toggleLeftLight);
+
+		JCheckBoxMenuItem toggleRightLight = new JCheckBoxMenuItem(
+				"Toggle right light");
+		toggleRightLight.setMnemonic(KeyEvent.VK_R);
+		toggleRightLight.setSelected(mRightLight.getEnable());
+		toggleRightLight.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				toggleRightLight();
+			}
+		});
+		mViewMenu.add(toggleRightLight);
+
+		JCheckBoxMenuItem toggleHeadLight = new JCheckBoxMenuItem(
+				"Toggle head light");
+		toggleHeadLight.setMnemonic(KeyEvent.VK_R);
+		toggleHeadLight.setSelected(mHeadLight.getEnable());
+		toggleHeadLight.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				toggleHeadLight();
+			}
+		});
+		mViewMenu.add(toggleHeadLight);
+
+		JCheckBoxMenuItem toggleAmbientLight = new JCheckBoxMenuItem(
+				"Toggle ambient light");
+		toggleAmbientLight.setMnemonic(KeyEvent.VK_R);
+		toggleAmbientLight.setSelected(mAmbientLight.getEnable());
+		toggleAmbientLight.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent event) {
+				toggleAmbientLight();
+			}
+		});
+		mViewMenu.add(toggleAmbientLight);
 
 		initBezierModel();
 
 		redraw();
-		// threed_view.setSize(getPreferredSize());
-		// threed_view.doLayout();
-
 	}
 
-
-	public void addModel(BranchGroup model) {
-		rendered_view.addModel(model);
-	}
-
-	@Override
-	public void fit_all() {
-		rendered_view.fit();
-	}
 
 	public void redraw() {
-		rendered_view.repaint();
-		rendered_view.doLayout();
-	}
-
-	public ThreeDView get3DView() {
-		return rendered_view;
+		repaint();
+		doLayout();
 	}
 
 	public void setShowBezierModel(boolean show) {
@@ -139,8 +236,6 @@ class DesignPanel extends Panel implements AbstractEditor {
 		mBezier3DModel.setAppearance(a);
 		mScaleTransform.addChild(mBezier3DModel);
 
-		// BranchGroup copy = (BranchGroup)root.cloneTree();
-
 		addModel(mRoot);
 	}
 
@@ -172,217 +267,9 @@ class DesignPanel extends Panel implements AbstractEditor {
 	public void setBoardChangedFor3D() {
 		mBezierBoardChangedFor3D = true;
 	}
-}
-
-// =========================================================Views
-
-abstract class View extends Panel {
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
-	protected PopupMenu view_menu;
-	protected DesignPanel design_panel;
-
-	protected static boolean is_marked;
-
-	protected Dimension off_dimension;
-	protected Image off_image;
-	protected Graphics g;
-	protected double scale; // transforms between image and board coordinates
-	protected int offset_x; // position of origo in image coordinates
-	protected int offset_y;
-
-	protected void clear_graphics() {
-		Dimension d = getSize();
-
-		if (g == null || d.width != off_dimension.width
-				|| d.height != off_dimension.height) {
-			off_dimension = d;
-			off_image = createImage(d.width, d.height);
-			g = off_image.getGraphics();
-		}
-
-		g.setColor(BoardCAD.getInstance().getBackgroundColor());
-		g.fillRect(0, 0, d.width, d.height);
-		// g.setColor(getBackground());
-		// g.fillRect(0, 0, d.width, d.height);
-		// g.draw3DRect(0,0,d.width-1,d.height-1,true);
-		// g.draw3DRect(3,3,d.width-7,d.height-7,false);
-
-	}
-}
-
-class ThreeDView extends View implements ItemListener {
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
-	private JPopupMenu view_menu;
-	private JCheckBoxMenuItem shade_item;
-
-	private SimpleUniverse u = null;
-	public BranchGroup scene;
-	private Shape3D shape;
-	private Appearance look;
-	private Background mBackgroundNode;
-
-	private DirectionalLight mUpLight;
-	private DirectionalLight mDownLight;
-	private DirectionalLight mLeftLight;
-	private DirectionalLight mRightLight;
-	private DirectionalLight mHeadLight;
-	private AmbientLight mAmbientLight;
-
-	GraphicsConfiguration config;
-
-	Canvas3D c;
-
-	public ThreeDView(DesignPanel dp) {
-		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-
-		view_menu = new JPopupMenu();
-		add(view_menu);
-
-		setLayout(new BorderLayout());
-		config = SimpleUniverse.getPreferredConfiguration();
-
-		c = new Canvas3D(config);
-		add("Center", c);
-		shape = new Shape3D();
-		shape.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
-		shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
-		shape.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
-		shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
-		c.addMouseListener(new ThreeDMouse(this));
-
-		look = new Appearance();
-
-		// Create a simple scene and attach it to the virtual universe
-		scene = createSceneGraph();
-		u = new SimpleUniverse(c, 4);
-
-		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
-				100.0);
-
-		// Headlight
-		ViewingPlatform viewingPlatform = u.getViewingPlatform();
-
-		PlatformGeometry pg = new PlatformGeometry();
-
-		mHeadLight = new DirectionalLight(new Color3f(0.8f, 0.8f, 0.8f),
-				new Vector3f(0.0f, 0.0f, -1.0f));
-		mHeadLight.setInfluencingBounds(bounds);
-		mHeadLight.setCapability(Light.ALLOW_STATE_WRITE);
-		mHeadLight.setEnable(true);
-		pg.addChild(mHeadLight);
-		viewingPlatform.setPlatformGeometry(pg);
-
-		// Svenne
-		// u.setJ3DThreadPriority(Thread.MAX_PRIORITY);
-		// u.getViewer().getView().setMinimumFrameCycleTime(20);
-		// u.getViewer().getView().setSceneAntialiasingEnable(true);
-
-		/*
-		 * viewingPlatform.addRotateBehavior(0);
-		 * viewingPlatform.addZoomBehavior(1);
-		 * viewingPlatform.addTranslateBehavior(2);
-		 */
-		// This will move the ViewPlatform back a bit so the
-		// objects in the scene can be viewed.
-		u.getViewingPlatform().setNominalViewingTransform();
-		// Svenne-test
-		// u.getViewingPlatform().clearCapabilityIsFrequent(ALLBITS);
-
-		// add orbit behavior to the ViewingPlatform
-		OrbitBehavior orbit = new OrbitBehavior(c);
-		orbit.setSchedulingBounds(bounds);
-		viewingPlatform.setViewPlatformBehavior(orbit);
-
-		u.addBranchGraph(scene);
-
-		shade_item = new JCheckBoxMenuItem("Shade", false);
-
-		shade_item.addItemListener(this);
-
-		view_menu.add(shade_item);
-
-		JCheckBoxMenuItem toggleUpLight = new JCheckBoxMenuItem(
-				"Toggle up light");
-		toggleUpLight.setMnemonic(KeyEvent.VK_U);
-		toggleUpLight.setSelected(mUpLight.getEnable());
-		toggleUpLight.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				toggleUpLight();
-			}
-		});
-		view_menu.add(toggleUpLight);
-
-		JCheckBoxMenuItem toggleDownLight = new JCheckBoxMenuItem(
-				"Toggle down light");
-		toggleDownLight.setMnemonic(KeyEvent.VK_R);
-		toggleDownLight.setSelected(mDownLight.getEnable());
-		toggleDownLight.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				toggleDownLight();
-			}
-		});
-		view_menu.add(toggleDownLight);
-
-		JCheckBoxMenuItem toggleLeftLight = new JCheckBoxMenuItem(
-				"Toggle left light");
-		toggleLeftLight.setMnemonic(KeyEvent.VK_L);
-		toggleLeftLight.setSelected(mLeftLight.getEnable());
-		toggleLeftLight.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				toggleLeftLight();
-			}
-		});
-		view_menu.add(toggleLeftLight);
-
-		JCheckBoxMenuItem toggleRightLight = new JCheckBoxMenuItem(
-				"Toggle right light");
-		toggleRightLight.setMnemonic(KeyEvent.VK_R);
-		toggleRightLight.setSelected(mRightLight.getEnable());
-		toggleRightLight.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				toggleRightLight();
-			}
-		});
-		view_menu.add(toggleRightLight);
-
-		JCheckBoxMenuItem toggleHeadLight = new JCheckBoxMenuItem(
-				"Toggle head light");
-		toggleHeadLight.setMnemonic(KeyEvent.VK_R);
-		toggleHeadLight.setSelected(mHeadLight.getEnable());
-		toggleHeadLight.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				toggleHeadLight();
-			}
-		});
-		view_menu.add(toggleHeadLight);
-
-		JCheckBoxMenuItem toggleAmbientLight = new JCheckBoxMenuItem(
-				"Toggle ambient light");
-		toggleAmbientLight.setMnemonic(KeyEvent.VK_R);
-		toggleAmbientLight.setSelected(mAmbientLight.getEnable());
-		toggleAmbientLight.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent event) {
-				toggleAmbientLight();
-			}
-		});
-		view_menu.add(toggleAmbientLight);
-
-	}
 
 	public void addModel(BranchGroup model) {
-		scene.addChild(model);
+		mScene.addChild(model);
 	}
 
 	void toggleUpLight() {
@@ -411,7 +298,7 @@ class ThreeDView extends View implements ItemListener {
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getSource() == shade_item) {
+		if (e.getSource() == mShadeItem) {
 		}
 	}
 
@@ -425,7 +312,7 @@ class ThreeDView extends View implements ItemListener {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (e.isMetaDown())
-				view_menu.show(the_view, e.getX(), e.getY());
+				mViewMenu.show(the_view, e.getX(), e.getY());
 		}
 	}
 
@@ -438,7 +325,7 @@ class ThreeDView extends View implements ItemListener {
 				100.0);
 
 		// Set up the background
-		Color3f bgColor = new Color3f(BoardCAD.getInstance()
+		Color3f bgColor = new Color3f(BoardCADSettings.getInstance()
 				.getBackgroundColor());
 		mBackgroundNode = new Background(bgColor);
 		mBackgroundNode.setApplicationBounds(bounds);
@@ -485,27 +372,12 @@ class ThreeDView extends View implements ItemListener {
 		mRightLight.setEnable(false);
 		branchRoot.addChild(mRightLight);
 
-		// Create a Transformgroup to scale all objects so they
-		// appear in the scene.
+		// Create a Transformgroup to scale all objects so they appear in the scene.
 		TransformGroup objScale = new TransformGroup();
 		Transform3D t3d = new Transform3D();
 		t3d.setScale(1.5);
 		objScale.setTransform(t3d);
 		branchRoot.addChild(objScale);
-
-		/*
-		 * //add texture java.net.URL texImage=null; try { texImage = new
-		 * java.net.URL("file:airbrush.jpg"); // texImage = new
-		 * java.net.URL("file:"+filename); } catch
-		 * (java.net.MalformedURLException ex) {
-		 * System.out.println(ex.getMessage()); System.exit(1); } // Set up the
-		 * texture map TextureLoader tex = new TextureLoader(texImage, this);
-		 * look.setTexture(tex.getTexture());
-		 *
-		 * // TextureAttributes texAttr = new TextureAttributes(); //
-		 * texAttr.setTextureMode(TextureAttributes.MODULATE); //
-		 * look.setTextureAttributes(texAttr);
-		 */
 
 		// Create an Appearance.
 		Color3f objColor = new Color3f(0.5f, 0.5f, 0.6f);
@@ -514,10 +386,10 @@ class ThreeDView extends View implements ItemListener {
 
 		TextureAttributes texAttr = new TextureAttributes();
 		texAttr.setTextureMode(TextureAttributes.MODULATE);
-		look.setTextureAttributes(texAttr);
+		mLook.setTextureAttributes(texAttr);
 
 		// Set up the material properties
-		look.setMaterial(new Material(objColor, black, objColor, white, 100.0f));
+		mLook.setMaterial(new Material(objColor, black, objColor, white, 100.0f));
 
 		// Create the transform group node and initialize it to the
 		// identity. Enable the TRANSFORM_WRITE capability so that
@@ -528,10 +400,10 @@ class ThreeDView extends View implements ItemListener {
 		board_tg.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 		objScale.addChild(board_tg);
 
-		shape.setGeometry(new TriangleArray(3, TriangleArray.COORDINATES
+		mShape.setGeometry(new TriangleArray(3, TriangleArray.COORDINATES
 				| TriangleArray.NORMALS));
-		shape.setAppearance(look);
-		board_tg.addChild(shape);
+		mShape.setAppearance(mLook);
+		board_tg.addChild(mShape);
 
 		// Have Java 3D perform optimizations on this scene graph.
 		branchRoot.compile();
@@ -545,23 +417,5 @@ class ThreeDView extends View implements ItemListener {
 				components[2]));
 	}
 
-	public void fit() {
-		if (getSize().width == 0)
-			return;
-
-		if (off_dimension == null)
-			return;
-
-		scale = 0.9 * (off_dimension.width - 40)
-				/ 200.0; //TODO: Use bezier board length board_handler.get_board_length();
-		offset_x = 100;
-		offset_y = off_dimension.height - 20;
-		repaint();
-	}
-
-	// public void destroy()
-	// {
-	// u.removeAllLocales();
-	// }
 }
 

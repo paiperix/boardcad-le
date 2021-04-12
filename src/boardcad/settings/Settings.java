@@ -18,10 +18,10 @@ public class Settings {
 
 	public interface SettingChangedCallback
 	{
-		void onSettingChanged(Object obj);
+		void onSettingChanged(Setting setting);
 	}
 
-	public Settings() 
+	public Settings()
 	{
 		mSettings = new LinkedHashMap<String,Setting>();
 	}
@@ -36,15 +36,15 @@ public class Settings {
 	{
 		mSettings.clear();
 	}
-	
+
 	public void removeObject(final String key)
 	{
 		mSettings.remove(key);
 	}
-	
+
 	public void addObject(final String key, final Object value, final String description )
 	{
-		mSettings.put(key,new Setting(value, description));
+		mSettings.put(key,new Setting(key, value, description));
 	}
 
 	public void addString(final String key, final String value, final String description )
@@ -89,7 +89,7 @@ public class Settings {
 
 	public void addObject(final String key, final Object value, final String description, final SettingChangedCallback cb )
 	{
-		mSettings.put(key,new Setting(value, description, cb));
+		mSettings.put(key, new Setting(key, value, description, cb));
 	}
 
 	public void addString(final String key, final String value, final String description, final SettingChangedCallback cb  )
@@ -181,7 +181,7 @@ public class Settings {
 	{
 		((Enumeration)mSettings.get(key).mValue).setValue(value);
 	}
-	
+
 	public boolean containsSetting(final String key)
 	{
 		return mSettings.containsKey(key);
@@ -192,60 +192,60 @@ public class Settings {
 		return mSettings.get(key);
 	}
 
-	public Object getObject(final String key)
+	public Object getSettingValue(final String key)
 	{
 		return mSettings.get(key).mValue;
 	}
 
 	public String getString(final String key)
 	{
-		return (String)getObject(key);
+		return (String)getSettingValue(key);
 	}
 
 	public boolean getBoolean(final String key)
 	{
-		return ((Boolean)getObject(key)).booleanValue();
+		return ((Boolean)getSettingValue(key)).booleanValue();
 	}
 
 	public int getInt(final String key)
 	{
-		return ((Integer)getObject(key)).intValue();
+		return ((Integer)getSettingValue(key)).intValue();
 	}
 
 	public double getDouble(final String key)
 	{
-		return ((Double)getObject(key)).doubleValue();
+		return ((Double)getSettingValue(key)).doubleValue();
 	}
 
 	public Color getColor(final String key)
 	{
-		return (Color)getObject(key);
+		return (Color)getSettingValue(key);
 	}
 
 	public String getFileName(final String key)
 	{
-		return ((FileName)getObject(key)).toString();
+		return ((FileName)getSettingValue(key)).toString();
 	}
 
 	public double getMeasurement(final String key)
 	{
-		return ((Measurement)getObject(key)).getValue();
+		return ((Measurement)getSettingValue(key)).getValue();
 	}
 
 	public int getEnumeration(final String key)
 	{
-		return ((Enumeration)getObject(key)).getValue();
+		return ((Enumeration)getSettingValue(key)).getValue();
 	}
 
 	public String getKey(final int pos)
 	{
 		final Set<String> keySet = mSettings.keySet();
 
-		return (String)keySet.toArray()[pos];		
+		return (String)keySet.toArray()[pos];
 	}
 
 	public String getDescription(final int pos)
-	{	
+	{
 		final Setting setting = get(pos);
 
 		return setting.mDescription;
@@ -257,24 +257,23 @@ public class Settings {
 
 		return setting.mValue;
 	}
-	
+
 	public boolean isHidden(final int pos)
 	{
 		final Setting setting = get(pos);
 
 		return setting.isHidden();
 	}
-	
+
 	public boolean isDisabled(final int pos)
 	{
 		final Setting setting = get(pos);
 
 		return setting.isDisabled();
 	}
-	
+
 	public List<SettingChangedCallback> getCallbacks(final int pos)
 	{
-
 		final Setting setting = get(pos);
 
 		return setting.mCallbacks;
@@ -284,18 +283,20 @@ public class Settings {
 	{
 		final Set<String> keySet = mSettings.keySet();
 
-		final String key = (String)keySet.toArray()[pos];	
+		final String key = (String)keySet.toArray()[pos];
 
 		final Setting setting = mSettings.get(key);
 
 		return setting;
 	}
 
-	public void set(final int pos, final Object value)
+	public Setting set(final int pos, final Object value)
 	{
 		final Setting setting = get(pos);
 
 		setting.mValue = value;
+
+		return setting;
 	}
 
 	public void getPreferences()
@@ -305,11 +306,11 @@ public class Settings {
 			return;
 		}
 
-		// Preference keys for this package	
+		// Preference keys for this package
 		final Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 		final Set<Map.Entry<String, Setting>> settingsSet = mSettings.entrySet();
 		final Iterator<Map.Entry<String, Setting>> settingsIterator = settingsSet.iterator();
-		
+
 		ArrayList<Setting> signalSettings = new ArrayList<Setting>();
 
 		while(settingsIterator.hasNext())
@@ -359,17 +360,21 @@ public class Settings {
 			{
 
 			}
-						
+
 //			System.out.printf("Settings::getPreferences() setting:%s\n", setting.toString());
-			
+
 			signalSettings.add(setting);
-			
+
 		}
 
 		Iterator<Setting> signalIterator = signalSettings.iterator();
 		while(signalIterator.hasNext())
 		{
-			signalIterator.next().signal();			
+			Setting setting = signalIterator.next();
+			setting.signal();
+			if(getDefaultCallback() != null){
+				getDefaultCallback().onSettingChanged(setting);
+			}
 		}
 
 	}
@@ -381,7 +386,7 @@ public class Settings {
 			return;
 		}
 
-		// Preference keys for this package	
+		// Preference keys for this package
 		final Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
 
@@ -437,7 +442,7 @@ public class Settings {
 
 			}
 
-//			System.out.printf("Settings::putPreferences() setting:%s\n", setting.toString());			
+//			System.out.printf("Settings::putPreferences() setting:%s\n", setting.toString());
 		}
 
 	}
@@ -489,7 +494,7 @@ public class Settings {
 		{
 			return UnitUtils.convertLengthToCurrentUnit(mValue, true);
 		}
-		
+
 		public double getValue()
 		{
 			return mValue;
@@ -512,7 +517,7 @@ public class Settings {
 		{
 			return mAlternatives.get(mValue);
 		}
-		
+
 		public void setValue(int value)
 		{
 			mValue = value;
@@ -524,7 +529,7 @@ public class Settings {
 		}
 
 		public Map<Integer, String> getAlternatives(){
-			return mAlternatives;			
+			return mAlternatives;
 		}
 	}
 

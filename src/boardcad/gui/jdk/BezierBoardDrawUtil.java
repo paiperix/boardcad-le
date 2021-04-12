@@ -11,6 +11,7 @@ import cadcore.*;
 import cadcore.MathUtils.Function;
 import boardcad.*;
 import boardcad.commands.BrdEditCommand;
+import boardcad.settings.BoardCADSettings;
 
 public class BezierBoardDrawUtil {
 	static final long serialVersionUID = 1L;
@@ -274,8 +275,8 @@ public class BezierBoardDrawUtil {
 		if (mPoints == null)
 			return;
 
-		double selectedCircleSize = BoardCAD.getInstance().getSelectedControlPointSize();
-		double unselectedCircleSize = BoardCAD.getInstance().getUnselectedControlPointSize();
+		double selectedCircleSize = BoardCADSettings.getInstance().getSelectedControlPointSize();
+		double unselectedCircleSize = BoardCADSettings.getInstance().getUnselectedControlPointSize();
 
 		double mulX = flipX ? -1 : 1;
 		double mulY = flipY ? -1 : 1;
@@ -287,22 +288,22 @@ public class BezierBoardDrawUtil {
 		Line2D line = new Line2D.Double();
 		Ellipse2D circle = new Ellipse2D.Double();
 
-		Color selControlPointColor = BoardCAD.getInstance().getSelectedCenterControlPointColor();
-		Color selTan1Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCAD.getInstance().getSelectedTangent1ControlPointColor() : selControlPointColor;
-		Color selTan2Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCAD.getInstance().getSelectedTangent2ControlPointColor() : selControlPointColor;
-		Color selOutControlPointColor = BoardCAD.getInstance().getSelectedOutlineCenterControlPointColor();
-		Color selOutTan1Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCAD.getInstance().getSelectedOutlineTangent1ControlPointColor() : selControlPointColor;
-		Color selOutTan2Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCAD.getInstance().getSelectedOutlineTangent2ControlPointColor() : selControlPointColor;
+		Color selControlPointColor = BoardCADSettings.getInstance().getSelectedCenterControlPointColor();
+		Color selTan1Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCADSettings.getInstance().getSelectedTangent1ControlPointColor() : selControlPointColor;
+		Color selTan2Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCADSettings.getInstance().getSelectedTangent2ControlPointColor() : selControlPointColor;
+		Color selOutControlPointColor = BoardCADSettings.getInstance().getSelectedOutlineCenterControlPointColor();
+		Color selOutTan1Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCADSettings.getInstance().getSelectedOutlineTangent1ControlPointColor() : selControlPointColor;
+		Color selOutTan2Color = (mSelectedControlPoints != null && mSelectedControlPoints.size() == 1) ? BoardCADSettings.getInstance().getSelectedOutlineTangent2ControlPointColor() : selControlPointColor;
 
-		Color unselControlPointColor = BoardCAD.getInstance().getUnselectedCenterControlPointColor();
-		Color unselTan1Color = BoardCAD.getInstance().getUnselectedTangent1ControlPointColor();
-		Color unselTan2Color = BoardCAD.getInstance().getUnselectedTangent2ControlPointColor();
-		Color unselOutControlPointColor = BoardCAD.getInstance().getUnselectedOutlineCenterControlPointColor();
-		Color unselOutTan1Color = BoardCAD.getInstance().getUnselectedOutlineTangent1ControlPointColor();
-		Color unselOutTan2Color = BoardCAD.getInstance().getUnselectedOutlineTangent2ControlPointColor();
+		Color unselControlPointColor = BoardCADSettings.getInstance().getUnselectedCenterControlPointColor();
+		Color unselTan1Color = BoardCADSettings.getInstance().getUnselectedTangent1ControlPointColor();
+		Color unselTan2Color = BoardCADSettings.getInstance().getUnselectedTangent2ControlPointColor();
+		Color unselOutControlPointColor = BoardCADSettings.getInstance().getUnselectedOutlineCenterControlPointColor();
+		Color unselOutTan1Color = BoardCADSettings.getInstance().getUnselectedOutlineTangent1ControlPointColor();
+		Color unselOutTan2Color = BoardCADSettings.getInstance().getUnselectedOutlineTangent2ControlPointColor();
 
-		Color selectedTangentColor = BoardCAD.getInstance().getSelectedTangentColor();
-		Color unselectedTangentColor = BoardCAD.getInstance().getUnselectedTangentColor();
+		Color selectedTangentColor = BoardCADSettings.getInstance().getSelectedTangentColor();
+		Color unselectedTangentColor = BoardCADSettings.getInstance().getUnselectedTangentColor();
 
 		boolean isControlPointSelected = false;
 		int whichControlPointSelected = -1;
@@ -417,9 +418,9 @@ public class BezierBoardDrawUtil {
 
 		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(d, offsetX, offsetY, scale, rotation);
 
-		d.setColor(BoardCAD.getInstance().getGuidePointColor());
+		d.setColor(BoardCADSettings.getInstance().getGuidePointColor());
 
-		d.setStroke(new BasicStroke((float) (BoardCAD.getInstance().getGuidePointThickness() / scale)));
+		d.setStroke(new BasicStroke((float) (BoardCADSettings.getInstance().getGuidePointThickness() / scale)));
 
 		double crossSize = 4.0f / scale;
 
@@ -873,9 +874,6 @@ public class BezierBoardDrawUtil {
 
 		AffineTransform savedTransform = setTransform(d, offsetX, offsetY, scale, rotation);
 
-		double mulY = flipY ? -1 : 1;
-		int segments = 10;
-
 		GeneralPath pathDeck = new GeneralPath();
 		GeneralPath pathBottom = new GeneralPath();
 
@@ -891,7 +889,6 @@ public class BezierBoardDrawUtil {
 
 		pathDeck.moveTo(0, deckPos.y);
 		pathBottom.moveTo(0, bottomPos.y);
-		ArrayList<BezierBoardCrossSection> crossSections = brd.getCrossSections();
 		for (int i = 0; i <= 20; i++) {
 			double x = brd.getLength() / 20 * i;
 			deckPos = new Point2D.Double(x, brd.getDeck().getValueAt(0.01));
@@ -1260,21 +1257,21 @@ public class BezierBoardDrawUtil {
 	 * offsetX, double offsetY, double scale, double rotation, Color color,
 	 * Stroke stroke, boolean flipX, boolean flipY, double pos, BezierBoard brd)
 	 * { // mMulX = flipX?-1:1; mMulY = flipY?-1:1;
-	 * 
+	 *
 	 * mBrd = brd;
-	 * 
+	 *
 	 * d.setColor(color); d.setStroke(stroke);
-	 * 
+	 *
 	 * AffineTransform savedTransform = setTransform(d, offsetX, offsetY,
 	 * scale);
-	 * 
+	 *
 	 * ds = d;
-	 * 
+	 *
 	 * paintSlidingCrossSectionBlendFromSInterpolation(pos, 0.00001,0.99999);
-	 * 
+	 *
 	 * resetTransform(d,savedTransform);
-	 * 
-	 * 
+	 *
+	 *
 	 * }
 	 */
 
@@ -1292,22 +1289,22 @@ public class BezierBoardDrawUtil {
 		/*
 		 * BezierBoardCrossSection c1 = brd.getPreviousCrossSection(pos);
 		 * BezierBoardCrossSection c2 = brd.getNextCrossSection(pos);
-		 * 
+		 *
 		 * //Scaling double targetWidth = mBrd.getWidthAt(pos); double
 		 * targetThickness = mBrd.getThicknessAtPos(pos);
-		 * 
+		 *
 		 * double c1Width = c1.getWidth(); double c1Thickness =
 		 * c1.getThicknessAtPos(BezierSpline.ZERO);
-		 * 
+		 *
 		 * double c2Width = c2.getWidth(); double c2Thickness =
 		 * c2.getThicknessAtPos(BezierSpline.ZERO);
-		 * 
+		 *
 		 * double c1ThicknessScale = targetThickness/c1Thickness; double
 		 * c1WidthScale = targetWidth/c1Width;
-		 * 
+		 *
 		 * double c2ThicknessScale = targetThickness/c2Thickness; double
 		 * c2WidthScale = targetWidth/c2Width;
-		 * 
+		 *
 		 * /* System.out.printf("getSurfacePoint()\n");
 		 * System.out.printf("Target width: %f thickness: %f\n", targetWidth,
 		 * targetThickness); System.out.printf("C1 width: %f thickness: %f\n",
@@ -1326,7 +1323,7 @@ public class BezierBoardDrawUtil {
 		 * c1WidthScale, c1ThicknessScale); double s2 =
 		 * c2.getBezierSpline().getSByNormalReverseScaled(splitAngle, true,
 		 * c2WidthScale, c2ThicknessScale);
-		 * 
+		 *
 		 * // d.setColor(new Color(0,0,255));
 		 * paintSlidingCrossSectionBlendFromSInterpolation(pos,
 		 * BezierSpline.ZERO, s1, BezierSpline.ZERO, s2); // d.setColor(new
@@ -1390,20 +1387,20 @@ public class BezierBoardDrawUtil {
 	 * pos, double s0, double s1 ) { // Get endpoints Point2D.Double p0 =
 	 * mBrd.getPointAtPos(pos, s0); Point2D.Double p1 = mBrd.getPointAtPos(pos,
 	 * s1);
-	 * 
+	 *
 	 * // Get x split point double ss = (s1-s0)/2 + s0; Point2D.Double ps =
 	 * mBrd.getPointAtPos(pos, ss);
-	 * 
+	 *
 	 * // Angle between vectors formed by Point2D.Double v0 = new
 	 * Point2D.Double(); Point2D.Double v1 = new Point2D.Double();
-	 * 
+	 *
 	 * BezierSpline.subVector(p0, ps, v0); BezierSpline.subVector(ps, p1, v1);
-	 * 
+	 *
 	 * double length = BezierSpline.getVecLength(v0) +
 	 * BezierSpline.getVecLength(v1);
-	 * 
+	 *
 	 * double angle = BezierSpline.getVecAngle(v0,v1);
-	 * 
+	 *
 	 * if( length > S_BLEND_MAX_LENGTH || (Math.abs(angle) > S_BLEND_MIN_ANGLE
 	 * && length > S_BLEND_MIN_LENGTH) ) {
 	 * paintSlidingCrossSectionBlendFromSInterpolation(pos, s0, ss);
@@ -1418,7 +1415,7 @@ public class BezierBoardDrawUtil {
 	 * ls.setLine(-p0.x*mMulX, p0.y*mMulY, -ps.x*mMulX, ps.y*mMulY);
 	 * ds.draw(ls); ls.setLine(-ps.x*mMulX, ps.y*mMulY, -p1.x*mMulX,
 	 * p1.y*mMulY); ds.draw(ls); }
-	 * 
+	 *
 	 * }
 	 */
 	/*
@@ -1426,20 +1423,20 @@ public class BezierBoardDrawUtil {
 	 * pos, double a0, double a1, double b0, double b1 ) { // Get endpoints
 	 * Point2D.Double p0 = mBrd.getPointAtPos(pos, a0, b0); Point2D.Double p1 =
 	 * mBrd.getPointAtPos(pos, a1, b1);
-	 * 
+	 *
 	 * // Get x split point double as = (a1-a0)/2 + a0; double bs = (b1-b0)/2 +
 	 * b0; Point2D.Double ps = mBrd.getPointAtPos(pos, as, bs);
-	 * 
+	 *
 	 * // Angle between vectors formed by Point2D.Double v0 = new
 	 * Point2D.Double(); Point2D.Double v1 = new Point2D.Double();
-	 * 
+	 *
 	 * BezierSpline.subVector(p0, ps, v0); BezierSpline.subVector(ps, p1, v1);
-	 * 
+	 *
 	 * double length = BezierSpline.getVecLength(v0) +
 	 * BezierSpline.getVecLength(v1);
-	 * 
+	 *
 	 * double angle = BezierSpline.getVecAngle(v0,v1);
-	 * 
+	 *
 	 * if( length > S_BLEND_MAX_LENGTH || (Math.abs(angle) > S_BLEND_MIN_ANGLE
 	 * && length > S_BLEND_MIN_LENGTH) ) {
 	 * paintSlidingCrossSectionBlendFromSInterpolation(pos, a0, as, b0, bs);
@@ -1447,7 +1444,7 @@ public class BezierBoardDrawUtil {
 	 * else { /* Draw normal for debug Vector3d vec = mBrd.getNormalAtPos(pos,
 	 * as, bs); ls.setLine(ps.x*mMulX, ps.y*mMulY,(ps.x+vec.y)*mMulX,
 	 * (ps.y+vec.z)*mMulY); ds.draw(ls);
-	 * 
+	 *
 	 * Draw tangent for debug vec = mBrd.getTangentAtPos(pos, as, bs);
 	 * ls.setLine(ps.x*mMulX, ps.y*mMulY,(ps.x+vec.y)*mMulX,
 	 * (ps.y+vec.z)*mMulY); ds.setColor(new Color(0,0,250)); ds.draw(ls);
@@ -1459,7 +1456,7 @@ public class BezierBoardDrawUtil {
 	 * ls.setLine(-p0.x*mMulX, p0.y*mMulY, -ps.x*mMulX, ps.y*mMulY);
 	 * ds.draw(ls); ls.setLine(-ps.x*mMulX, ps.y*mMulY, -p1.x*mMulX,
 	 * p1.y*mMulY); ds.draw(ls); }
-	 * 
+	 *
 	 * }
 	 */
 	public static void paintSlidingCrossSectionControlPointInterpolation(AbstractDraw d, double offsetX, double offsetY, double scale, double rotation, Color color, Stroke stroke, boolean flipX,
@@ -1511,27 +1508,27 @@ public class BezierBoardDrawUtil {
 	/*
 	 * public static void paintSlidingCrossSectionS(double x, double s0, double
 	 * s1 ) {
-	 * 
+	 *
 	 * // Get endpoints double z0 = mBrd.getDeckAtPos(x, y0); double z1 =
 	 * mBrd.getDeckAtPos(x, y1);
-	 * 
+	 *
 	 * // Get x split point double ys = (y1-y0)/2 + y0; double zs =
 	 * mBrd.getDeckAtPos(x, ys);
-	 * 
+	 *
 	 * // Distance between centerpoint and real split curvepoint double length =
 	 * BezierPatch.getVecLength(y0,z0,ys,zs) +
 	 * BezierPatch.getVecLength(ys,zs,y1,z1); double chord =
 	 * BezierPatch.getVecLength(y0,z0,y1,z1);
-	 * 
+	 *
 	 * if(Double.isInfinite(chord) || Double.isInfinite(length) ||
 	 * Double.isNaN(chord) || Double.isNaN(length) ) return;
-	 * 
+	 *
 	 * if(Math.abs(length - chord) > SLIDING_CROSS_SECTION_TOLERANCE && chord >
 	 * SLIDING_CROSS_SECTION_MIN_LINE_LENGTH ) { paintSlidingCrossSection(x, y0,
 	 * ys); paintSlidingCrossSection(x, ys, y1); } else { ls.setLine(y0*mMulX,
 	 * z0*mMulY, ys*mMulX, zs*mMulY); ds.draw(ls); ls.setLine(ys*mMulX,
 	 * zs*mMulY, y1*mMulX, z1*mMulY); ds.draw(ls); }
-	 * 
+	 *
 	 * }
 	 */
 	public static void paintSlidingCrossSectionBlendInterpolation(AbstractDraw d, double x, double y0, double y1) {
@@ -1727,9 +1724,9 @@ public class BezierBoardDrawUtil {
 		// BoardCAD.getInstance().getBrdColor(), stroke,
 		// brd.mOutlineControlPoints, null, false, false);
 
-		paintPath(d, offsetX, offsetY, scale, rotation, BoardCAD.getInstance().getBrdColor(), stroke, outlineLower, false);
+		paintPath(d, offsetX, offsetY, scale, rotation, BoardCADSettings.getInstance().getBrdColor(), stroke, outlineLower, false);
 
-		paintPath(d, offsetX, offsetY, scale, rotation, BoardCAD.getInstance().getBrdColor(), stroke, outlineUpper, false);
+		paintPath(d, offsetX, offsetY, scale, rotation, BoardCADSettings.getInstance().getBrdColor(), stroke, outlineUpper, false);
 
 		if (printGuidePoints == true) {
 			BezierBoardDrawUtil.paintGuidePoints(d, offsetX, offsetY, scale, rotation, Color.GRAY, stroke, brd.getOutlineGuidePoints(), false, false);
@@ -1838,7 +1835,7 @@ public class BezierBoardDrawUtil {
 		// BoardCAD.getInstance().getBrdColor(), stroke,
 		// brd.mOutlineControlPoints, null, false, false);
 
-		paintPath(d, offsetX, offsetY, scale, rotation, BoardCAD.getInstance().getBrdColor(), stroke, outlineLower, false);
+		paintPath(d, offsetX, offsetY, scale, rotation, BoardCADSettings.getInstance().getBrdColor(), stroke, outlineLower, false);
 
 		// Calculate offset
 		double xOffset = brd.getLength() / 2.0;
@@ -1849,7 +1846,7 @@ public class BezierBoardDrawUtil {
 
 		double rotationOffset = 0.0;
 
-		paintPath(d, offsetX - xOffset, offsetY + yOffset, rotation + rotationOffset, scale, BoardCAD.getInstance().getBrdColor(), stroke, outlineUpper, false);
+		paintPath(d, offsetX - xOffset, offsetY + yOffset, rotation + rotationOffset, scale, BoardCADSettings.getInstance().getBrdColor(), stroke, outlineUpper, false);
 
 	}
 
@@ -1908,9 +1905,9 @@ public class BezierBoardDrawUtil {
 		// BoardCAD.getInstance().getBrdColor(), stroke,
 		// brd.mBottomControlPoints, false, false);
 
-		paintPath(d, offsetX, offsetY, scale, rotation, BoardCAD.getInstance().getBrdColor(), stroke, deck, false);
+		paintPath(d, offsetX, offsetY, scale, rotation, BoardCADSettings.getInstance().getBrdColor(), stroke, deck, false);
 
-		paintPath(d, offsetX, offsetY, scale, rotation, BoardCAD.getInstance().getBrdColor(), stroke, bottom, false);
+		paintPath(d, offsetX, offsetY, scale, rotation, BoardCADSettings.getInstance().getBrdColor(), stroke, bottom, false);
 
 		if (printGuidePoints == true) {
 			BezierBoardDrawUtil.paintGuidePoints(d, offsetX, offsetY, scale, rotation, Color.GRAY, stroke, brd.getDeckGuidePoints(), false, false);
@@ -1944,7 +1941,7 @@ public class BezierBoardDrawUtil {
 		// BoardCAD.getInstance().getBrdColor(), stroke,
 		// brd.mBottomControlPoints, false, false);
 
-		paintPath(d, offsetX, offsetY, scale, rotation, BoardCAD.getInstance().getBrdColor(), stroke, crsPath, false);
+		paintPath(d, offsetX, offsetY, scale, rotation, BoardCADSettings.getInstance().getBrdColor(), stroke, crsPath, false);
 
 		if (printGuidePoints == true) {
 			BezierBoardDrawUtil.paintGuidePoints(d, offsetX, offsetY, scale, rotation, Color.GRAY, stroke, crs.getGuidePoints(), false, false);

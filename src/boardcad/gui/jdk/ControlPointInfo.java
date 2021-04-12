@@ -24,6 +24,7 @@ import cadcore.UnitUtils;
 import boardcad.commands.BrdCommand;
 import boardcad.commands.BrdEditCommand;
 import boardcad.i18n.LanguageResource;
+import boardcad.settings.BoardCADSettings;
 
 public class ControlPointInfo extends JPanel {
 
@@ -52,7 +53,7 @@ public class ControlPointInfo extends JPanel {
 		super();
 		initialize();
 	}
-	
+
 	public BrdEditCommand getCmd()
 	{
 		return mCmd;
@@ -158,13 +159,13 @@ public class ControlPointInfo extends JPanel {
 		this.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
 		this.add(jLabel, gridBagConstraints);
 		this.add(jLabel1, gridBagConstraints1);
-		this.add(getMEndPointX(), gridBagConstraints2);
-		this.add(getMEndPointY(), gridBagConstraints3);
-		this.add(getMTangent1X(), gridBagConstraints4);
-		this.add(getMTangent1Y(), gridBagConstraints5);
-		this.add(getMTangent2X(), gridBagConstraints6);
-		this.add(getMTangent2Y(), gridBagConstraints7);
-		this.add(getMContinous(), gridBagConstraints8);
+		this.add(getEndPointX(), gridBagConstraints2);
+		this.add(getEndPointY(), gridBagConstraints3);
+		this.add(getTangent1X(), gridBagConstraints4);
+		this.add(getTangent1Y(), gridBagConstraints5);
+		this.add(getTangent2X(), gridBagConstraints6);
+		this.add(getTangent2Y(), gridBagConstraints7);
+		this.add(getContinous(), gridBagConstraints8);
 		this.add(getSetButton(), gridBagConstraints9);
 		this.add(getSetControlPointVerticalButton(), gridBagConstraints11);
 		this.add(getSetControlPointHorizontalButton(), gridBagConstraints21);
@@ -174,13 +175,13 @@ public class ControlPointInfo extends JPanel {
 	void setColors()
 	{
 
-		BoardCAD bc = BoardCAD.getInstance();
-		getMEndPointX().setBackground(bc.getSelectedCenterControlPointColor());
-		getMEndPointY().setBackground(bc.getSelectedCenterControlPointColor());
-		getMTangent1X().setBackground(bc.getSelectedTangent1ControlPointColor());
-		getMTangent1Y().setBackground(bc.getSelectedTangent1ControlPointColor());
-		getMTangent2X().setBackground(bc.getSelectedTangent2ControlPointColor());
-		getMTangent2Y().setBackground(bc.getSelectedTangent2ControlPointColor());
+		BoardCADSettings settings = BoardCADSettings.getInstance();
+		getEndPointX().setBackground(settings.getSelectedCenterControlPointColor());
+		getEndPointY().setBackground(settings.getSelectedCenterControlPointColor());
+		getTangent1X().setBackground(settings.getSelectedTangent1ControlPointColor());
+		getTangent1Y().setBackground(settings.getSelectedTangent1ControlPointColor());
+		getTangent2X().setBackground(settings.getSelectedTangent2ControlPointColor());
+		getTangent2Y().setBackground(settings.getSelectedTangent2ControlPointColor());
 
 	}
 
@@ -189,7 +190,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMEndPointX() {
+	private JTextField getEndPointX() {
 		if (mEndPointX == null) {
 			mEndPointX = new JTextField();
 		}
@@ -201,7 +202,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMEndPointY() {
+	private JTextField getEndPointY() {
 		if (mEndPointY == null) {
 			mEndPointY = new JTextField();
 		}
@@ -213,7 +214,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMTangent1X() {
+	private JTextField getTangent1X() {
 		if (mTangent1X == null) {
 			mTangent1X = new JTextField();
 		}
@@ -225,7 +226,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMTangent1Y() {
+	private JTextField getTangent1Y() {
 		if (mTangent1Y == null) {
 			mTangent1Y = new JTextField();
 		}
@@ -237,7 +238,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMTangent2X() {
+	private JTextField getTangent2X() {
 		if (mTangent2X == null) {
 			mTangent2X = new JTextField();
 		}
@@ -249,7 +250,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMTangent2Y() {
+	private JTextField getTangent2Y() {
 		if (mTangent2Y == null) {
 			mTangent2Y = new JTextField();
 		}
@@ -261,7 +262,7 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JCheckBox
 	 */
-	private JCheckBox getMContinous() {
+	private JCheckBox getContinous() {
 		if (mContinous == null) {
 			mContinous = new JCheckBox();
 			mContinous.setText(LanguageResource.getString("CONTROLPOINTCONTINOUS_STR"));
@@ -309,24 +310,24 @@ public class ControlPointInfo extends JPanel {
 		super.setEnabled(enabled);
 		jLabel.setEnabled(enabled);
 		jLabel1.setEnabled(enabled);
-		getMEndPointX().setEnabled(enabled);
-		getMEndPointY().setEnabled(enabled);
-		getMTangent1X().setEnabled(enabled);
-		getMTangent1Y().setEnabled(enabled);
-		getMTangent2X().setEnabled(enabled);
-		getMTangent2Y().setEnabled(enabled);
-		getMContinous().setEnabled(enabled);
+		getEndPointX().setEnabled(enabled);
+		getEndPointY().setEnabled(enabled);
+		getTangent1X().setEnabled(enabled);
+		getTangent1Y().setEnabled(enabled);
+		getTangent2X().setEnabled(enabled);
+		getTangent2Y().setEnabled(enabled);
+		getContinous().setEnabled(enabled);
 		getSetButton().setEnabled(enabled);
 	}
 
 	public void setWhich(int which)
 	{
-		getMEndPointX().setEnabled((which==0)?true:false);
-		getMEndPointY().setEnabled((which==0)?true:false);
-		getMTangent1X().setEnabled((which==1)?true:false);
-		getMTangent1Y().setEnabled((which==1)?true:false);
-		getMTangent2X().setEnabled((which==2)?true:false);
-		getMTangent2Y().setEnabled((which==2)?true:false);
+		getEndPointX().setEnabled((which==0)?true:false);
+		getEndPointY().setEnabled((which==0)?true:false);
+		getTangent1X().setEnabled((which==1)?true:false);
+		getTangent1Y().setEnabled((which==1)?true:false);
+		getTangent2X().setEnabled((which==2)?true:false);
+		getTangent2Y().setEnabled((which==2)?true:false);
 	}
 
 	public void setControlPoint(BezierKnot ControlPoint)
@@ -334,13 +335,13 @@ public class ControlPointInfo extends JPanel {
 		mBlockActions = true;
 		mControlPoint = ControlPoint;
 
-		getMEndPointX().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().x, false));
-		getMEndPointY().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().y, false));
-		getMTangent1X().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().x, false));
-		getMTangent1Y().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().y, false));
-		getMTangent2X().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().x, false));
-		getMTangent2Y().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().y, false));
-		getMContinous().setSelected(mControlPoint.isContinous());
+		getEndPointX().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().x, false));
+		getEndPointY().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().y, false));
+		getTangent1X().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().x, false));
+		getTangent1Y().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().y, false));
+		getTangent2X().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().x, false));
+		getTangent2Y().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().y, false));
+		getContinous().setSelected(mControlPoint.isContinous());
 		mBlockActions = false;
 	}
 
@@ -350,20 +351,20 @@ public class ControlPointInfo extends JPanel {
 
 		String svx, svy;
 
-		if(getMEndPointX().isEnabled())
+		if(getEndPointX().isEnabled())
 		{
-			svx = getMEndPointX().getText();
-			svy = getMEndPointY().getText();
+			svx = getEndPointX().getText();
+			svy = getEndPointY().getText();
 		}
-		else if(getMTangent1X().isEnabled())
+		else if(getTangent1X().isEnabled())
 		{
-			svx = getMTangent1X().getText();
-			svy = getMTangent1Y().getText();
+			svx = getTangent1X().getText();
+			svy = getTangent1Y().getText();
 		}
-		else //if(getMTangent2X().isEnabled())
+		else //if(getTangent2X().isEnabled())
 		{
-			svx = getMTangent2X().getText();
-			svy = getMTangent2Y().getText();
+			svx = getTangent2X().getText();
+			svy = getTangent2Y().getText();
 		}
 
 		point.setLocation(UnitUtils.convertInputStringToInternalLengthUnit(svx), UnitUtils.convertInputStringToInternalLengthUnit(svy));
@@ -373,12 +374,12 @@ public class ControlPointInfo extends JPanel {
 
 	boolean isEditing()
 	{
-		return (getMEndPointX().hasFocus() ||
-				getMEndPointY().hasFocus() ||
-				getMTangent1X().hasFocus() ||
-				getMTangent1Y().hasFocus() ||
-				getMTangent2X().hasFocus() ||
-				getMTangent2Y().hasFocus() );
+		return (getEndPointX().hasFocus() ||
+				getEndPointY().hasFocus() ||
+				getTangent1X().hasFocus() ||
+				getTangent1Y().hasFocus() ||
+				getTangent2X().hasFocus() ||
+				getTangent2Y().hasFocus() );
 	}
 
 	/**

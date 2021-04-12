@@ -86,7 +86,7 @@ public class EndClampsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 		supportsSettings.putPreferences(); // Save previous
 		supportsSettings.clear();
 		SettingChangedCallback cb = new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object object) {
+			public void onSettingChanged(Setting setting) {
 				calcBlankOffset();
 				update3DModel();
 			}
@@ -107,7 +107,7 @@ public class EndClampsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 				LanguageResource.getString("BLANKVERTICALOFFSET_STR"), cb);
 
 		SettingChangedCallback blankChange = new Settings.SettingChangedCallback() {
-			public void onSettingChanged(Object object) {
+			public void onSettingChanged(Setting setting) {
 				calcBlankOffset();
 				update3DModel();
 				updateBoundingBoxes();
@@ -158,7 +158,7 @@ public class EndClampsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 				.getString("BLANKHOLDINGSYSTEMCATEGORY_STR");
 		Settings holdingSystemSettings = mConfig.getCategory(holdingSystemStr);
 		if(!holdingSystemSettings.containsSetting(CLAMP_LENGTH))return;
-		
+
 		double clampLength = holdingSystemSettings.getMeasurement(CLAMP_LENGTH);
 		double clampHeight = holdingSystemSettings.getMeasurement(CLAMP_HEIGHT);
 		double clampWidth = holdingSystemSettings.getMeasurement(CLAMP_WIDTH);
@@ -200,7 +200,7 @@ public class EndClampsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 			mRotatedLength = (Math.sin(rotAngle) * (noseBottom - tailBottom))
 					+ (Math.cos(rotAngle) * blank.getLength());
 		}
-		
+
 		if(mChangeListener != null){
 			mChangeListener.onChange();
 		}
@@ -592,7 +592,7 @@ public class EndClampsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 				.getString("BLANKHOLDINGSYSTEMCATEGORY_STR");
 		Settings holdingSystemSettings = mConfig.getCategory(holdingSystemStr);
 		if(!holdingSystemSettings.containsSetting(CLAMP_LENGTH))return;
-		
+
 		double clampLength = holdingSystemSettings.getMeasurement(CLAMP_LENGTH)
 				* UnitUtils.MILLIMETER_PR_CENTIMETER;
 		double clampHeight = holdingSystemSettings.getMeasurement(CLAMP_HEIGHT)

@@ -136,7 +136,7 @@ public class MachineDialog extends JFrame implements KeyEventDispatcher,
 
 		this.setVisible(true);
 
-		mMachineView.fit_all();
+		mMachineView.fitAll();
 	}
 
 	public MachineView getMachineView() {
