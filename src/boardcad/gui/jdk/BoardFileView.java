@@ -38,8 +38,6 @@ public class BoardFileView extends FileView {
 				type = "Shape3D file";
 			} else if (extension.equals("s3dx")) {
 				type = "Shape3D X file";
-			} else if (extension.equals("cad")) {
-				type = "BoardCAD file";
 			}
 		}
 		return type;
@@ -76,8 +74,6 @@ public class BoardFileView extends FileView {
 				S3dxReader.loadFile(brd, f.getAbsolutePath());
 
 				icon = paintBoard(image, brd, "s3dx");
-			} else if (extension.equals("cad")) {
-				// TODO: implement
 			}
 		}
 
@@ -114,19 +110,6 @@ public class BoardFileView extends FileView {
 		g.drawString(type, (int) (width - typeStringLength - leftMargin),
 				(tf.getHeight()));
 
-		// Vertical
-		// double scale = (height-topMargin*2.0)/brd.getLength();
-		// BezierBoardDrawUtil.paintBezierPaths(new JavaDraw(g), leftMargin,
-		// height-topMargin, scale , Color.BLACK, new
-		// BasicStroke(1.0f/(float)scale), new BezierSpline[]{brd.getDeck(),
-		// brd.getBottom()}, BezierBoardDrawUtil.Vertical |
-		// BezierBoardDrawUtil.FlipY);
-		// BezierBoardDrawUtil.paintBezierPaths(new JavaDraw(g),
-		// image.getWidth()/2.0, height-topMargin, scale, Color.BLACK, new
-		// BasicStroke(1.0f/(float)scale), new BezierSpline[]{brd.getOutline()},
-		// BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipY |
-		// BezierBoardDrawUtil.MirrorX);
-
 		// Horizontal
 		double scale = (width - leftMargin * 2.0) / brd.getLength();
 		BasicStroke stroke = new BasicStroke(1.0f / (float) scale);
@@ -136,30 +119,13 @@ public class BoardFileView extends FileView {
 				scale, 0.0, Color.BLACK, stroke,
 				new BezierSpline[] { brd.getOutline() },
 				BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorY, true);
-		// g.setStroke(new BasicStroke(1.0f));
-		// jd.draw(new Line2D.Double(leftMargin, topMargin +
-		// brd.getMaxWidth()*scale, width-leftMargin, topMargin +
-		// brd.getMaxWidth()*scale));
-		// jd.draw(new Line2D.Double(leftMargin + brd.getMaxWidthPos()*scale,
-		// topMargin + brd.getMaxWidth()*0.5*scale, leftMargin +
-		// brd.getMaxWidthPos()*scale, topMargin +
-		// brd.getMaxWidth()*1.5*scale));
+
 		BezierBoardDrawUtil.paintBezierSplines(jd, leftMargin,
 				outlinePos
 						+ (brd.getMaxWidth() / 2.0 + brd.getThickness() + 10.0)
 						* scale, scale, 0.0, Color.BLACK, stroke,
 				new BezierSpline[] { brd.getDeck(), brd.getBottom() },
 				BezierBoardDrawUtil.FlipY, true);
-		// BezierBoardDrawUtil.paintFins(jd, leftMargin, topMargin +
-		// brd.getMaxWidth()*scale, scale, Color.BLACK, stroke, brd.mFins,
-		// false, false);
-
-		// g.setFont(mSpecsFont);
-		// String lengthStr =
-		// UnitUtils.convertLengthToCurrentUnit(brd.getLength(), true);
-		// double lengthStrLength = sf.stringWidth(lengthStr);
-		// g.drawString(lengthStr, (int)(width-lengthStrLength)/2,
-		// (int)((topMargin + brd.getMaxWidth()*scale)));
 
 		return new ImageIcon(image);
 	}
