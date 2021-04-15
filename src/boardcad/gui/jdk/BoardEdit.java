@@ -516,7 +516,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		Graphics2D g2d = (Graphics2D)g.create();
 
-//		Turn on antialiasing, so painting is smooth.
+		// Turn on antialiasing so painting is smooth.
 		BoardCAD boardCAD = BoardCAD.getInstance();
 		BoardCADSettings boardCADSettings = BoardCADSettings.getInstance();
 		if(BoardCAD.getInstance().isAntialiasing())
@@ -531,7 +531,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		}
 
-//		Paint the background.
+		// Paint the background.
 		Color bkgColor = boardCADSettings.getBackgroundColor();
 		if(mParentContainer != null && !mParentContainer.isActive(this))
 		{
@@ -876,9 +876,6 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		g.drawString(mBrdCoordString, 90, hgt);
 
 		mBrdCoordString = getCurrentCommand().getCommandString() + " " + LanguageResource.getString("MODE_STR");
-
-		// get the advance of my text in this font and render context
-//		int width = metrics.stringWidth(mBrdCoordString);
 
 		g.drawString(mBrdCoordString, 10, hgt*2);
 	}

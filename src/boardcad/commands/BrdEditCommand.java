@@ -138,15 +138,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 				selectedControlPoints.get(0).setLocation(other, (double)(-sx*ol) + selectedControlPoints.get(0).getPoints()[0].x,
 						(double)(-sy*ol) + selectedControlPoints.get(0).getPoints()[0].y);
 			}
-
-			/*Debug
-	        System.out.println("Tangent to Prev angle: " + mSelectedControlPointsCopy.get(0).getTangentToPrevAngle() + " Tangent to Next angle: " + mSelectedControlPointsCopy.get(0).getTangentToNextAngle());
-	        double a = mSelectedControlPointsCopy.get(0).getTangentToPrevAngle();
-	        a = Math.abs(Math.PI - a);
-	        double b = mSelectedControlPointsCopy.get(0).getTangentToNextAngle();
-			boolean cont = (Math.abs(a-b) < 0.02)?true:false;
-	        System.out.println("a: " + a + " b: " + b + " cont:" + cont);
-			 */
 		}
 		BoardCAD.getInstance().onBrdChanged();
 		BoardCAD.getInstance().onControlPointChanged();
@@ -253,22 +244,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 		if(mIsDragging == false)
 		{
-			/*			BezierPatch ControlPoints = source.getBezierControlPoints(BoardCAD.getInstance().getCurrentBrd());
-			ControlPoint bestMatch = ControlPoints.findBestMatch(brdPos);
-			mWhich = ControlPoints.getBestMatchWhich();
-
-			double distance = (double)brdPos.distance(bestMatch.mPoints[mWhich]);
-
-			if(distance > (MAX_OFF/source.getScale()) || bestMatch == null)
-				return;	//trying to drag an unselected point
-
-			if(!selectedControlPoints.contains(bestMatch))
-				return;	//trying to drag an unselected point
-
-			mDragStartPos = source.screenCoordinateToBrdCoordinate(pos);
-
-			mDragOffset = new Point2D.Double(bestMatch.mPoints[mWhich].x-mDragStartPos.x,bestMatch.mPoints[mWhich].y-mDragStartPos.y);
-			 */
 			saveControlPointsBeforeChange(source);
 
 			mIsDragging = true;
@@ -282,8 +257,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 		double y_diff = (brdPos.y - mDragStartPos.y)*(event.isAltDown()?.1f:1f);
 
 		moveControlPoints(x_diff, y_diff, getWhich());
-
-
 	}
 
 	public void onLeftMouseButtonReleased(BoardEdit source, MouseEvent event)
@@ -313,7 +286,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 			BezierSpline[] splines = source.getActiveBezierSplines(BoardCAD.getInstance().getCurrentBrd());
 			if(splines == null)
 				return;
-
 
 			for(int k = 0; k < splines.length; k++)
 			{
@@ -408,18 +380,19 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 			double y_diff = 0;
 			double movement = (KEY_MOVE_AMOUNT/source.getScale())*(event.isAltDown()?.1f:1f);
 
-//			Length of current
+			// Length of current
 			double sx;
 			double sy;
+			int which = getWhich();
 			if(mControlPointsBeforeChange == null || mControlPointsBeforeChange.size() == 0)
 			{
-				sx = (double)selectedControlPoints.get(0).getPoints()[getWhich()].x - selectedControlPoints.get(0).getPoints()[0].x;
-				sy = (double)selectedControlPoints.get(0).getPoints()[getWhich()].y - selectedControlPoints.get(0).getPoints()[0].y;
+				sx = (double)selectedControlPoints.get(0).getPoints()[which].x - selectedControlPoints.get(0).getPoints()[0].x;
+				sy = (double)selectedControlPoints.get(0).getPoints()[which].y - selectedControlPoints.get(0).getPoints()[0].y;
 			}
 			else
 			{
-				sx = (double)mControlPointsBeforeChange.get(0).getPoints()[getWhich()].x - mControlPointsBeforeChange.get(0).getPoints()[0].x;
-				sy = (double)mControlPointsBeforeChange.get(0).getPoints()[getWhich()].y - mControlPointsBeforeChange.get(0).getPoints()[0].y;
+				sx = (double)mControlPointsBeforeChange.get(0).getPoints()[which].x - mControlPointsBeforeChange.get(0).getPoints()[0].x;
+				sy = (double)mControlPointsBeforeChange.get(0).getPoints()[which].y - mControlPointsBeforeChange.get(0).getPoints()[0].y;
 			}
 
 			double sl = Math.sqrt(sx*sx+sy*sy);
@@ -427,6 +400,10 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 //			Normalize
 			double snx = sx/sl;
 			double sny = sy/sl;
+			if(snx != snx || sny != sny){
+				snx = 1.0;
+				sny = 0.0;
+			}
 
 			switch(key)
 			{

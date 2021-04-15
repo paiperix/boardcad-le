@@ -1083,13 +1083,11 @@ public class BezierSpline implements Cloneable {
 			BezierKnot startKnot = curve.getStartKnot();
 			BezierKnot endKnot = curve.getEndKnot();
 
-			if (endKnot == null) // Incomplete curve, must be at end so break
-									// out
+			if (endKnot == null) // Incomplete curve, must be at end so break out
 				break;
 
 			// Check tangent to next for startknot
-			double distance = (double) brdPos.distance(startKnot
-					.getTangentToNext());
+			double distance = (double) brdPos.distance(startKnot.getTangentToNext());
 			if (distance < bestMatchDistance) {
 				bestMatch = startKnot;
 				bestMatchPointIndex = BezierKnot.NEXT_TANGENT;
@@ -1104,14 +1102,6 @@ public class BezierSpline implements Cloneable {
 				bestMatchDistance = distance;
 			}
 
-			// Check endpoint for startknot
-			distance = (double) brdPos.distance(startKnot.getEndPoint());
-			if (distance < bestMatchDistance) {
-				bestMatch = startKnot;
-				bestMatchPointIndex = BezierKnot.END_POINT;
-				bestMatchDistance = distance;
-			}
-
 			// Check tangent to prev for endknot
 			distance = (double) brdPos.distance(endKnot.getEndPoint());
 			if (distance < bestMatchDistance) {
@@ -1120,6 +1110,13 @@ public class BezierSpline implements Cloneable {
 				bestMatchDistance = distance;
 			}
 
+			// Check endpoint for startknot
+			distance = (double) brdPos.distance(startKnot.getEndPoint());
+			if (distance < bestMatchDistance) {
+				bestMatch = startKnot;
+				bestMatchPointIndex = BezierKnot.END_POINT;
+				bestMatchDistance = distance;
+			}
 		}
 
 		return bestMatchPointIndex;

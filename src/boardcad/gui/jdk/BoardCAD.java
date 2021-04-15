@@ -29,10 +29,6 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.print.*;
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.util.*;
 import java.util.Locale;
@@ -72,7 +68,7 @@ import boardcad.ScriptLoader;
 public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEventDispatcher {
 
 	protected static BoardCAD mInstance = null;
-	private static final String appname = "BoardCAD v3.2 LE";
+	private static final String appname = "BoardCAD v3.2 Limited Edition";
 	public static String defaultDirectory = "";
 
 	enum DeckOrBottom {
