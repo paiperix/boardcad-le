@@ -20,7 +20,7 @@ public class FasterBrd3DModelGenerator {
 		mCancelExecuting = true;
 
 		System.out
-				.println("BezierBoard.update3DModel() cancel execution, wait for threads");
+				.println("BezierBoard.update3DModel() cancel execution, waiting for threads");
 
 		for (Thread thread : mThreads) {
 			try {
@@ -33,12 +33,10 @@ public class FasterBrd3DModelGenerator {
 
 		mThreads.clear();
 
-		System.out.println("BezierBoard.update3DModel() Wait finished");
+		System.out.println("BezierBoard.update3DModel() Done waiting ");
 
 		if (model.numGeometries() != numTasks) {
-			System.out
-					.printf("BezierBoard.update3DModel() Need initial run geom:%d tasks:%d",
-							model.numGeometries(), numTasks);
+			System.out.printf("BezierBoard.update3DModel() Need initial run geom: %d tasks: %d\n", model.numGeometries(), numTasks);
 
 			model.removeAllGeometries();
 			mInitialModelRun = true;
@@ -64,32 +62,31 @@ public class FasterBrd3DModelGenerator {
 
 	}
 
-	public void update3DModel(BezierBoard brd, Shape3D model, double startX,
-			double endX, int index) {
+	public void update3DModel(BezierBoard brd, Shape3D model, double startX, double endX, int index) {
 		double lengthAccuracy = 1.0;
-		double deckWidthAccuracy = 1.0;
-		double bottomWidthAccuracy = 1.0;
+		double widthMinAccuracy = 1.0;
 
 		double spanLength = endX - startX;
 		double width = brd.getCenterWidth();
 
+		boolean isTail = startX <= 0.0;
+		boolean isNose = endX >= brd.getLength();
+
 		int lengthSteps = (int) (spanLength / lengthAccuracy) + 1;
-		// int lengthSteps = 200;
-		int deckSteps = (int) ((width / 2.0) / deckWidthAccuracy) + 1;
-		int railSteps = 0;
-		int bottomSteps = (int) (width / 2.0 / bottomWidthAccuracy) + 1;
+		int widthSteps = (int) ((width / 2.0) / widthMinAccuracy) + 1;
 
 		double lengthStep = spanLength / lengthSteps;
 
-		int nrOfCoords = (lengthSteps) * (deckSteps + railSteps + bottomSteps)
-				* 4 * 2;
+		int nrOfCoords = lengthSteps * (widthSteps * 2) * 4 * 2;
+		if(isTail || isNose){
+			nrOfCoords += (widthSteps * 2) * 4 * 2;
+		}
 
-		QuadArray quads;
-		quads = new QuadArray(nrOfCoords, IndexedQuadArray.COORDINATES
+		QuadArray quads = new QuadArray(nrOfCoords, IndexedQuadArray.COORDINATES
 				| IndexedQuadArray.NORMALS);
 
-		Point3d[][] vertices = new Point3d[deckSteps+1][lengthSteps+1];
-		Vector3f[][] normals = new Vector3f[deckSteps+1][lengthSteps+1];
+		Point3d[][] deckVertices = new Point3d[widthSteps+1][lengthSteps+1];
+		Vector3f[][] deckNormals = new Vector3f[widthSteps+1][lengthSteps+1];
 		Point3d[] quadCoords = new Point3d[lengthSteps*4];
 		Vector3f[] quadNormals = new Vector3f[lengthSteps*4];
 
@@ -99,165 +96,268 @@ public class FasterBrd3DModelGenerator {
 		// Deck
 		double minAngle = -45.0;
 		double maxAngle = 150.0;
-		
+
 		//Generate deck coordinates
-		for (int i = 0; i <= deckSteps; i++) {
+		for (int i = 0; i <= widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			xPos = startX;
-
 			for (int j = 0; j <= lengthSteps; j++) {
 
-				vertices[i][j] = new Point3d(brd.getSurfacePoint(xPos, minAngle, maxAngle, i, deckSteps));
-				normals[i][j] = new Vector3f(brd.getSurfaceNormal(xPos, minAngle, maxAngle,i, deckSteps));
-
+				deckVertices[i][j] = new Point3d(brd.getSurfacePoint(xPos, minAngle, maxAngle, i, widthSteps));
+				deckNormals[i][j] = new Vector3f(brd.getSurfaceNormal(xPos, minAngle, maxAngle,i, widthSteps));
+				if(i == 0){
+					deckVertices[i][j].setY(0.0);
+				}
 				xPos += lengthStep;
-
 			}
 		}
-		
+
 		//Generate quads
-		for (int i = 0; i < deckSteps; i++) {
+		for (int i = 0; i < widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			int q = 0;
 			for (int j = 0; j < lengthSteps; j++) {
-				quadCoords[q] = vertices[i][j];
-				quadNormals[q] = normals[i][j];
+				quadCoords[q] = deckVertices[i][j];
+				quadNormals[q] = deckNormals[i][j];
 				++q;
-				quadCoords[q] = vertices[i][j+1];
-				quadNormals[q] = normals[i][j+1];
+				quadCoords[q] = deckVertices[i][j+1];
+				quadNormals[q] = deckNormals[i][j+1];
 				++q;
-				quadCoords[q] = vertices[i+1][j+1];
-				quadNormals[q] = normals[i+1][j+1];
+				quadCoords[q] = deckVertices[i+1][j+1];
+				quadNormals[q] = deckNormals[i+1][j+1];
 				++q;
-				quadCoords[q] = vertices[i+1][j];
-				quadNormals[q] = normals[i+1][j];
-				++q;				
+				quadCoords[q] = deckVertices[i+1][j];
+				quadNormals[q] = deckNormals[i+1][j];
+				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
 			quads.setNormals(nrOfQuads * 4, quadNormals);
 			nrOfQuads += lengthSteps;
 		}
-		
+
 		//Mirror deck coordinates
-		for (int i = 0; i <= deckSteps; i++) {
+		for (int i = 0; i <= widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			for (int j = 0; j <= lengthSteps; j++) {
-
-				vertices[i][j].setY(-vertices[i][j].getY());
-				normals[i][j].setY(-normals[i][j].getY());
+				deckVertices[i][j].setY(-deckVertices[i][j].getY());
+				deckNormals[i][j].setY(-deckNormals[i][j].getY());
 			}
 		}
-		
+
 		//Generate mirrored quads
-		for (int i = 0; i < deckSteps; i++) {
+		for (int i = 0; i < widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			int q = 0;
 			for (int j = 0; j < lengthSteps; j++) {
-				quadCoords[q] = vertices[i+1][j];
-				quadNormals[q] = normals[i+1][j];
+				quadCoords[q] = deckVertices[i+1][j];
+				quadNormals[q] = deckNormals[i+1][j];
 				++q;
-				quadCoords[q] = vertices[i+1][j+1];
-				quadNormals[q] = normals[i+1][j+1];
+				quadCoords[q] = deckVertices[i+1][j+1];
+				quadNormals[q] = deckNormals[i+1][j+1];
 				++q;
-				quadCoords[q] = vertices[i][j+1];
-				quadNormals[q] = normals[i][j+1];
+				quadCoords[q] = deckVertices[i][j+1];
+				quadNormals[q] = deckNormals[i][j+1];
 				++q;
-				quadCoords[q] = vertices[i][j];
-				quadNormals[q] = normals[i][j];
-				++q;				
+				quadCoords[q] = deckVertices[i][j];
+				quadNormals[q] = deckNormals[i][j];
+				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
 			quads.setNormals(nrOfQuads * 4, quadNormals);
 			nrOfQuads += lengthSteps;
 		}
-		
+
 		//Generate bottom
 		minAngle = maxAngle;
 		maxAngle = 360.0;
-		for (int i = 0; i <= bottomSteps; i++) {
+
+		Point3d[][] bottomVertices = new Point3d[widthSteps+1][lengthSteps+1];
+		Vector3f[][] bottomNormals = new Vector3f[widthSteps+1][lengthSteps+1];
+
+		for (int i = 0; i <= widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			xPos = startX;
 
 			for (int j = 0; j <= lengthSteps; j++) {
-
-				vertices[i][j] = brd.getSurfacePoint(xPos, minAngle, maxAngle, i, bottomSteps);
-				normals[i][j] = new Vector3f(brd.getSurfaceNormal(xPos, minAngle, maxAngle,i, bottomSteps));
-
+				bottomVertices[i][j] = brd.getSurfacePoint(xPos, minAngle, maxAngle, i, widthSteps);
+				bottomNormals[i][j] = new Vector3f(brd.getSurfaceNormal(xPos, minAngle, maxAngle,i, widthSteps));
+				if(i == widthSteps){
+					bottomVertices[i][j].setY(0.0);
+				}
 				xPos += lengthStep;
-
 			}
 		}
-		
+
 		//Generate quads
-		for (int i = 0; i < bottomSteps; i++) {
+		for (int i = 0; i < widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			int q = 0;
 			for (int j = 0; j < lengthSteps; j++) {
-				quadCoords[q] = vertices[i][j];
-				quadNormals[q] = normals[i][j];
+				quadCoords[q] = bottomVertices[i][j];
+				quadNormals[q] = bottomNormals[i][j];
 				++q;
-				quadCoords[q] = vertices[i][j+1];
-				quadNormals[q] = normals[i][j+1];
+				quadCoords[q] = bottomVertices[i][j+1];
+				quadNormals[q] = bottomNormals[i][j+1];
 				++q;
-				quadCoords[q] = vertices[i+1][j+1];
-				quadNormals[q] = normals[i+1][j+1];
+				quadCoords[q] = bottomVertices[i+1][j+1];
+				quadNormals[q] = bottomNormals[i+1][j+1];
 				++q;
-				quadCoords[q] = vertices[i+1][j];
-				quadNormals[q] = normals[i+1][j];
-				++q;				
+				quadCoords[q] = bottomVertices[i+1][j];
+				quadNormals[q] = bottomNormals[i+1][j];
+				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
 			quads.setNormals(nrOfQuads * 4, quadNormals);
 			nrOfQuads += lengthSteps;
 		}
-		
+
 		//Mirror bottom coordinates
-		for (int i = 0; i <= bottomSteps; i++) {
+		for (int i = 0; i <= widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			for (int j = 0; j <= lengthSteps; j++) {
-
-				vertices[i][j].setY(-vertices[i][j].getY());
-				normals[i][j].setY(-normals[i][j].getY());
+				bottomVertices[i][j].setY(-bottomVertices[i][j].getY());
+				bottomNormals[i][j].setY(-bottomNormals[i][j].getY());
 			}
 		}
-		
+
 		//Generate mirrored quads
-		for (int i = 0; i < bottomSteps; i++) {
+		for (int i = 0; i < widthSteps; i++) {
 			if (mCancelExecuting)
 				return;
 
 			int q = 0;
 			for (int j = 0; j < lengthSteps; j++) {
-				quadCoords[q] = vertices[i+1][j];
-				quadNormals[q] = normals[i+1][j];
+				quadCoords[q] = bottomVertices[i+1][j];
+				quadNormals[q] = bottomNormals[i+1][j];
 				++q;
-				quadCoords[q] = vertices[i+1][j+1];
-				quadNormals[q] = normals[i+1][j+1];
+				quadCoords[q] = bottomVertices[i+1][j+1];
+				quadNormals[q] = bottomNormals[i+1][j+1];
 				++q;
-				quadCoords[q] = vertices[i][j+1];
-				quadNormals[q] = normals[i][j+1];
+				quadCoords[q] = bottomVertices[i][j+1];
+				quadNormals[q] = bottomNormals[i][j+1];
 				++q;
-				quadCoords[q] = vertices[i][j];
-				quadNormals[q] = normals[i][j];
-				++q;				
+				quadCoords[q] = bottomVertices[i][j];
+				quadNormals[q] = bottomNormals[i][j];
+				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
 			quads.setNormals(nrOfQuads * 4, quadNormals);
 			nrOfQuads += lengthSteps;
+		}
+
+		//Create tail patch
+		if(isTail){
+			int q = 0;
+			Vector3f rearVec = new Vector3f(-1.0f, 0.0f, 0.0f);
+			quadCoords = new Point3d[widthSteps*4];
+			quadNormals = new Vector3f[widthSteps*4];
+
+			for (int i = 0; i < widthSteps; i++) {
+				quadCoords[q] = bottomVertices[i+1][0];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = bottomVertices[i][0];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)][0];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)-1][0];
+				quadNormals[q] = rearVec;
+				++q;
+			}
+			quads.setCoordinates(nrOfQuads * 4, quadCoords);
+			quads.setNormals(nrOfQuads * 4, quadNormals);
+			nrOfQuads += q/4;
+
+			//Mirror
+			for (int i = 0; i <= widthSteps; i++) {
+				bottomVertices[i][0].setY(-bottomVertices[i][0].getY());
+				deckVertices[i][0].setY(-deckVertices[i][0].getY());
+			}
+			q = 0;
+			for (int i = 0; i < widthSteps; i++) {
+				quadCoords[q] = bottomVertices[i][0];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = bottomVertices[i+1][0];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)-1][0];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)][0];
+				quadNormals[q] = rearVec;
+				++q;
+			}
+			quads.setCoordinates(nrOfQuads * 4, quadCoords);
+			quads.setNormals(nrOfQuads * 4, quadNormals);
+			nrOfQuads += q/4;
+		}
+
+		//Create nose patch
+		if(isNose){
+			int q = 0;
+			Vector3f rearVec = new Vector3f(1.0f, 0.0f, 0.0f);
+			int steps = widthSteps;
+			quadCoords = new Point3d[steps*4];
+			quadNormals = new Vector3f[steps*4];
+
+			for (int i = 0; i < steps; i++) {
+				quadCoords[q] = bottomVertices[i][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = bottomVertices[i+1][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)-1][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+			}
+			quads.setCoordinates(nrOfQuads * 4, quadCoords);
+			quads.setNormals(nrOfQuads * 4, quadNormals);
+			nrOfQuads += q/4;
+
+			//Mirror
+			for (int i = 0; i <= widthSteps; i++) {
+				bottomVertices[i][lengthSteps].setY(-bottomVertices[i][lengthSteps].getY());
+				deckVertices[i][lengthSteps].setY(-deckVertices[i][lengthSteps].getY());
+			}
+			q = 0;
+			for (int i = 0; i < steps; i++) {
+				quadCoords[q] = bottomVertices[i+1][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = bottomVertices[i][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+				quadCoords[q] = deckVertices[(widthSteps - i)-1][lengthSteps];
+				quadNormals[q] = rearVec;
+				++q;
+			}
+			quads.setCoordinates(nrOfQuads * 4, quadCoords);
+			quads.setNormals(nrOfQuads * 4, quadNormals);
+			nrOfQuads += q/4;
 		}
 
 		if (mInitialModelRun) {

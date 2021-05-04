@@ -33,22 +33,14 @@ import boardcad.settings.BoardCADSettings;
 import cadcore.UnitUtils;
 import cadcore.BezierKnot;
 import cadcore.BezierSpline;
-import cadcore.BezierUtil;
 import cadcore.MathUtils;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Vector;
-
-
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.QuadArray;
-import javax.media.j3d.Shape3D;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
 
 public class BezierBoard extends AbstractBoard implements Cloneable {
 
@@ -882,13 +874,11 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	public double getMaxThickness()
 	{
 		double max = -100000;
-		double maxPos = -100000;
 		for(int i = 0; i < Math.floor(getLength()*10); i++)  //in order to have it computed every millimeter
 		{
 			double posi = (double)i/10;
 			double current = getThicknessAtPos(posi);
 			if(current > max){
-				maxPos = posi;
 				max = current;
 			}
 		}

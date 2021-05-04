@@ -334,8 +334,8 @@ class ThreeDView extends Panel implements ItemListener {
 
 		// Set up the ambient light
 		// Color3f ambientColor = new Color3f(0.2f, 0.2f, 0.2f);
-		Color3f ambientColor = new Color3f(1.0f, 1.0f, 1.0f);
-		mAmbientLight = new AmbientLight(ambientColor);
+		Color3f ambientLightColor = new Color3f(1.0f, 1.0f, 1.0f);
+		mAmbientLight = new AmbientLight(ambientLightColor);
 		mAmbientLight.setInfluencingBounds(bounds);
 		mAmbientLight.setCapability(AmbientLight.ALLOW_STATE_WRITE);
 		mAmbientLight.setEnable(true);
@@ -380,30 +380,28 @@ class ThreeDView extends Panel implements ItemListener {
 		branchRoot.addChild(objScale);
 
 		// Create an Appearance.
-		Color3f objColor = new Color3f(0.5f, 0.5f, 0.6f);
-		Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
-		Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
+		Color3f boardEmissiveColor = new Color3f(0.0f, 0.0f, 0.0f);
+		Color3f boardAmbientColor = new Color3f(0.2f, 0.2f, 0.2f);
+		Color3f boardDiffuseColor = new Color3f(1.0f, 1.0f, 1.0f);
+		Color3f boardSpecularColor = new Color3f(0.8f, 0.8f, 1.0f);
+		float shininess = 70.0f;
 
 		TextureAttributes texAttr = new TextureAttributes();
 		texAttr.setTextureMode(TextureAttributes.MODULATE);
 		mLook.setTextureAttributes(texAttr);
 
 		// Set up the material properties
-		mLook.setMaterial(new Material(objColor, black, objColor, white, 100.0f));
+		mLook.setMaterial(new Material(boardAmbientColor, boardEmissiveColor, boardDiffuseColor, boardSpecularColor, shininess));
 
-		// Create the transform group node and initialize it to the
-		// identity. Enable the TRANSFORM_WRITE capability so that
-		// our behavior code can modify it at runtime. Add it to the
-		// root of the subgraph.
-		TransformGroup board_tg = new TransformGroup();
-		board_tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		board_tg.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		objScale.addChild(board_tg);
+		// Create board transform group, enable the TRANSFORM_WRITE capability so that our behavior code can modify it at runtime.
+		TransformGroup boardTransformGroup = new TransformGroup();
+		boardTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		boardTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		objScale.addChild(boardTransformGroup);
 
-		mShape.setGeometry(new TriangleArray(3, TriangleArray.COORDINATES
-				| TriangleArray.NORMALS));
+		mShape.setGeometry(new TriangleArray(3, TriangleArray.COORDINATES | TriangleArray.NORMALS));
 		mShape.setAppearance(mLook);
-		board_tg.addChild(mShape);
+		boardTransformGroup.addChild(mShape);
 
 		// Have Java 3D perform optimizations on this scene graph.
 		branchRoot.compile();
