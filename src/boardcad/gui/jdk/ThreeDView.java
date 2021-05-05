@@ -69,6 +69,7 @@ class ThreeDView extends Panel implements ItemListener {
 
 		mCanvas3D = new Canvas3D(mGfxConfig);
 		add("Center", mCanvas3D);
+
 		mShape = new Shape3D();
 		mShape.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
 		mShape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
@@ -81,9 +82,10 @@ class ThreeDView extends Panel implements ItemListener {
 		// Create a simple scene and attach it to the virtual universe
 		mScene = createSceneGraph();
 		mUniverse = new SimpleUniverse(mCanvas3D, 4);
+		mUniverse.getViewer().getView().setFrontClipPolicy(View.PHYSICAL_EYE);
+		mUniverse.getViewer().getView().setFrontClipDistance(0.01);
 
-		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
-				100.0);
+		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 100.0);
 
 		// Head light
 		ViewingPlatform viewingPlatform = mUniverse.getViewingPlatform();
@@ -372,7 +374,7 @@ class ThreeDView extends Panel implements ItemListener {
 		mRightLight.setEnable(false);
 		branchRoot.addChild(mRightLight);
 
-		// Create a Transformgroup to scale all objects so they appear in the scene.
+		// Create a Transform group to scale all objects so they appear in the scene.
 		TransformGroup objScale = new TransformGroup();
 		Transform3D t3d = new Transform3D();
 		t3d.setScale(1.5);

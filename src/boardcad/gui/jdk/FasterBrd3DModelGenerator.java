@@ -19,15 +19,13 @@ public class FasterBrd3DModelGenerator {
 
 		mCancelExecuting = true;
 
-		System.out
-				.println("BezierBoard.update3DModel() cancel execution, waiting for threads");
+		System.out.println("BezierBoard.update3DModel() cancel execution, waiting for threads");
 
 		for (Thread thread : mThreads) {
 			try {
 				thread.join();
 			} catch (InterruptedException e) {
-				System.out
-						.println("BezierBoard.update3DModel() InterruptedException");
+				System.out.println("BezierBoard.update3DModel() InterruptedException");
 			}
 		}
 
@@ -262,22 +260,21 @@ public class FasterBrd3DModelGenerator {
 		//Create tail patch
 		if(isTail){
 			int q = 0;
-			Vector3f rearVec = new Vector3f(-1.0f, 0.0f, 0.0f);
 			quadCoords = new Point3d[widthSteps*4];
 			quadNormals = new Vector3f[widthSteps*4];
 
 			for (int i = 0; i < widthSteps; i++) {
 				quadCoords[q] = bottomVertices[i+1][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i+1][0];
 				++q;
 				quadCoords[q] = bottomVertices[i][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i][0];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)][0];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)-1][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)-1][0];
 				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
@@ -292,16 +289,16 @@ public class FasterBrd3DModelGenerator {
 			q = 0;
 			for (int i = 0; i < widthSteps; i++) {
 				quadCoords[q] = bottomVertices[i][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i][0];
 				++q;
 				quadCoords[q] = bottomVertices[i+1][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i+1][0];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)-1][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)-1][0];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)][0];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)][0];
 				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
@@ -312,23 +309,22 @@ public class FasterBrd3DModelGenerator {
 		//Create nose patch
 		if(isNose){
 			int q = 0;
-			Vector3f rearVec = new Vector3f(1.0f, 0.0f, 0.0f);
 			int steps = widthSteps;
 			quadCoords = new Point3d[steps*4];
 			quadNormals = new Vector3f[steps*4];
 
 			for (int i = 0; i < steps; i++) {
 				quadCoords[q] = bottomVertices[i][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i][lengthSteps];
 				++q;
 				quadCoords[q] = bottomVertices[i+1][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i+1][lengthSteps];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)-1][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)-1][lengthSteps];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)][lengthSteps];
 				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
@@ -343,16 +339,16 @@ public class FasterBrd3DModelGenerator {
 			q = 0;
 			for (int i = 0; i < steps; i++) {
 				quadCoords[q] = bottomVertices[i+1][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i+1][lengthSteps];
 				++q;
 				quadCoords[q] = bottomVertices[i][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = bottomNormals[i][lengthSteps];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)][lengthSteps];
 				++q;
 				quadCoords[q] = deckVertices[(widthSteps - i)-1][lengthSteps];
-				quadNormals[q] = rearVec;
+				quadNormals[q] = deckNormals[(widthSteps - i)-1][lengthSteps];
 				++q;
 			}
 			quads.setCoordinates(nrOfQuads * 4, quadCoords);
