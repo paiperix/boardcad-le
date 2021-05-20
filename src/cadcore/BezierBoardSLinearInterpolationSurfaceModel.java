@@ -4,8 +4,7 @@ import board.BezierBoard;
 
 import java.awt.geom.Point2D;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 import cadcore.MathUtils.Function;
 
@@ -72,27 +71,6 @@ class BezierBoardSLinearInterpolationSurfaceModel extends
 		c2Spline.set(c2.getBezierSpline());
 		c2Spline.scale(c2ThicknessScale, c2WidthScale);
 
-		// double c1SplineWidth = c1Spline.getMaxX();
-		// double c2SplineWidth = c2Spline.getMaxX();
-		//
-		// double c1SplineThick = c1Spline.getMaxY();
-		// double c2SplineThick = c2Spline.getMaxY();
-
-		// System.out.printf("targetWidth: %f targetThickness: %f c1SplineWidth x2: %f c2SplineWidth x2: %f c1SplineThick: %f c2SplineThick: %f\n",
-		// targetWidth, targetThickness, c1SplineWidth*2.0, c2SplineWidth*2.0,
-		// c1SplineThick, c2SplineThick);
-
-		// System.out.printf("getSurfacePoint()\n");
-		// System.out.printf("Target width: %f thickness: %f\n", targetWidth,
-		// targetThickness);
-		// System.out.printf("C1 width: %f thickness: %f\n", c1Width,
-		// c1Thickness);
-		// System.out.printf("C2 width: %f thickness: %f\n", c2Width,
-		// c2Thickness);
-		// System.out.printf("C1 width scale: %f thickness scale: %f\n",
-		// c1WidthScale, c1ThicknessScale);
-		// System.out.printf("C2 width scale: %f thickness scale: %f\n",
-		// c2WidthScale, c2ThicknessScale);
 
 		double s1min = BezierSpline.ONE;
 		double s2min = BezierSpline.ONE;

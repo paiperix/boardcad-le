@@ -8,9 +8,8 @@ import java.util.Locale;
 
 import javax.swing.ProgressMonitor; //TODO: Bad dependency
 import javax.swing.SwingWorker;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+
+import org.jogamp.vecmath.*;
 
 import cadcore.UnitUtils;
 
@@ -218,49 +217,49 @@ public abstract class AbstractToolpathGenerator {
 
 		// DEBUG
 		//System.out.printf("coordinate: %f,%f,%f  normal: %f,%f,%f\n",coordinate.x,coordinate.y,coordinate.z,normal.x,normal.y,normal.z);
-	
+
 		Point3d transformedCoord = transformPoint(coordinate);
 		Vector3d transformedVector = transformVector(normal);
-	
+
 		// DEBUG
 		// DEBUG
 		// //system.out.printf("transformedCoord: %f,%f,%f  transformedVector: %f,%f,%f\n",
 		// transformedCoord.x,transformedCoord.y,transformedCoord.z,
 		// transformedVector.x,transformedVector.y,transformedVector.z);
-	
+
 		finalCoord = mCurrentCutter.calcOffset(transformedCoord,
 				transformedVector, mBoard);
-		
+
 		Point3d finalCoordRaw = new Point3d(finalCoord[0], finalCoord[1],
 				finalCoord[2]);
-	
+
 		Point3d finalCoordTransformed = new Point3d(finalCoord[0], finalCoord[1],
 				finalCoord[2]);
-		
+
 		finalCoordTransformed.sub(mCutterOffset);
-	
+
 		// DEBUG
 		//System.out.printf("finalCoord: %f,%f,%f\n", finalCoordTransformed.x,finalCoordTransformed.y,finalCoordTransformed.z);
-	
-		if (mLastSurfacePoint == null) 
+
+		if (mLastSurfacePoint == null)
 		{
 			setSurfaceStart(transformedCoord);
-		} 
-		else 
+		}
+		else
 		{
 			addSurfaceLine(transformedCoord);
 		}
 		mLastSurfacePoint = transformedCoord;
-	
+
 		addNormal(mLastSurfacePoint, transformedVector);
-	
+
 		//Check collision between board and cutter and handle it
-		if (checkCollision(finalCoordRaw, mBoard) == true) 
+		if (checkCollision(finalCoordRaw, mBoard) == true)
 		{
 			handleCollision(finalCoordRaw, mCurrentCutter, mBoard);
 		}
 		//Check collision between cutter and blank holding system, and handle it
-		else if (mCurrentBlankHoldingSystem != null && mCurrentBlankHoldingSystem.checkCollision(finalCoordRaw, mCurrentCutter) == true) 
+		else if (mCurrentBlankHoldingSystem != null && mCurrentBlankHoldingSystem.checkCollision(finalCoordRaw, mCurrentCutter) == true)
 		{
 			ArrayList<double[]> collisionHandlingToolpath = mCurrentBlankHoldingSystem.handleCollision(finalCoordRaw, mCurrentCutter, mBoard);
 			if(collisionHandlingToolpath == null)
@@ -268,50 +267,50 @@ public abstract class AbstractToolpathGenerator {
 				//throw new Throwable(""); TODO: Fixme
 				System.out.println("Unhandled collision!!!");
 			}
-			
+
 			for(int i = 0; i < collisionHandlingToolpath.size(); i++)
 			{
 				finalCoord = collisionHandlingToolpath.get(i);
 				finalCoordTransformed = new Point3d(finalCoord[0], finalCoord[1], finalCoord[2]);
 				finalCoordTransformed.sub(mCutterOffset);
-				
+
 				//System.out.printf("Collision coordinate transformed: %f, %f, %f\n", finalCoordTransformed.x, finalCoordTransformed.y, finalCoordTransformed.z);
-				
-				if (mLastToolpathPoint == null) 
+
+				if (mLastToolpathPoint == null)
 				{
 					setToolpathStart(finalCoordTransformed);
-				} 
-				else 
+				}
+				else
 				{
 					addToolpathLine(finalCoordTransformed);
 				}
-	
+
 				writeCoordinate(new double[]{finalCoordTransformed.x, finalCoordTransformed.y, finalCoordTransformed.z});
-	
-				mLastToolpathPoint = finalCoordTransformed;					
+
+				mLastToolpathPoint = finalCoordTransformed;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			if (mLastToolpathPoint == null)
 			{
 				setToolpathStart(finalCoordTransformed);
-				writeCoordinate(new double[]{finalCoordTransformed.x, finalCoordTransformed.y, finalCoordTransformed.z});				
+				writeCoordinate(new double[]{finalCoordTransformed.x, finalCoordTransformed.y, finalCoordTransformed.z});
 				mLastToolpathPoint = finalCoordTransformed;
-			} 
+			}
 			else
 			if(!mLastToolpathPoint.equals(finalCoordTransformed))
 			{
 				addToolpathLine(finalCoordTransformed);
 
 				writeCoordinate(new double[]{finalCoordTransformed.x, finalCoordTransformed.y, finalCoordTransformed.z});
-		
+
 				mLastToolpathPoint = finalCoordTransformed;
 			}
 			// System.out.printf("mLastToolpathPoint: %f, %f, %f\n",
 			// mLastToolpathPoint.x, mLastToolpathPoint.y,
 			// mLastToolpathPoint.z);
-				
+
 		}
 	}
 

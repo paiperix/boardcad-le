@@ -36,11 +36,14 @@ import java.util.Timer;
 import java.util.prefs.*;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
-import javax.vecmath.*;
+
+import org.jogamp.vecmath.*;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Material;
 
 import cadcore.*;
 import board.*;
@@ -63,7 +66,6 @@ import boardcam.toolpathgenerators.ext.SandwichCompensation;
 import boardcam.writers.GCodeWriter;
 import board.readers.*;
 import board.writers.*;
-import boardcad.ScriptLoader;
 
 public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEventDispatcher {
 
@@ -254,7 +256,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		defaultDirectory = prefs.get("defaultDirectory", "");
 		mIsPaintingGridMenuItem
-				.setSelected(prefs.getBoolean("mIsPaintingGridMenuItem", mIsPaintingGridMenuItem.isSelected()));
+				.setSelected(prefs.getBoolean("mIsPaintingGridMenuItem", false));
 		mIsPaintingOriginalBrdMenuItem.setSelected(
 				prefs.getBoolean("mIsPaintingOriginalBrdMenuItem", mIsPaintingOriginalBrdMenuItem.isSelected()));
 		mIsPaintingGhostBrdMenuItem
@@ -426,9 +428,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 	public void updateBezier3DModel() {
 		if (mTabbedPane.getSelectedComponent() == mRenderedPanel) {
-			mRendered3DView.updateBezier3DModel(getCurrentBrd());
+			mRendered3DView.updateBezier3DModel(false);
 		} else if (mTabbedPane.getSelectedComponent() == mQuadView) {
-			mQuad3DView.updateBezier3DModel(getCurrentBrd());
+			mQuad3DView.updateBezier3DModel(false);
 		}
 	}
 
@@ -877,7 +879,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		// Insert Icon on JFrame
 		try {
-			ImageIcon icon = new ImageIcon(getClass().getResource("../../icons/BoardCAD icon 32x32.png"));
+			ImageIcon icon = new ImageIcon(getClass().getResource("/boardcad/icons/BoardCAD icon 32x32.png"));
 			mFrame.setIconImage(icon.getImage());
 		} catch (Exception e) {
 			System.out.println("Jframe Icon error:\n" + e.getMessage());
@@ -993,7 +995,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			static final long serialVersionUID = 1L;
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("BOARDSAVEAS_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/save-as.png")));
+				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getClassLoader().getResource("boardcad/icons/save-as.png")));
 			};
 
 			@Override
@@ -3700,7 +3702,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				 * currentAngle/BezierBoard.DEG_TO_RAD, s,
 				 * checkAngle/BezierBoard.DEG_TO_RAD); }
 				 */
-
+				/*
 				System.out.printf("__________________________________\n");
 				// Test SimpleBullnoseCutter
 				SimpleBullnoseCutter cutter = new SimpleBullnoseCutter(50, 10, 100);
@@ -3727,7 +3729,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					System.out.printf("Result: %f, %f, %f\n", result[0], result[1], result[2]);
 				}
 				System.out.printf("\n__________________________________\n");
-
+				*/
 			}
 		};
 		fileMenu.add(test);
@@ -3756,7 +3758,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("UNDO_STR"));
 				this.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("UNDO_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/edit-undo.png")));
+				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/edit-undo.png")));
 				this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
 			};
 
@@ -3774,7 +3776,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("REDO_STR"));
 				this.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("REDO_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/edit-redo.png")));
+				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/edit-redo.png")));
 
 				this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
 			};
@@ -3795,19 +3797,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mIsPaintingGridMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWGRID_STR"));
 		mIsPaintingGridMenuItem.setMnemonic(KeyEvent.VK_R);
-		mIsPaintingGridMenuItem.setSelected(true);
+		mIsPaintingGridMenuItem.setSelected(false);
 		mIsPaintingGridMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingGridMenuItem);
 
 		mIsPaintingGhostBrdMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWGHOSTBOARD_STR"));
 		mIsPaintingGhostBrdMenuItem.setMnemonic(KeyEvent.VK_G);
-		mIsPaintingGhostBrdMenuItem.setSelected(true);
+		mIsPaintingGhostBrdMenuItem.setSelected(false);
 		mIsPaintingGhostBrdMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingGhostBrdMenuItem);
 
 		mIsPaintingOriginalBrdMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWORIGINALBOARD_STR"));
 		mIsPaintingOriginalBrdMenuItem.setMnemonic(KeyEvent.VK_O);
-		mIsPaintingOriginalBrdMenuItem.setSelected(true);
+		mIsPaintingOriginalBrdMenuItem.setSelected(false);
 		mIsPaintingOriginalBrdMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingOriginalBrdMenuItem);
 
@@ -3834,8 +3836,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mIsPaintingCurvatureMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWCURVATURE_STR"));
 		mIsPaintingCurvatureMenuItem.setMnemonic(KeyEvent.VK_V);
-		mIsPaintingCurvatureMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0));// ,
-																								// KeyEvent.CTRL_DOWN_MASK));
+		mIsPaintingCurvatureMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, 0));
 		mIsPaintingCurvatureMenuItem.setSelected(true);
 		mIsPaintingCurvatureMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingCurvatureMenuItem);
@@ -3843,15 +3844,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingVolumeDistributionMenuItem = new JCheckBoxMenuItem(
 				LanguageResource.getString("SHOWVOLUMEDISTRIBUTION_STR"));
 		mIsPaintingVolumeDistributionMenuItem.setMnemonic(KeyEvent.VK_V);
-		mIsPaintingVolumeDistributionMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, 0));// ,
-																										// KeyEvent.CTRL_DOWN_MASK));
-		mIsPaintingVolumeDistributionMenuItem.setSelected(true);
+		mIsPaintingVolumeDistributionMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, 0));
+		mIsPaintingVolumeDistributionMenuItem.setSelected(false);
 		mIsPaintingVolumeDistributionMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingVolumeDistributionMenuItem);
 
 		mIsPaintingCenterOfMassMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWCENTEROFMASS_STR"));
 		mIsPaintingCenterOfMassMenuItem.setMnemonic(KeyEvent.VK_M);
-		mIsPaintingCenterOfMassMenuItem.setSelected(true);
+		mIsPaintingCenterOfMassMenuItem.setSelected(false);
 		mIsPaintingCenterOfMassMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingCenterOfMassMenuItem);
 
@@ -3864,8 +3864,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingSlidingCrossSectionMenuItem = new JCheckBoxMenuItem(
 				LanguageResource.getString("SHOWSLIDINGCROSSECTION_STR"));
 		mIsPaintingSlidingCrossSectionMenuItem.setMnemonic(KeyEvent.VK_X);
-		mIsPaintingSlidingCrossSectionMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));// ,
-																										// KeyEvent.CTRL_DOWN_MASK));
+		mIsPaintingSlidingCrossSectionMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
 		mIsPaintingSlidingCrossSectionMenuItem.setSelected(true);
 		mIsPaintingSlidingCrossSectionMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingSlidingCrossSectionMenuItem);
@@ -3879,7 +3878,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingBackgroundImageMenuItem = new JCheckBoxMenuItem(
 				LanguageResource.getString("SHOWBACKGROUNDIMAGE_STR"));
 		mIsPaintingBackgroundImageMenuItem.setMnemonic(KeyEvent.VK_B);
-		mIsPaintingBackgroundImageMenuItem.setSelected(true);
+		mIsPaintingBackgroundImageMenuItem.setSelected(false);
 		mIsPaintingBackgroundImageMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingBackgroundImageMenuItem);
 
@@ -3891,7 +3890,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mIsPaintingBaseLineMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("SHOWBASELINE_STR"));
 		mIsPaintingBaseLineMenuItem.setMnemonic(KeyEvent.VK_L);
-		mIsPaintingBaseLineMenuItem.setSelected(true);
+		mIsPaintingBaseLineMenuItem.setSelected(false);
 		mIsPaintingBaseLineMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingBaseLineMenuItem);
 
@@ -3914,7 +3913,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingMomentOfInertiaMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingMomentOfInertiaMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
-		mIsPaintingMomentOfInertiaMenuItem.setSelected(true);
+		mIsPaintingMomentOfInertiaMenuItem.setSelected(false);
 		mIsPaintingMomentOfInertiaMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingMomentOfInertiaMenuItem);
 
@@ -3923,7 +3922,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingCrossectionsPositionsMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingCrossectionsPositionsMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
-		mIsPaintingCrossectionsPositionsMenuItem.setSelected(true);
+		mIsPaintingCrossectionsPositionsMenuItem.setSelected(false);
 		mIsPaintingCrossectionsPositionsMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingCrossectionsPositionsMenuItem);
 
@@ -3931,7 +3930,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingFlowlinesMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingFlowlinesMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
-		mIsPaintingFlowlinesMenuItem.setSelected(true);
+		mIsPaintingFlowlinesMenuItem.setSelected(false);
 		mIsPaintingFlowlinesMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingFlowlinesMenuItem);
 
@@ -3939,7 +3938,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingApexlineMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingApexlineMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
-		mIsPaintingApexlineMenuItem.setSelected(true);
+		mIsPaintingApexlineMenuItem.setSelected(false);
 		mIsPaintingApexlineMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingApexlineMenuItem);
 
@@ -3947,7 +3946,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mIsPaintingTuckUnderLineMenuItem.setMnemonic(KeyEvent.VK_D);
 		// mIsPaintingTuckUnderLineMenuItem.setAccelerator(
 		// KeyStroke.getKeyStroke("shift V") );
-		mIsPaintingTuckUnderLineMenuItem.setSelected(true);
+		mIsPaintingTuckUnderLineMenuItem.setSelected(false);
 		mIsPaintingTuckUnderLineMenuItem.addItemListener(this);
 		viewMenu.add(mIsPaintingTuckUnderLineMenuItem);
 
@@ -4521,7 +4520,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			static final long serialVersionUID = 1L;
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("ONLINEHELP_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/Help16.gif")));
+				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/Help16.gif")));
 				// this.putValue(Action.ACCELERATOR_KEY,
 				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
 			};
@@ -4539,7 +4538,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("ABOUT_STR"));
 				this.putValue(Action.SMALL_ICON,
-						new ImageIcon(getClass().getResource("../../icons/Information16.gif")));
+						new ImageIcon(getClass().getResource("/boardcad/icons/Information16.gif")));
 				// this.putValue(Action.ACCELERATOR_KEY,
 				// KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0));
 			};
@@ -4561,19 +4560,19 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mToolBar = new JToolBar();
 
-		newBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/new.png")));
+		newBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/new.png")));
 		mToolBar.add(newBrd);
 
-		loadBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/open.png")));
+		loadBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/open.png")));
 		mToolBar.add(loadBrd);
 
-		saveBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/save.png")));
+		saveBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/save.png")));
 		mToolBar.add(saveBrd);
 
-		SaveBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/save-refresh.png")));
+		SaveBrd.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/save-refresh.png")));
 		mToolBar.add(SaveBrd);
 
-		printSpecSheet.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/print.png")));
+		printSpecSheet.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/print.png")));
 		mToolBar.add(printSpecSheet);
 
 		mToolBar.addSeparator();
@@ -4582,7 +4581,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final SetCurrentOneShotCommandAction zoom = new SetCurrentOneShotCommandAction(new BrdZoomCommand());
 		zoom.putValue(Action.NAME, LanguageResource.getString("ZOOMBUTTON_STR"));
 		zoom.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ZOOMBUTTON_STR"));
-		zoom.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/zoom-in.png")));
+		zoom.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/zoom-in.png")));
 		mToolBar.add(zoom);
 
 		final AbstractAction fit = new AbstractAction() {
@@ -4598,12 +4597,12 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		};
 		fit.putValue(Action.NAME, LanguageResource.getString("FITBUTTON_STR"));
 		fit.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("FITBUTTON_STR"));
-		fit.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/zoom-fit-best.png")));
+		fit.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/zoom-fit-best.png")));
 		mToolBar.add(fit);
 		popupMenu.add(fit);
 
 		mLifeSizeButton = new JToggleButton();
-		mLifeSizeButton.setIcon(new ImageIcon(getClass().getResource("../../icons/zoom-1to1.png")));
+		mLifeSizeButton.setIcon(new ImageIcon(getClass().getResource("/boardcad/icons/zoom-1to1.png")));
 
 		mLifeSizeButton.addMouseListener(new MouseAdapter() {
 			@Override
@@ -4642,7 +4641,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		// lifeSize.putValue(AbstractAction.SHORT_DESCRIPTION,
 		// LanguageResource.getString("LIFESIZEBUTTON_STR"));
 		// lifeSize.putValue(AbstractAction.SMALL_ICON, new
-		// ImageIcon(getClass().getResource("../../icons/zoom-fit-best.png")));
+		// ImageIcon(getClass().getResource("/boardcad/icons/zoom-fit-best.png")));
 		mToolBar.add(mLifeSizeButton);
 
 		mToolBar.addSeparator();
@@ -4651,17 +4650,17 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final SetCurrentCommandAction edit = new SetCurrentCommandAction(new BrdEditCommand());
 		edit.putValue(Action.NAME, LanguageResource.getString("EDITBUTTON_STR"));
 		edit.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("EDITBUTTON_STR"));
-		edit.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/BoardCADedit24.gif")));
+		edit.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/BoardCADedit24.gif")));
 		mToolBar.add(edit);
 		// popupMenu.add(edit);
 
-		// JButton bt = new JButton(new ImageIcon("../../icons/Zoom24.gif"));
+		// JButton bt = new JButton(new ImageIcon("/boardcad/icons/Zoom24.gif"));
 		// mToolBar.add(bt);
 
 		final SetCurrentCommandAction pan = new SetCurrentCommandAction(new BrdPanCommand());
 		pan.putValue(Action.NAME, LanguageResource.getString("PANBUTTON_STR"));
 		pan.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("PANBUTTON_STR"));
-		pan.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("../../icons/BoardCADpan24.gif")));
+		pan.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/BoardCADpan24.gif")));
 
 		mToolBar.add(pan);
 
@@ -4719,7 +4718,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		toggleDeckAndBottom.putValue(Action.SHORT_DESCRIPTION,
 				LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
 		toggleDeckAndBottom.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("../../icons/BoardCADtoggle24x35.png")));
+				new ImageIcon(getClass().getResource("/boardcad/icons/BoardCADtoggle24x35.png")));
 		mToolBar.add(toggleDeckAndBottom);
 		popupMenu.add(toggleDeckAndBottom);
 
@@ -4729,7 +4728,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		addGuidePoint.putValue(Action.NAME, LanguageResource.getString("ADDGUIDEPOINTBUTTON_STR"));
 		addGuidePoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ADDGUIDEPOINTBUTTON_STR"));
 		addGuidePoint.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("../../icons/add-guidepoint.png")));
+				new ImageIcon(getClass().getResource("/boardcad/icons/add-guidepoint.png")));
 		mToolBar.add(addGuidePoint);
 		popupMenu.add(addGuidePoint);
 		popupMenu.add(guidePoints);
@@ -4739,7 +4738,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		addControlPoint.putValue(Action.NAME, LanguageResource.getString("ADDCONTROLPOINTBUTTON_STR"));
 		addControlPoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ADDCONTROLPOINTBUTTON_STR"));
 		addControlPoint.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("../../icons/add-controlpoint.png")));
+				new ImageIcon(getClass().getResource("/boardcad/icons/add-controlpoint.png")));
 		mToolBar.add(addControlPoint);
 		popupMenu.add(addControlPoint);
 
@@ -4802,7 +4801,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		deleteControlPoint.putValue(Action.SHORT_DESCRIPTION,
 				LanguageResource.getString("DELETECONTROLPOINTSBUTTON_STR"));
 		deleteControlPoint.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("../../icons/remove-controlpoint.png")));
+				new ImageIcon(getClass().getResource("/boardcad/icons/remove-controlpoint.png")));
 		mToolBar.add(deleteControlPoint);
 		popupMenu.add(deleteControlPoint);
 
@@ -4825,7 +4824,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		fitCurveCmd.putValue(Action.NAME, LanguageResource.getString("FITCONTROLPOINTS_STR"));
 		fitCurveCmd.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("FITCONTROLPOINTS_STR"));
 		// addControlPoint.putValue(AbstractAction.SMALL_ICON, new ImageIcon(
-		// getClass().getResource("../../icons/add-controlpoint.png")));
+		// getClass().getResource("/boardcad/icons/add-controlpoint.png")));
 		// mToolBar.add(fitCurveCmd);
 		popupMenu.add(fitCurveCmd);
 
@@ -6209,7 +6208,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mTabbedPane.addTab(LanguageResource.getString("3DRENDEREDVIEW_STR"), mRenderedPanel);
 
-		// DEBUG!
+		/* DEBUG!
 		mTabbedPane.add("PrintBrd", mPrintBrd); // Only for debugging
 		mTabbedPane.add("PrintSpecSheet", mPrintSpecSheet); // Only for
 															// debugging
@@ -6220,7 +6219,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 																	// debugging
 		mTabbedPane.add("PrintHWS", mPrintHollowWoodTemplates); // Only for
 																// debugging
-
+		*/
 		mTabbedPane.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -6288,13 +6287,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mTabbedPane2.setMinimumSize(mindim);
 		mTabbedPane.setPreferredSize(new Dimension(600, 230));
 		mTabbedPane2.setPreferredSize(new Dimension(600, 230));
-
-		// load jython script
-		String scriptname = "boardcad_init.py";
-		File file = new File(scriptname);
-		if (file.exists()) {
-			ScriptLoader.loadScript(scriptname);
-		}
 
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
 

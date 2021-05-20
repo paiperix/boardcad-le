@@ -2,8 +2,7 @@ package boardcam.toolpathgenerators;
 
 import java.awt.geom.Point2D;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 import cadcore.BezierSpline;
 
@@ -13,25 +12,25 @@ import boardcam.writers.AbstractMachineWriter;
 
 
 public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
-	
+
 	BezierBoard mBrd = null;
-	
+
 	double mExpand = 0.0;
-	
+
 	public HotwireToolpathGenerator2(AbstractCutter cutter, AbstractMachineWriter writer, double speed)
 	{
 		super(cutter, writer, speed);
-		
+
 		mExpand = 0.0;
 	}
-	
+
 	public HotwireToolpathGenerator2(AbstractCutter cutter, AbstractMachineWriter writer, double speed, double expand)
 	{
 		super(cutter, writer, speed);
-		
+
 		mExpand = expand;
 	}
-	
+
 	public void init()
 	{
 		super.init();
@@ -44,10 +43,10 @@ public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
 	//Actually the profile
 	public Point3d getToolpathCoordinate()
 	{
-		
+
 		BezierSpline currentPatch = null;
 		double tt = 0;
-		
+
 		if(mCurrentState == State.STATE_PROFILE)
 		{
 			if(i == 0)
@@ -56,33 +55,33 @@ public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
 			}
 			else if(i == 1)
 			{
-				currentPatch = mBrd.getBottom();				
+				currentPatch = mBrd.getBottom();
 			}
 			else if(i == 2)
 			{
-				currentPatch = mBrd.getDeck();				
+				currentPatch = mBrd.getDeck();
 			}
 			else
 				return null;
-					
+
 		}
 		else if(mCurrentState == State.STATE_OUTLINE)
 		{
-			currentPatch = mBrd.getOutline();							
+			currentPatch = mBrd.getOutline();
 		}
-		
+
 		if(mCurrentState == State.STATE_OUTLINE)
 		{
 			if(i >=2)
 				return null;
-			
+
 			if(i == (mBeginAtNose?1:0) )
 			{
 				tt = (j/nrOfLengthSplits);
 			}
 			else
 			{
-				tt = (1.0 - (j/nrOfLengthSplits));					
+				tt = (1.0 - (j/nrOfLengthSplits));
 			}
 
 
@@ -107,15 +106,15 @@ public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
 				}
 				else if(i == 2)
 				{
-					tt =  (1.0 - (j/nrOfLengthSplits));					
+					tt =  (1.0 - (j/nrOfLengthSplits));
 					if(tt < (double)currentPatch.getNrOfControlPoints()-1.0/(double)currentPatch.getNrOfControlPoints() )
 					{
 						return null;
 					}
 				}
-				else 
+				else
 					return null;
-				
+
 			}
 			else
 			{
@@ -125,31 +124,31 @@ public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
 				}
 				else if(i == 1)
 				{
-					tt =  (1.0 - (j/nrOfLengthSplits));					
+					tt =  (1.0 - (j/nrOfLengthSplits));
 				}
-				else 
+				else
 					return null;
 			}
-			
+
 		}
-		
+
 		Point2D.Double point = currentPatch.getPointByTT(tt);
-		
-		
+
+
 		if(mCurrentState == State.STATE_PROFILE)
 		{
 			double angle = currentPatch.getNormalByTT(tt);
 
 			mNormalVec = new Vector3d(Math.cos(angle), 0.0, Math.sin(angle));
-			
+
 			if(i == 0)
 			{
-				point.y += mExpand;				
+				point.y += mExpand;
 			}
 		}
 		else if(mCurrentState == State.STATE_OUTLINE)
 		{
-			
+
 			double angle = currentPatch.getNormalByTT(tt);
 
 			mNormalVec = new Vector3d(Math.cos(angle), 0.0, Math.sin(angle));
@@ -158,14 +157,14 @@ public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
 			{
 				point.y = -point.y;		//Mirror
 				mNormalVec.z = -mNormalVec.z;
-				
+
 				point.y -= mExpand/2.0;
 			}
 			else
 			{
 				point.y += mExpand/2.0;
 			}
-			
+
 		}
 
 		if(++j > nrOfLengthSplits)
@@ -173,9 +172,6 @@ public class HotwireToolpathGenerator2 extends HotwireToolpathGenerator {
 			j=0;
 			i++;
 		}
-
-		//DEBUG
-//		System.out.printf("i:%f j:%f tt:%f x:%f y:%f z:%f\n", i, j, tt, point.x, 0.0, point.y);
 
 		return new Point3d(point.x,0.0,point.y);
 	}

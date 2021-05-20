@@ -1,7 +1,5 @@
 package cadcore;
 
-import com.sun.j3d.utils.shader.StringIO;
-
 import boardcad.i18n.LanguageResource;
 
 
@@ -26,7 +24,7 @@ public class UnitUtils {
 
 	public static final double SQUARECENTIMETER_PR_METER = 10000;
 	public static final double SQUAREMETER = SQUARECENTIMETER_PR_METER;
-	
+
 	public static final double CUBICCENTIMETER_PR_LITRE = 1000;
 	public static final double CUBICCENTIMETER_PR_US_PINT = 473;
 
@@ -35,7 +33,7 @@ public class UnitUtils {
 	public static final double POUNDS_PR_KG = 2.20462262;
 
 	private static int mSelectedUnit = INCHES;
-	
+
 	private static int mFractionAccuracy = 16;
 	private static int mNrOfDecimals = 2;
 
@@ -43,7 +41,7 @@ public class UnitUtils {
 	{
 		mSelectedUnit = unit;
 	}
-	
+
 	public static int getCurrentUnit()
 	{
 		return mSelectedUnit;
@@ -52,12 +50,12 @@ public class UnitUtils {
 	{
 		mFractionAccuracy = accuracy;
 	}
-	
+
 	public static void setNrOfDecimals(int nrOfDecimals)
 	{
 		mNrOfDecimals = nrOfDecimals;
 	}
-	
+
 	public static double convertInputStringToInternalLengthUnit(String string)
 	{
 		double value = 0;
@@ -71,7 +69,7 @@ public class UnitUtils {
 					String[] sa = string.split("\'");
 					if(sa.length > 1)
 					{
-						
+
 						string = sa[1];
 					}
 					else
@@ -84,7 +82,7 @@ public class UnitUtils {
 				if(string.contains("\""))
 				{
 					string = string.substring(0, string.indexOf("\""));
-				}			
+				}
 				value += convertCombinedStringToValue(string)*INCH;
 
 			}
@@ -137,12 +135,12 @@ public class UnitUtils {
 		}
 		catch(Exception e)
 		{
-			System.out.println("Exception in convertInputStringToInternalUnit(): " + e.toString()); 
+			System.out.println("Exception in convertInputStringToInternalUnit(): " + e.toString());
 		}
 
 		return value;
 	}
-	
+
 	public static double convertInputStringToInternalWeightUnit(String string)
 	{
 		double value = 0;
@@ -178,13 +176,13 @@ public class UnitUtils {
 					mul = 1;
 					break;
 				}
-			}	
-			value += convertCombinedStringToValue(string)*mul;	
-			
+			}
+			value += convertCombinedStringToValue(string)*mul;
+
 		}
 		catch(Exception e)
 		{
-			System.out.println("Exception in convertInputStringToInternalWeightUnit(): " + e.toString()); 
+			System.out.println("Exception in convertInputStringToInternalWeightUnit(): " + e.toString());
 		}
 
 		return value;
@@ -200,12 +198,12 @@ public class UnitUtils {
 			{
 				String[] sa = string.split("/");
 
-				weight = convertInputStringToInternalWeightUnit(sa[0]);	
-				volume = convertInputStringToInternalVolumeUnit("1"+sa[1]);		
+				weight = convertInputStringToInternalWeightUnit(sa[0]);
+				volume = convertInputStringToInternalVolumeUnit("1"+sa[1]);
 			}
 			else
 			{
-				weight = convertInputStringToInternalWeightUnit(string);	
+				weight = convertInputStringToInternalWeightUnit(string);
 
 				//Guess the most natural unit to use
 				if(string.endsWith("kg") || string.endsWith("kilo") || string.endsWith("kilogram"))
@@ -237,13 +235,13 @@ public class UnitUtils {
 						break;
 					}
 				}
-				
+
 			}
 
 		}
 		catch(Exception e)
 		{
-			System.out.println("Exception in convertInputStringToInternalWeightUnit(): " + e.toString()); 
+			System.out.println("Exception in convertInputStringToInternalWeightUnit(): " + e.toString());
 		}
 
 		double value = weight/volume;
@@ -270,15 +268,15 @@ public class UnitUtils {
 			{
 				mul = 28.3168466;	//Pound pr. cubic foot
 			}
-			
+
 			if(string.charAt(string.length()-1) == '3')
 				string = string.substring(0, string.length()-1);
 
-			value = convertCombinedStringToValue(string)*mul;	
+			value = convertCombinedStringToValue(string)*mul;
 		}
 		catch(Exception e)
 		{
-			System.out.println("Exception in convertInputStringToInternalVolumeUnit(): " + e.toString()); 
+			System.out.println("Exception in convertInputStringToInternalVolumeUnit(): " + e.toString());
 		}
 
 		return value;
@@ -289,8 +287,8 @@ public class UnitUtils {
 		double value = 0;
 
 		//to remove the first blanks
-		string=string.replaceAll("^\\s+", "");   
-		
+		string=string.replaceAll("^\\s+", "");
+
 		//Remove all nonnumerical characters at end of string
 		int n = string.length();
 		while(n > 0 && !Character.isDigit(string.charAt(n-1)) )
@@ -329,7 +327,7 @@ public class UnitUtils {
 		}
 		catch(Exception e)
 		{
-			System.out.println("Exception in UnitUtils.convertFractionStringToValue(): " + e.toString()); 
+			System.out.println("Exception in UnitUtils.convertFractionStringToValue(): " + e.toString());
 			return 0;
 		}
 
@@ -348,7 +346,7 @@ public class UnitUtils {
 		case INCHES:
 		{
 			String format = "";
-			
+
 			if(value < 0)
 			{
 				format = format.concat("-");
@@ -370,7 +368,7 @@ public class UnitUtils {
 			{
 				if(format.length() > 0)
 					format = format.concat(" ");
-					
+
 				format = format.concat("%2$d");
 			}
 
@@ -386,10 +384,10 @@ public class UnitUtils {
 
 				if(format.length() > 0)
 					format = format.concat(" ");
-				
+
 				format = format.concat("%3$d/%4$d");
 			}
-			
+
 			if(format.length() == 0 || format.equalsIgnoreCase("-") || format.endsWith("'"))
 			{
 				format = format.concat("0");
@@ -420,7 +418,7 @@ public class UnitUtils {
 		case INCHES_DECIMAL:
 		{
 			String format = "";
-			
+
 			if(value < 0)
 			{
 				format = format.concat("-");
@@ -447,7 +445,7 @@ public class UnitUtils {
 		}
 
 	}
-	
+
 	public static String convertAreaToCurrentUnit(double value)
 	{
 
@@ -458,7 +456,7 @@ public class UnitUtils {
 		{
 			return  String.format("%.3f %s", value*0.00107639104, LanguageResource.getString("UNITSQUAREFEET_STR") );
 		}
-		
+
 		default:
 		case CENTIMETERS:
 		case MILLIMETERS:
@@ -466,17 +464,17 @@ public class UnitUtils {
 		{
 			return  String.format("%.3f %s", value/(CENTIMETER_PR_METER*CENTIMETER_PR_METER), LanguageResource.getString("UNITSQUAREMETERS_STR") );
 		}
-		
+
 		}
 
 	}
-	
+
 	public static String convertVolumeToCurrentUnit(double value)
 	{
 
 		switch(mSelectedUnit)
 		{
-		
+
 		default:
 		case INCHES:
 		case INCHES_DECIMAL:
@@ -486,7 +484,7 @@ public class UnitUtils {
 		{
 			return  String.format("%.3f %s", value/(CUBICCENTIMETER_PR_LITRE), LanguageResource.getString("UNITLITERS_STR"));
 		}
-		
+
 		}
 
 	}
@@ -500,12 +498,12 @@ public class UnitUtils {
 		case INCHES_DECIMAL:
 		{
 			if(useSmallUnits && value < 1.0)
-				return  String.format("%.3f %s", value/0.0283495231, LanguageResource.getString("UNITOUNCE_STR") );				
+				return  String.format("%.3f %s", value/0.0283495231, LanguageResource.getString("UNITOUNCE_STR") );
 			else
 				return  String.format("%.3f %s", value/0.45359237, LanguageResource.getString("UNITPOUNDS_STR") );
 		}
-		
-		
+
+
 		default:
 		case CENTIMETERS:
 		case MILLIMETERS:
@@ -529,7 +527,7 @@ public class UnitUtils {
 		{
 			return  String.format("%.3f %s", value*62.4279606, LanguageResource.getString("UNITPOUNDSPRFOOT_STR") );
 		}
-		
+
 		default:
 		case CENTIMETERS:
 		case MILLIMETERS:
@@ -539,7 +537,7 @@ public class UnitUtils {
 		}
 		}
 	}
-	
+
 	public static String convertMomentOfInertiaToCurrentUnit(double value)
 	{
 		switch(mSelectedUnit)
@@ -549,7 +547,7 @@ public class UnitUtils {
 		{
 			return  String.format("%.3f %s", value*UnitUtils.POUNDS_PR_KG*UnitUtils.FEET_PR_METER*UnitUtils.FEET_PR_METER, LanguageResource.getString("UNITPOUNDSPRFOOTSQUARED_STR") );
 		}
-		
+
 		default:
 		case CENTIMETERS:
 		case MILLIMETERS:
@@ -557,7 +555,7 @@ public class UnitUtils {
 		{
 			return  String.format("%.3f %s", value, LanguageResource.getString("UNITKILOGRAMSPRMETERSQUARED_STR") );
 		}
-		}		
+		}
 	}
-		
+
 }

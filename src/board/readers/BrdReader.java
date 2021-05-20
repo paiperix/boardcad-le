@@ -119,8 +119,6 @@ public class BrdReader {
 			String strLine = cFile.readLine();
 
 			while (strLine != null) {
-				System.out.println(strLine);
-
 				if (strLine.length() < 3) {
 					strLine = cFile.readLine();
 					continue;
@@ -131,10 +129,7 @@ public class BrdReader {
 					continue;
 				}
 
-				if (strLine.startsWith("p") == false) // so new id
-														// "noseAngelWings"
-														// doesn't mess things
-														// up
+				if (strLine.startsWith("p") == false) // so new id "noseAngelWings" doesn't mess things up
 				{
 					strLine = cFile.readLine();
 					continue;
@@ -320,7 +315,6 @@ public class BrdReader {
 					strLine = cFile.readLine();
 
 					while (strLine.startsWith("(p36")) {
-						System.out.println(strLine);
 						BezierBoardCrossSection crossSection = new BezierBoardCrossSection();
 
 						brd.getCrossSections().add(crossSection);

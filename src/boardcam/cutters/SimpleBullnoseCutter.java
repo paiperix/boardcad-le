@@ -6,16 +6,8 @@ import board.BezierBoard;
 
 import java.awt.geom.Point2D;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.LineArray;
-import javax.media.j3d.Shape3D;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector2d;
-import javax.vecmath.Vector3d;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
 import boardcam.MachineConfig;
 import boardcad.settings.Setting;

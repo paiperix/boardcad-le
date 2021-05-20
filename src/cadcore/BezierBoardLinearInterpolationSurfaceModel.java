@@ -2,17 +2,17 @@ package cadcore;
 
 import board.BezierBoard;
 
-import javax.vecmath.Point3d;
+import org.jogamp.vecmath.*;
 
 
 class BezierBoardLinearInterpolationSurfaceModel extends AbstractBezierBoardSurfaceModel
 {
 	public Point3d getDeckAt(BezierBoard brd, final double x, final double y)
-	{		
+	{
 		//Calculate scales
 		double widthAtPos = brd.getWidthAtPos(x);
 		double thicknessAtPos = brd.getThicknessAtPos(x);
-		
+
 		//Get the position from function since we cheat with the crosssections at tip and tail
 		double pos1 = brd.getPreviousCrossSectionPos(x);
 		double pos2 = brd.getNextCrossSectionPos(x);
@@ -41,7 +41,7 @@ class BezierBoardLinearInterpolationSurfaceModel extends AbstractBezierBoardSurf
 
 		return new Point3d(x,y,z);
 	}
-	
+
 
 	public Point3d getBottomAt(final BezierBoard brd, final double x, final double y)
 	{
@@ -75,7 +75,7 @@ class BezierBoardLinearInterpolationSurfaceModel extends AbstractBezierBoardSurf
 
 		return new Point3d(x,y,z);
 	}
-	
+
 	public Point3d getPointAt(BezierBoard brd, final double x, final double s, final double minAngle, final double maxAngle, boolean useMinimumAngleOnSharpCorners)
 	{
 		return null;
@@ -85,23 +85,21 @@ class BezierBoardLinearInterpolationSurfaceModel extends AbstractBezierBoardSurf
 	{
 		double a = 0.01;
 		double b = (brd.getWidthAtPos(x)/2) - 0.01;
-	
+
 	    final MathUtils.Function deckFunc = new MathUtils.Function(){public double f(double y){return getDeckAt(brd, x,y).z;}};
-		
+
 		double deckIntegral =  MathUtils.Integral.getIntegral(deckFunc, a, b, splits);
-	
+
 		final MathUtils.Function bottomFunc = new MathUtils.Function(){public double f(double y){return getBottomAt(brd, x,y).z;}};
-		
+
 		double bottomIntegral =  MathUtils.Integral.getIntegral(bottomFunc, a, b, splits);
-		
+
 		double area = deckIntegral-bottomIntegral;
 		area *= 2.0f;
-		
+
 		if(area < 0)
 			area = 0.0;
 
-//		System.out.printf("getCrosssectionAreaAt() x:%f area:%f\n", x, area);		
-		
 		return area;
 	}
 

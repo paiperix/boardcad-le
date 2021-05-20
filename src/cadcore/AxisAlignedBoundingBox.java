@@ -1,8 +1,8 @@
 package cadcore;
 
-import javax.vecmath.Point3d;
+import org.jogamp.vecmath.*;
 
-public class AxisAlignedBoundingBox 
+public class AxisAlignedBoundingBox
 {
 		private Point3d mMin;
 		private Point3d mMax;
@@ -13,12 +13,12 @@ public class AxisAlignedBoundingBox
 			mMax = new Point3d(minX, minY, minZ);
 		}
 
-		public AxisAlignedBoundingBox(Point3d aMin, Point3d aMax) 
+		public AxisAlignedBoundingBox(Point3d aMin, Point3d aMax)
 		{
 			mMin = aMin;
 			mMax = aMax;
 		}
-		
+
 		public double getWidth()
 		{
 			return mMax.y - mMin.y;
@@ -28,12 +28,12 @@ public class AxisAlignedBoundingBox
 		{
 			return mMax.x - mMin.x;
 		}
-		
+
 		public double getHeight()
 		{
 			return mMax.z - mMin.z;
 		}
-		
+
 		public double getTop()
 		{
 			return mMax.z;
@@ -43,17 +43,17 @@ public class AxisAlignedBoundingBox
 		{
 			return mMin.z;
 		}
-		
+
 		public double getMinX()
 		{
 			return mMin.x;
 		}
-		
+
 		public double getMinY()
 		{
 			return mMin.y;
 		}
-		
+
 		public double getMinZ()
 		{
 			return mMin.z;
@@ -63,12 +63,12 @@ public class AxisAlignedBoundingBox
 		{
 			return mMax.x;
 		}
-		
+
 		public double getMaxY()
 		{
 			return mMax.y;
 		}
-		
+
 		public double getMaxZ()
 		{
 			return mMax.z;
@@ -101,16 +101,11 @@ public class AxisAlignedBoundingBox
 			return d <= r * r;
 
 		}
-		
-		public boolean isIntersectingHorizontalDisc(Point3d pos, double r) 
-		{
-//			System.out.printf("isIntersectingHorizontalDisc() pos: %f, %f, %f radius: %f\n", pos.x, pos.y, pos.z, r);
-//
-//			System.out.printf("isIntersectingHorizontalDisc() min: %f, %f, %f max: %f, %f, %f\n", mMin.x, mMin.y, mMin.z, mMax.x, mMax.y, mMax.z);
 
+		public boolean isIntersectingHorizontalDisc(Point3d pos, double r)
+		{
 			if (pos.z < mMin.z || pos.z > mMax.z)
 			{
-//				System.out.printf("isIntersectingHorizontalDisc() z %f outside of range %f to %f\n", pos.z, mMin.z, mMax.z);
 				return false;
 			}
 
@@ -123,7 +118,7 @@ public class AxisAlignedBoundingBox
 				s = pos.x - mMax.x;
 			}
 			d += s * s;
-			
+
 			s = 0;
 			if (pos.y < mMin.y) {
 				s = pos.y - mMin.y;
@@ -166,25 +161,25 @@ public class AxisAlignedBoundingBox
 			return d <= r * r;
 
 		}
-		
+
 		public boolean isIntersectingVerticalCylinder(Point3d pos, double r, double height) {
 			//Check if it overlaps height
 			if (pos.z + height < mMin.z || pos.z > mMax.z)
 			{
 				return false;
 			}
-			
+
 			return isIntersectingHorizontalDisc(new Point3d(pos.x, pos.y, (mMin.z+mMax.z)/2), r);
 		}
-		
-		public boolean isIntersectingHorizontalCylinder(Point3d pos, double r, double length) 
+
+		public boolean isIntersectingHorizontalCylinder(Point3d pos, double r, double length)
 		{
 			//Check if it overlaps lengthwise
 			if (pos.x + length < mMin.x || pos.x > mMax.x)
 			{
 				return false;
 			}
-			
+
 			return isIntersectingVerticalDisc(new Point3d((mMin.x+mMax.x)/2, pos.y, pos.z), r);
 		}
 

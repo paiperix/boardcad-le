@@ -2,8 +2,8 @@ package boardcad.gui.jdk;
 
 import java.util.Vector;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import org.jogamp.vecmath.*;
+import org.jogamp.java3d.*;
 
 import board.BezierBoard;
 

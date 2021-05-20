@@ -2,7 +2,7 @@ package boardcam.writers;
 
 import java.io.PrintStream;
 
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 public abstract class AbstractMachineWriter {
 	abstract public void writeMetric(PrintStream stream);
@@ -20,7 +20,7 @@ public abstract class AbstractMachineWriter {
 	abstract public void writeCoordinate(PrintStream stream, double[] coordinate);
 
 	public void writeZCoordinate(PrintStream stream, double z){};
-	
+
 	public void writeHome(PrintStream stream, double[] coordinate){}
 	public void writeHomeRef(PrintStream stream, double[] coordinate){}
 

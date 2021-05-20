@@ -157,11 +157,11 @@ public class PrintBrd extends JComponent implements Printable {
 				retPage.setOrientation(PageFormat.PORTRAIT);
 			}
 		}
-		System.out.printf("Pre validation Page width: %f, page height: %f, orientation: %s, Margins x:%f, y:%f\n", retPage.getImageableWidth(), retPage.getImageableHeight(), retPage.getOrientation() == PageFormat.LANDSCAPE?"Landscape":"Portrait", retPage.getImageableX(), retPage.getImageableY());
+		//System.out.printf("Pre validation Page width: %f, page height: %f, orientation: %s, Margins x:%f, y:%f\n", retPage.getImageableWidth(), retPage.getImageableHeight(), retPage.getOrientation() == PageFormat.LANDSCAPE?"Landscape":"Portrait", retPage.getImageableX(), retPage.getImageableY());
 
 		retPage = printJob.validatePage(retPage);
 
-		System.out.printf("Page width: %f, page height: %f, orientation: %s, Margins x:%f, y:%f\n", retPage.getImageableWidth(), retPage.getImageableHeight(), retPage.getOrientation() == PageFormat.LANDSCAPE?"Landscape":"Portrait", retPage.getImageableX(), retPage.getImageableY());
+		//System.out.printf("Page width: %f, page height: %f, orientation: %s, Margins x:%f, y:%f\n", retPage.getImageableWidth(), retPage.getImageableHeight(), retPage.getOrientation() == PageFormat.LANDSCAPE?"Landscape":"Portrait", retPage.getImageableX(), retPage.getImageableY());
 
 		printJob.setPrintable(printable,retPage);
 

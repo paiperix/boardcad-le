@@ -1,7 +1,8 @@
 package boardcam.writers;
 
 import java.io.PrintStream;
-import javax.vecmath.Vector3d;
+
+import org.jogamp.vecmath.*;
 
 import boardcam.writers.AbstractMachineWriter;
 
@@ -24,7 +25,7 @@ public class AtuaCoresMachineWriter extends AbstractMachineWriter {
 
 	@Override
 	public void writeComment(PrintStream stream, String comment) {
-		stream.printf("%s\n", comment);		
+		stream.printf("%s\n", comment);
 	}
 
 	@Override

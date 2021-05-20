@@ -2,9 +2,8 @@ package boardcam.cutters;
 
 import board.AbstractBoard;
 
-import javax.media.j3d.BranchGroup;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
 
 public class FlatCutter extends AbstractCutter

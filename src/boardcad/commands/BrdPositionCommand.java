@@ -5,7 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 import boardcad.gui.jdk.BoardEdit;
 import boardcad.gui.jdk.Machine2DView;
@@ -16,13 +16,13 @@ public class BrdPositionCommand extends BrdInputCommand
 	double mOriginalOffsetY;
 	Point mPressedPos;
 	boolean mButtonPressed = true;
-	
+
 	BrdPanCommand mPanCommand = new BrdPanCommand();
 	BrdZoomCommand mZoomCommand = new BrdZoomCommand();
 	boolean mIsPaning = false;
-	
+
 	Machine2DView mView = null;
-	
+
 	public BrdPositionCommand(Machine2DView view)
 	{
 		mView = view;
@@ -33,7 +33,7 @@ public class BrdPositionCommand extends BrdInputCommand
 	{
 		if(!mView.mShowDeck)
 			return;
-		
+
 		Point pos = event.getPoint();
 		Vector3d deckOffset = mView.mConfig.getBlankHoldingSystem().getBoardDeckOffsetPos();
 		mOriginalOffsetX = deckOffset.x;
@@ -50,22 +50,19 @@ public class BrdPositionCommand extends BrdInputCommand
 			mPanCommand.onMouseDragged(source, event);
 			return;
 		}
-		
+
 		if(!mView.mShowDeck)
 			return;
-					
+
 		if(!mButtonPressed)
 			return;
-		
+
 		Point pos = event.getPoint();
-		
+
 		double offsetX = mOriginalOffsetX + (((pos.x - mPressedPos.x))*(event.isAltDown()?0.1:1.0)/mView.mScale);
 		double offsetY = mOriginalOffsetY - (((pos.y - mPressedPos.y))*(event.isAltDown()?0.1:1.0)/mView.mScale);
-//		System.out.printf("offsetX: %f, offsetY: %f\n",offsetX, offsetY);
 		mView.mConfig.getBlankHoldingSystem().setBoardDeckOffsetPos(new Vector3d(offsetX, 0.0, offsetY));
 
-		//System.out.printf("onMouseDragged mView.mConfig:%s this:%s\n", mView.mConfig.toString(), this.toString());
-		
 		source.repaint();
 	}
 
@@ -73,7 +70,7 @@ public class BrdPositionCommand extends BrdInputCommand
 	{
 		mButtonPressed = false;
 	}
-	
+
 	public void onMouseWheelMoved(BoardEdit source, MouseWheelEvent event)
 	{
 		int scroll = event.getWheelRotation();
@@ -87,7 +84,7 @@ public class BrdPositionCommand extends BrdInputCommand
 			}
 			else
 			{
-				mZoomCommand.zoomOutStep(source, event.isAltDown());				
+				mZoomCommand.zoomOutStep(source, event.isAltDown());
 			}
 
 		}
@@ -105,7 +102,7 @@ public class BrdPositionCommand extends BrdInputCommand
 		mPanCommand.onLeftMouseButtonReleased(source, event);
 		mIsPaning = false;
 	}
-	
+
 	public boolean onKeyEvent(BoardEdit source, KeyEvent event)
 	{
 
@@ -113,8 +110,6 @@ public class BrdPositionCommand extends BrdInputCommand
 			return false;
 
 		int key = event.getKeyCode();
-		
-//		System.out.printf("onKeyEvent mView.mConfig:%s this:%s\n", mView.mConfig.toString(), this.toString());
 
 		if(key == KeyEvent.VK_LEFT)
 		{

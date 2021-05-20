@@ -2,20 +2,20 @@ package boardcam.writers;
 
 import java.io.PrintStream;
 
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 import boardcam.MachineConfig;
 import boardcam.toolpathgenerators.ext.CoordinateScaling;
 
-public class GCodeWriter extends AbstractMachineWriter{	
+public class GCodeWriter extends AbstractMachineWriter{
 
 	private static String  mAxis = "XYZAF";
 	private double mLastSpeed = 0.0;
-	
+
 	public GCodeWriter()
 	{
 	}
-	
+
 	public void writeMetric(PrintStream stream)
 	{
 		stream.printf("G21\n");
@@ -38,9 +38,9 @@ public class GCodeWriter extends AbstractMachineWriter{
 			stream.printf("(%s)\n", comment);
 			return;
 		}
-		
+
 		String[] list = comment.split("\n");
-		
+
 		for(int i = 0; i < list.length; i++)
 		{
 			stream.printf("(%s)\n", list[i]);
@@ -93,14 +93,14 @@ public class GCodeWriter extends AbstractMachineWriter{
 	public void writeCoordinate(PrintStream stream, double x, double y, double z)
 	{
 //		System.out.printf("GCodeWriter.writeCoordinate X%4.4f Y%4.4f Z%4.4f\n", x, y, z);
-		
+
 		if(Double.isInfinite(x) || Double.isInfinite(y) || Double.isInfinite(z))
 		{
 			System.out.printf("GCodeWriter.writeCoordinate INFINITE VALUE X%4.4f Y%4.4f Z%4.4f\n", x, y, z);
 		}
 		if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z))
 		{
-			System.out.printf("GCodeWriter.writeCoordinate NAN VALUE X%4.4f Y%4.4f Z%4.4f\n", x, y, z);			
+			System.out.printf("GCodeWriter.writeCoordinate NAN VALUE X%4.4f Y%4.4f Z%4.4f\n", x, y, z);
 		}
 
 		stream.printf("X%4.4f Y%4.4f Z%4.4f\n", x, y, z);
@@ -113,7 +113,7 @@ public class GCodeWriter extends AbstractMachineWriter{
 
 	public void writeCoordinate(PrintStream stream, double[] coordinate)
 	{
-		if(coordinate.length == 3)	
+		if(coordinate.length == 3)
 		{
 			this.writeCoordinate(stream, coordinate[0],coordinate[1],coordinate[2]);	//Better performance in case of 3 axis
 		}
@@ -126,7 +126,7 @@ public class GCodeWriter extends AbstractMachineWriter{
 			stream.printf("\n");
 		}
 	}
-	
+
 	public void writeZCoordinate(PrintStream stream, double z)
 	{
 		stream.printf("Z%4.4f\n", z);
@@ -137,24 +137,24 @@ public class GCodeWriter extends AbstractMachineWriter{
 		stream.printf("G28 ");
 		if(coordinate == null)
 		{
-			stream.printf("\n");			
+			stream.printf("\n");
 		}
 		else
 		{
 			writeCoordinate(stream, coordinate);
 		}
 	}
-	
+
 	public void writeHomeRef(PrintStream stream, double[] coordinate)
 	{
 		stream.printf("G28.1 ");
 		if(coordinate == null)
 		{
-			stream.printf("\n");			
+			stream.printf("\n");
 		}
 		else
 		{
 			writeCoordinate(stream, coordinate);
-		}		
+		}
 	}
 }

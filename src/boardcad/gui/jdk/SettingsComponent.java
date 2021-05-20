@@ -196,9 +196,6 @@ class SettingsComponent extends JComponent
 
 					final Object oldVal = mSettings.getValue(row);
 					final String oldClassName = oldVal.getClass().getName();
-//						final String newClassName = value.getClass().getName();
-//						DEBUG					System.out.println("old: " + oldClassName + " new: "+ newClassName);
-
 					try{
 						if(oldClassName.compareTo(Double.class.getName()) == 0)
 						{

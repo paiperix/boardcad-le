@@ -2,10 +2,14 @@ package boardcad.gui.jdk;
 
 import java.util.Vector;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.IndexedQuadArray;
+import org.jogamp.java3d.QuadArray;
+import org.jogamp.vecmath.*;
 
 import board.BezierBoard;
+
+
 
 public class FasterBrd3DModelGenerator {
 
@@ -13,14 +17,9 @@ public class FasterBrd3DModelGenerator {
 	Vector<Thread> mThreads = new Vector<Thread>();
 	boolean mInitialModelRun = true;
 
-	public void update3DModel(BezierBoard brd, Shape3D model, int numTasks) {
-		if (brd.isEmpty())
-			return;
-
+	public void update3DModel(BezierBoard brd, Shape3D model, int numTasks, boolean forceRefresh) {
 		mCancelExecuting = true;
-
 		System.out.println("BezierBoard.update3DModel() cancel execution, waiting for threads");
-
 		for (Thread thread : mThreads) {
 			try {
 				thread.join();
@@ -28,10 +27,17 @@ public class FasterBrd3DModelGenerator {
 				System.out.println("BezierBoard.update3DModel() InterruptedException");
 			}
 		}
-
 		mThreads.clear();
 
 		System.out.println("BezierBoard.update3DModel() Done waiting ");
+
+		if(forceRefresh){
+			model.removeAllGeometries();
+			mInitialModelRun = true;
+		}
+
+		if (brd.isEmpty())
+			return;
 
 		if (model.numGeometries() != numTasks) {
 			System.out.printf("BezierBoard.update3DModel() Need initial run geom: %d tasks: %d\n", model.numGeometries(), numTasks);

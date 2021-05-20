@@ -20,7 +20,6 @@ public class BrdWriter {
 	{
 		try
 		{
-			System.out.printf("Filename %s",  aFilename);
 			aFilename = FileTools.setExtension(aFilename, "brd");
 
 			File file = new File(aFilename);

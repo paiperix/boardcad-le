@@ -66,6 +66,8 @@ public class BoardCADSettings extends CategorizedSettings
 	static private final String FRACTIONACCURACY = "fractionaccuracy";
 	static private final String ROCKERSTICK = "rockerstick";
 	static private final String OFFSETINTERPLOATION = "offsetinterpolation";
+	static private final String NUM3DPROCESSES = "num3Dprocesses";
+
 
 	static private BoardCADSettings mInstance = null;
 
@@ -239,9 +241,10 @@ public class BoardCADSettings extends CategorizedSettings
 					}
 				});
 
-		mMiscSettings.addBoolean(ROCKERSTICK, false, LanguageResource.getString("ROCKERSTICK_STR"));
+		mMiscSettings.addBoolean(ROCKERSTICK, true, LanguageResource.getString("ROCKERSTICK_STR"));
 
-		mMiscSettings.addBoolean(OFFSETINTERPLOATION, false, LanguageResource.getString("OFFSETINTERPLOATION_STR"));
+		mMiscSettings.addBoolean(OFFSETINTERPLOATION, true, LanguageResource.getString("OFFSETINTERPLOATION_STR"));
+		mMiscSettings.addInteger(NUM3DPROCESSES, 8, LanguageResource.getString("NUM3DPROCESSES_STR"));
 	}
 
 	public void setDefaultTheme() {
@@ -552,6 +555,12 @@ public class BoardCADSettings extends CategorizedSettings
 	public boolean isUsingOffsetInterpolation() {
 		return mMiscSettings.getBoolean(OFFSETINTERPLOATION);
 	}
+
+	public int getNumberOf3DProcesses() {
+		return mMiscSettings.getInt(NUM3DPROCESSES);
+	}
+
+
 
 	public double getBaseLineThickness() {
 		return mSizeSettings.getDouble(BASELINETHICKNESS);

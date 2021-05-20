@@ -193,15 +193,12 @@ public class BezierKnot extends Object implements Cloneable
 		double sy = next.y - getEndPoint().y;
 
 		double pointAngle = getTangentToPrevAngle();
-//		System.out.printf("pointAngle:%f ", pointAngle);
 
 		double rotAngle = angle - pointAngle;
-//		System.out.printf("rotAngle:%f ", rotAngle);
 
 		double x_diff = (double)((Math.cos(rotAngle)*sx - Math.sin(rotAngle)*sy) - sx);
 		double y_diff = (double)((Math.sin(rotAngle)*sx + Math.cos(rotAngle)*sy) - sy);
 
-//		System.out.printf("x_diff:%f y_diff:%f\n", x_diff, y_diff);
 
 		setTangentToPrev(next.x+x_diff, next.y+y_diff);
 		onChange();
@@ -223,15 +220,11 @@ public class BezierKnot extends Object implements Cloneable
 		double sy = next.y - getEndPoint().y;
 
 		double pointAngle = getTangentToNextAngle();
-//		System.out.printf("pointAngle:%f ", pointAngle);
 
 		double rotAngle = angle - pointAngle;
-//		System.out.printf("rotAngle:%f ", rotAngle);
 
 		double x_diff = (double)((Math.cos(rotAngle)*sx - Math.sin(rotAngle)*sy) - sx);
 		double y_diff = (double)((Math.sin(rotAngle)*sx + Math.cos(rotAngle)*sy) - sy);
-
-//		System.out.printf("x_diff:%f y_diff:%f\n", x_diff, y_diff);
 
 		setTangentToNext(next.x+x_diff, next.y+y_diff);
 		onChange();

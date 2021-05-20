@@ -319,7 +319,6 @@ public class Settings {
 			final Setting setting = e.getValue();
 
 			final String className = setting.mValue.getClass().getName();
-
 			if(className.compareTo(String.class.getName()) == 0)
 			{
 				setting.mValue = prefs.get(e.getKey(), (String)setting.mValue);
@@ -358,10 +357,8 @@ public class Settings {
 			}
 			else
 			{
-
+				System.out.printf("Settings::getPreferences() unhandled setting:%s\n", setting.toString());
 			}
-
-//			System.out.printf("Settings::getPreferences() setting:%s\n", setting.toString());
 
 			signalSettings.add(setting);
 
@@ -439,10 +436,9 @@ public class Settings {
 			}
 			else
 			{
-
+				System.out.printf("Settings::putPreferences() Unhandled setting:%s\n", setting.toString());
 			}
 
-//			System.out.printf("Settings::putPreferences() setting:%s\n", setting.toString());
 		}
 
 	}

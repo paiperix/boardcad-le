@@ -15,7 +15,8 @@ import java.awt.geom.Line2D;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
-import javax.vecmath.*;
+
+import org.jogamp.vecmath.*;
 
 import board.BezierBoard;
 import boardcad.commands.BrdCommand;

@@ -156,15 +156,12 @@ public class BezierCurve implements Cloneable, BezierKnotChangeListener {
 		// x. You first have to use x to solve for t and then you solve t for y.
 
 		// One useful way to do this is to take a guess for a t value. See what
-		// x
-		// you get. Note the error. Reduce the error and try again. Keep this up
+		// x you get. Note the error. Reduce the error and try again. Keep this up
 		// till you have a root to acceptable accuracy.
 		//
 		// A good first guess is to normalize x so it ranges from 0 to 1 and
-		// then
-		// simply guess that x = t. This will be fairly close for curves that
-		// aren't
-		// bent very much. And a useful guess for ALL spline curves.
+		// then simply guess that x = t. This will be fairly close for curves that
+		// aren't bent very much. And a useful guess for ALL spline curves.
 
 		// Guess initial t
 		double tn = start_t;
@@ -186,12 +183,9 @@ public class BezierCurve implements Cloneable, BezierKnotChangeListener {
 		// x' = 3At^2 +2Bt + C
 		//
 		// And the dt/dx slope will be its inverse or 1/(3At^2 + 2Bt +C)
+		// This is easily calculated. 
 		//
-		// This is easily calculated. We'll have code and an example in just a
-		// bit.
-		//
-		// The next guess will be...
-		//
+		// The next guess will be
 		// nextguess = currentt + (curentx - x)(currentslope)
 		double xn = getXValue(tn);
 
@@ -208,33 +202,15 @@ public class BezierCurve implements Cloneable, BezierKnotChangeListener {
 			xn = getXValue(tn);
 
 			error = x - xn;
-			/*
-			 * if(Math.abs(error) > Math.abs(lasterror))
-			 * System.out.println("getTForX(): increasing error: " + error +
-			 * " last error:" + lasterror + " slope:" + currentSlope + " tn:" +
-			 * tn);
-			 * 
-			 * lasterror = error;
-			 */}
+		}
 
 		// Sanity check
 		if (tn < 0 || tn > 1 || Double.isNaN(tn)
 				|| n >= BezierSpline.POS_MAX_ITERATIONS
 				|| Math.abs(error) > BezierSpline.POS_TOLERANCE) {
-			// System.out.printf("getTForX(): converge failed, error: %f t:%f\n",
-			// Math.abs(xn-x), tn);
 			tn = getTForX(x, 0, 1, BezierSpline.MIN_MAX_SPLITS);
 			xn = getXValue(tn);
-			/*
-			 * Debug if(Math.abs(xn-x) < POS_TOLERANCE) { st++; } else { tf++;
-			 * System
-			 * .out.printf("getTForX() failed, error:%f t:%f ct:%f: st:%f tf:%f\n"
-			 * , Math.abs(xn-x), tn , ct , st , tf); }
-			 */
 		}
-		/*
-		 * Debug else { ct++; }
-		 */
 		return tn;
 	}
 

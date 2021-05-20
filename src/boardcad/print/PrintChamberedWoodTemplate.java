@@ -45,7 +45,8 @@ import java.awt.print.PrinterJob;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.vecmath.Point3d;
+
+import org.jogamp.vecmath.*;
 
 import cadcore.UnitUtils;
 
@@ -60,7 +61,7 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 	static final long serialVersionUID=1L;
 
 	private PageFormat myPageFormat;
-	
+
 	private Font mPrintFontNormal = new Font("Dialog", Font.PLAIN, 10);
 
 	private boolean mPaintGrid = true;
@@ -69,7 +70,7 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 	private double mDeckAndBottomMinimumThickness = 2.54/4;
 	private boolean mDrawChambering = true;
 	private boolean mDrawAlignmentMarks = true;
-	
+
 
 	/** Creates and initializes the ClickMe component. */
 
@@ -94,7 +95,7 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 	}
 
 
-	 public void printTemplate(boolean paintGrid, double offsetFromCenter, double endOffsetFromCenter, double plankThickness, double deckAndBottomMinimumThickness, boolean drawChambering, boolean drawAlignmentMarks, boolean printMultiple) 
+	 public void printTemplate(boolean paintGrid, double offsetFromCenter, double endOffsetFromCenter, double plankThickness, double deckAndBottomMinimumThickness, boolean drawChambering, boolean drawAlignmentMarks, boolean printMultiple)
 	 {
 		mPaintGrid = paintGrid;
 		mPlankThickness = plankThickness;
@@ -102,7 +103,7 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 		mDrawChambering = drawChambering;
 		mDrawAlignmentMarks = drawAlignmentMarks;
 		mOffsetFromCenter = offsetFromCenter;
-		 
+
 		PrinterJob printJob = PrinterJob.getPrinterJob();
 
 		myPageFormat = PrintBrd.getPageFormat(this, printJob, BoardCAD.getInstance().getCurrentBrd().getMaxRocker());
@@ -113,15 +114,15 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 		{
 			try {
 				printJob.print();
-	
+
 			} catch(PrinterException pe) {
-	
+
 				System.out.println("Error printing: " + pe);
-	
+
 			}
-			
+
 			mOffsetFromCenter += plankThickness;
-			
+
 		}while(printMultiple && mOffsetFromCenter < endOffsetFromCenter);
 
 	}
@@ -174,7 +175,7 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 
 		if(BoardCAD.getInstance().getCurrentBrd() == null || BoardCAD.getInstance().getCurrentBrd().isEmpty())
 			return;
-		
+
 		JavaDraw jd = new JavaDraw(g2d);
 
 		PageFormat format = new PageFormat();
@@ -195,115 +196,115 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 	public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 
 
-	
+
 			/*DEBUG!!!
-	
+
 	if(pageIndex >=2)
-	
+
 	{
-	
+
 	isPrintingProfile = false;
-	
+
 	isPrintingOutline = false;
-	
+
 	return NO_SUCH_PAGE;
-	
+
 	}
-	
+
 			 */
-		
+
 		if(printTemplate(pageFormat, pageIndex, g) == 0)
 			return PAGE_EXISTS;
-	
+
 		return NO_SUCH_PAGE;
-	
+
 	}
-	
+
 
 	int printTemplate(PageFormat pageFormat, int pageIndex, Graphics g)
 	{
 		int widthInPages = (int)(BoardCAD.getInstance().getCurrentBrd().getLength()
 				/ ((pageFormat.getImageableWidth()/72)*2.54) ) + 1;
-		
+
 		int heightInPages = (int)(BoardCAD.getInstance().getCurrentBrd().getMaxRocker()
 				/ ((pageFormat.getImageableHeight()/72)*2.54)) + 1;
-		
+
 		int xm = (int)pageFormat.getImageableX();
 		int ym = (int)pageFormat.getImageableY();
-		
+
 		if (pageIndex < widthInPages*heightInPages) {
-		
+
 			Graphics2D g2d = (Graphics2D)g;
 			g2d.setFont(mPrintFontNormal);
-		
+
 			FontMetrics metrics = g2d.getFontMetrics(mPrintFontNormal);
 			// get the height of a line of text in this font and render context
 			int hgt = metrics.getHeight();
-		
+
 			String mModelString = LanguageResource.getString("BOARDFILE_STR") + BoardCAD.getInstance().getCurrentBrd().getFilename() + LanguageResource.getString("PROFILE_STR");
 			String mRowString = LanguageResource.getString("ROW_STR") + ((pageIndex%widthInPages)+1) + "/" + widthInPages;
 			String mColumnString = LanguageResource.getString("BOARDFILE_STR")+ ((pageIndex/widthInPages)+1) + "/" + heightInPages;
-		
+
 			g2d.setColor(Color.BLACK);
 			//g2d.setStroke(new BasicStroke((float)(1.0/mScale)));
 			g.drawString(mModelString, xm, ym+(hgt+2)*1);
 			g.drawString(mRowString, xm, ym+(hgt+2)*2);
 			g.drawString(mColumnString, xm, ym+(hgt+2)*3);
-		
+
 			g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-				
+
 			JavaDraw jd = new JavaDraw(g2d);
-			
+
 			BezierBoardDrawUtil.printProfile(jd,
 					-pageFormat.getImageableWidth()*(pageIndex%widthInPages),
 					-pageFormat.getImageableHeight()*(pageIndex/widthInPages), 72/2.54, 0.0, mPaintGrid,BoardCAD.getInstance().getCurrentBrd(), mOffsetFromCenter, 0.0, false, 0.0, 0.0);
-			
+
 			if(mDrawChambering)
 			{
-				printChambering(jd, 
+				printChambering(jd,
 						-pageFormat.getImageableWidth()*(pageIndex%widthInPages),
 						-pageFormat.getImageableHeight()*(pageIndex/widthInPages), 72/2.54, 0.0, BoardCAD.getInstance().getCurrentBrd(), mOffsetFromCenter, mPlankThickness, mDeckAndBottomMinimumThickness);
 				BezierBoardDrawUtil.printProfile(jd, new Color(200,200,200), 1.0,
 						-pageFormat.getImageableWidth()*(pageIndex%widthInPages),
 						-pageFormat.getImageableHeight()*(pageIndex/widthInPages), 72/2.54, 0.0, false, BoardCAD.getInstance().getCurrentBrd(), mOffsetFromCenter + mPlankThickness, 0.0, false, 0.0, 0.0);
 			}
-			
+
 			if(mDrawAlignmentMarks)
 			{
-				printAlignmentMarks(jd, 
+				printAlignmentMarks(jd,
 						-pageFormat.getImageableWidth()*(pageIndex%widthInPages),
 						-pageFormat.getImageableHeight()*(pageIndex/widthInPages), 72/2.54, 0.0, BoardCAD.getInstance().getCurrentBrd(), mOffsetFromCenter, mPlankThickness, mDeckAndBottomMinimumThickness);
 			}
-			
+
 			return 0;
 		}
-		
+
 		return -1;
 	}
-	
-	public static void printChambering(AbstractDraw d, double offsetX, double offsetY, double scale, double rotation, BezierBoard brd, double centerOffset, double plankThickness, double deckAndBottomMinimumThickness)
-	{	
-		if(brd.isEmpty()) {
-			return;	
-		}
-		
-		System.out.printf("\nCHAMBERING\n");
 
-		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(d, offsetX, offsetY, scale, rotation);	
+	public static void printChambering(AbstractDraw d, double offsetX, double offsetY, double scale, double rotation, BezierBoard brd, double centerOffset, double plankThickness, double deckAndBottomMinimumThickness)
+	{
+		if(brd.isEmpty()) {
+			return;
+		}
+
+		//System.out.printf("\nCHAMBERING\n");
+
+		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(d, offsetX, offsetY, scale, rotation);
 		Stroke stroke = new BasicStroke((float)(2.0/scale));
 		d.setStroke(stroke);
 		d.setColor(new Color(0,0,0));
-			
+
 		GeneralPath path = new GeneralPath();
-				
+
 		double span = (UnitUtils.FOOT/2.0) - 2.0;
 		int nrOfSteps = 20;
 		double step = span/nrOfSteps;
-		
+
 		int nrOfHoles = 2*(int)((brd.getLength()/UnitUtils.FOOT) );
-		
+
 		double y = centerOffset + plankThickness;
-		
+
 		//For each foot of board
 		double bottom;
 		double deck;
@@ -320,12 +321,12 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 				deck -= deckAndBottomMinimumThickness;
 				bottom = brd.getBottomAt(x, y);
 				bottom += deckAndBottomMinimumThickness;
-				
+
 				if(bottom > deck)
 				{
 					if(first){
 						x += step;
-						continue;												
+						continue;
 					}
 					else
 					{
@@ -342,12 +343,12 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 				}
 				x += step;
 			}
-		
+
 			if(first == true)
 			{
 				continue;
 			}
-			
+
 			for(; n > 0; n--)
 			{
 				x -= step;
@@ -363,28 +364,28 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 			}
 			path.closePath();
 			d.draw(path);
-			
+
 			path.reset();
 		}
 
-		d.setTransform(savedTransform);		
+		d.setTransform(savedTransform);
 	}
 
 	public static void printAlignmentMarks(AbstractDraw d, double offsetX, double offsetY, double scale, double rotation, BezierBoard brd, double centerOffset, double plankThickness, double deckAndBottomMinimumThickness)
-	{	
+	{
 		if(brd.isEmpty()) {
-			return;	
+			return;
 		}
-		
-		System.out.printf("\nALIGNMENT MARKS\n");
 
-		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(d, offsetX, offsetY, scale, rotation);	
+		//System.out.printf("\nALIGNMENT MARKS\n");
+
+		AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(d, offsetX, offsetY, scale, rotation);
 		Stroke stroke = new BasicStroke((float)(1.0/scale));
 		d.setStroke(stroke);
 		d.setColor(new Color(255,20,20));
-		
+
 		double y = centerOffset;
-		
+
 		int lengthInFeet = (int)(brd.getLength()/UnitUtils.FOOT);
 
 		Line2D.Double line = new Line2D.Double();
@@ -393,24 +394,24 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 		for(int i = 1; i < lengthInFeet; i++)
 		{
 			double x = i*UnitUtils.FOOT;
-			
+
 			//Check if there is some template to draw upon
 			double deck = BezierBoardDrawUtil.getDeckWithSkinCompensation(brd, x, y, deckAndBottomMinimumThickness);
 			double bottom = BezierBoardDrawUtil.getBottomWithSkinCompensation(brd, x, y, deckAndBottomMinimumThickness);
-			
+
 			if(deck < bottom)
 			{
 				continue;
 			}
-			
+
 			if(deck-bottom < 1.0)
 			{
 				continue;
 			}
-			
+
 			//Get the rail apex height at this position
 			Point3d point = brd.getSurfacePoint(x, -45.0, 88.0, 1,1);
-			
+
 			if(deck - point.z < 0.5)	//Too close to deck
 			{
 				continue;
@@ -423,12 +424,12 @@ public class PrintChamberedWoodTemplate extends JComponent implements Printable 
 
 			//Draw a cross
 			line.setLine(x-0.5, point.z, x+0.5, point.z);
-			d.draw(line);			
+			d.draw(line);
 			line.setLine(x, point.z-0.5, x, point.z+0.5);
 			d.draw(line);
 
 		}
 
-		d.setTransform(savedTransform);		
+		d.setTransform(savedTransform);
 	}
 }

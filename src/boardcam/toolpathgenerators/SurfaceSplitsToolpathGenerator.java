@@ -9,8 +9,8 @@ import java.util.Locale;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+
+import org.jogamp.vecmath.*;
 
 import cadcore.BezierSpline;
 import board.AbstractBoard;
@@ -128,7 +128,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 	protected boolean mIsCuttingStringer = false;
 	protected boolean mIsCuttingRail = false;
 	protected boolean mIsCuttingOutline = false;
-	
+
 	static int mDeckProgress = 0;
 	static int mBottomProgress = 0;
 
@@ -228,7 +228,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 		 * mMachineView.get3DView().setBottomActive();
 		 * mMachineView.get3DView().setCutterModel(mCurrentCutter.get3DModel());
 		 * mMachineView.get3DView().setCutterpos(new Point3d(0.0, 0.0, 0.0));
-		 * 
+		 *
 		 * setCutterOffset(mConfig.getCutterOffset());
 		 */
 		setOffsetAndRotation(
@@ -730,7 +730,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 	}
 
 	protected void updateProgress() {
-		
+
 		if(isBottomCut())
 		{
 			mBottomProgress = (int) (((double) mCutNumber / (double) mTotalCuts) * 100.0);
@@ -739,9 +739,9 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 		{
 			mDeckProgress = (int) (((double) mCutNumber / (double) mTotalCuts) * 100.0);
 		}
-		
+
 		int progress = mDeckProgress + mBottomProgress;
-		
+
 		setProgressDone(progress);
 	}
 
@@ -1218,7 +1218,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 	protected void getDeckStringerCut() {
 		double x = getX(i, j);
 
-		// //system.out.printf("getDeckStringerCut() Cut: %d x: %f\n", i+1, x);
+		// system.out.printf("getDeckStringerCut() Cut: %d x: %f\n", i+1, x);
 		// mPoint = getSurfacePoint(x, DECK_EXTREME_ANGLE, mDeckAngle, 0, 1);
 		// mPoint = getSurfacePoint(x, 0.0);
 		// mNormal = getSurfaceNormal(x, DECK_EXTREME_ANGLE, mDeckAngle, 0, 1);
@@ -1328,7 +1328,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 					* mMoveToNextToolpathSteps, false, false, true);
 		} else {
 			double x = getX(i, j - mMoveToNextToolpathSteps);
-			System.out.printf("getDeckLeftCut() Cut: %d x: %f\n", i + 1, x);
+			//System.out.printf("getDeckLeftCut() Cut: %d x: %f\n", i + 1, x);
 			mPoint = getSurfacePoint(x, DECK_EXTREME_ANGLE, mDeckAngle, i + 1,
 					mDeckCuts);
 			mNormal = getSurfaceNormal(x, DECK_EXTREME_ANGLE, mDeckAngle,
@@ -1675,19 +1675,19 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 	 * public Point3d getNextBottomToolpathCoordinate() { /* //Check if all
 	 * splits done if(i >= (bottomCuts+bottomRailCuts+bottomCleanUpCuts)*2+1) {
 	 * //Reset values mLength = 0; mNrOfLengthSplits = 0; y = 0; i = 0; j = 0;
-	 * 
+	 *
 	 * return null; }
-	 * 
+	 *
 	 * if(mLength == 0) mLength = mBoard.getLength() - BezierPatch.ZERO;
 	 * if(mNrOfLengthSplits == 0) mNrOfLengthSplits = (mLength/x_res);
-	 * 
+	 *
 	 * //Do the bottom one side double x=BezierPatch.ZERO;
-	 * 
+	 *
 	 * if(i%2 == 0) { x = j*x_res; } else { x = mLength - (j*x_res); }
-	 * 
+	 *
 	 * if(x > mLength) { x = mLength; } if(x < BezierPatch.ZERO) { x =
 	 * BezierPatch.ZERO; }
-	 * 
+	 *
 	 * if(i < nrOfStringers) //Stringer { getPointAndVector(x,0.0,0.0,1,1); }
 	 * else if((i-1%2) < bottomCuts) //bottom cuts {
 	 * getPointAndVector(x,0.0,bottomAngle,i-1,bottomCuts); } else
@@ -1699,11 +1699,11 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 	 * of the bottom definition mPoint.y = mPoint.y +
 	 * i-1-bottomCuts-bottomRailCuts; //Adjust the cut to the bottom + 1 cm for
 	 * each additional pass } else { return null; }
-	 * 
+	 *
 	 * if(++j >= mNrOfLengthSplits) { j=0; i++; }
-	 * 
+	 *
 	 * return mPoint;
-	 * 
+	 *
 	 * return null; }
 	 */
 	@Override

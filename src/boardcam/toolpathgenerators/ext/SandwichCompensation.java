@@ -2,9 +2,7 @@ package boardcam.toolpathgenerators.ext;
 
 import java.awt.geom.Point2D;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 import board.BezierBoard;
 import boardcad.settings.Setting;
@@ -157,9 +155,6 @@ public class SandwichCompensation
 		result.set(pos);
 		result.sub(tmp);
 
-		System.out.printf("SandwichCompensation.compensateDeckCut()\n");
-
-
 		return result;
 	}
 
@@ -191,8 +186,6 @@ public class SandwichCompensation
 		result.set(pos);
 		result.sub(tmp);
 
-		System.out.printf("SandwichCompensation.compensateBottomCut()\n");
-
 		return result;
 	}
 
@@ -211,8 +204,6 @@ public class SandwichCompensation
 		Point3d result = new Point3d();
 		result.set(pos);
 		result.sub(tmp);
-
-		System.out.printf("SandwichCompensation.compensateOutlineCut()\n");
 
 		return result;
 	}

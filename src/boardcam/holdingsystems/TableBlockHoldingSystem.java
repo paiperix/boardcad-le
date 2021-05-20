@@ -7,30 +7,14 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.LineArray;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TransparencyAttributes;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
-import cadcore.BezierSpline;
 import cadcore.UnitUtils;
-import cadcore.AxisAlignedBoundingBox;
-
-import com.sun.j3d.utils.geometry.Box;
-
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
 
 import board.AbstractBoard;
-import board.BezierBoard;
 import boardcad.settings.Setting;
 import boardcad.settings.Settings;
 import boardcad.settings.Settings.SettingChangedCallback;
@@ -52,9 +36,7 @@ public class TableBlockHoldingSystem extends AbstractBlankHoldingSystem {
 		public TableBlockHoldingSystem(MachineConfig config) {
 			super.init();
 			mConfig = config;
-			System.out.printf(
-					"TableBlockHoldingSystem mConfig set to %s in %s\n",
-					mConfig.toString(), this.toString());
+			//System.out.printf( "TableBlockHoldingSystem mConfig set to %s in %s\n", mConfig.toString(), this.toString());
 
 			Settings blockSettings = mConfig.addCategory(LanguageResource
 					.getString("BLANKHOLDINGSYSTEMCATEGORY_STR"));

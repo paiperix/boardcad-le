@@ -684,73 +684,17 @@ import org.ujmp.core.Matrix;
 /**
  * Class used to fit a bezier curve to a list of points. Imposes 4 constraints
  * leaving 4 unknowns which are optimized using simulated annealing.
- * 
+ *
  * @author jhero
  *
  */
 
 public class BezierFit {
-/*
-	public static void main(String[] args) {
 
-		ArrayList<Point2D> points = new ArrayList<Point2D>();
-
-		points.add(new Point2D.Double(0, 0));
-		points.add(new Point2D.Double(1, 1));
-		points.add(new Point2D.Double(2, 0));
-		points.add(new Point2D.Double(3, 2));
-
-		bestFitTest(points);
-
-	}
-
-	private static void bestFitTest(ArrayList<Point2D> points) {
-		BezierFit bf = new BezierFit();
-
-		Point2D[] controlPoints = bf.bestFit(points);
-
-		System.out.print("X:");
-		for (Point2D p : points)
-			System.out.print(p.getX() + ",");
-		System.out.println();
-
-		System.out.print("Y:");
-		for (Point2D p : points)
-			System.out.print(p.getY() + ",");
-		System.out.println();
-
-		System.out.print("Bx:");
-		for (double ti = 0; ti <= 1; ti += 0.01)
-			System.out.print(bf.pointOnCurve(ti, controlPoints[0],
-					controlPoints[1], controlPoints[2], controlPoints[3])
-					.getX()
-					+ ",");
-		System.out.println();
-
-		System.out.print("By:");
-		for (double ti = 0; ti <= 1; ti += 0.01)
-			System.out.print(bf.pointOnCurve(ti, controlPoints[0],
-					controlPoints[1], controlPoints[2], controlPoints[3])
-					.getY()
-					+ ",");
-		System.out.println();
-
-		System.out.print("Cx:");
-		for (Point2D p : controlPoints)
-			System.out.print(p.getX() + ",");
-		System.out.println();
-
-		System.out.print("Cy:");
-		for (Point2D p : controlPoints)
-			System.out.print(p.getY() + ",");
-		System.out.println();
-
-	}
-*/
 	/**
 	 * Computes the best bezier fit of the supplied points using a simple RSS
 	 * minimization. Returns a list of 4 points, the control points
-	 * 
+	 *
 	 * @param points
 	 * @return
 	 */
@@ -842,42 +786,7 @@ public class BezierFit {
 		return M;
 	}
 
-	/**
-	 * Computes b(t).
-	 * 
-	 * @param t
-	 * @param v1
-	 * @param v2
-	 * @param v3
-	 * @param v4
-	 * @return
-	 */
-/*	private Point2D pointOnCurve(double t, Point2D v1, Point2D v2, Point2D v3, Point2D v4) {
-		Point2D p;
 
-		double x1 = v1.getX();
-		double x2 = v2.getX();
-		double x3 = v3.getX();
-		double x4 = v4.getX();
-
-		double y1 = v1.getY();
-		double y2 = v2.getY();
-		double y3 = v3.getY();
-		double y4 = v4.getY();
-
-		double xt, yt;
-
-		xt = x1 * Math.pow((1 - t), 3) + 3 * x2 * t * Math.pow((1 - t), 2) + 3
-				* x3 * Math.pow(t, 2) * (1 - t) + x4 * Math.pow(t, 3);
-
-		yt = y1 * Math.pow((1 - t), 3) + 3 * y2 * t * Math.pow((1 - t), 2) + 3
-				* y3 * Math.pow(t, 2) * (1 - t) + y4 * Math.pow(t, 3);
-
-		p = new Point2D.Double(xt, yt);
-
-		return p;
-	}
-*/
 	/**
 	 * Computes the percentage of path length at each point. Can directly be
 	 * used as t-indices into the bezier curve.

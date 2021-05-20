@@ -274,8 +274,6 @@ public class BezierBoardCrossSection implements Cloneable, Comparable {
 								bestMatch = currentMatch;
 							}
 						}
-						// DEBUG System.out.println("index: " + i + " match: " +
-						// bestMatch);
 						if (bestMatch > worstMatch) {
 							worstMatchControlPoint = currentControlPoint;
 							worstMatch = bestMatch;
@@ -283,15 +281,11 @@ public class BezierBoardCrossSection implements Cloneable, Comparable {
 						}
 					}
 
-					// DEBUG System.out.println("Worst match index: " +
-					// worstMatchIndex);
-
 					BezierKnot newControlPoint = new BezierKnot();
 					int index = otherBezier.getSplitControlPoint(
 							worstMatchControlPoint.getPoints()[0],
 							newControlPoint);
 
-					// DEBUG System.out.println("Split ControlPoint: " + index);
 					if (index > 0) {
 
 						otherBezier.insert(index, newControlPoint);
@@ -302,7 +296,7 @@ public class BezierBoardCrossSection implements Cloneable, Comparable {
 								.getControlPoint(index - 1);
 						BezierKnot next = otherBezier
 								.getControlPoint(index + 1);
-						
+
 						BezierCurve tmpCurve = new BezierCurve(prev, next);
 
 						double ct = tmpCurve.getClosestT(worstMatchControlPoint.getPoints()[0]);
@@ -351,8 +345,8 @@ public class BezierBoardCrossSection implements Cloneable, Comparable {
 			}
 
 			return interpolated;
-			
-		} 
+
+		}
 		catch (Exception e) {
 			System.out.println("Error occured in Brd::interpolate() "
 					+ e.toString());

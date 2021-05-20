@@ -4,25 +4,27 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GraphicsConfiguration;
 import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.media.j3d.*;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.vecmath.*;
 
-import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
-import com.sun.j3d.utils.universe.*;
+import org.jogamp.java3d.*;
+import org.jogamp.java3d.utils.universe.*;
+import org.jogamp.vecmath.*;
+import org.jogamp.java3d.utils.behaviors.vp.OrbitBehavior;
 
 import board.BezierBoard;
 import boardcad.settings.BoardCADSettings;
 
-// =========================================================Design Panel
-class ThreeDView extends Panel implements ItemListener {
+class ThreeDView extends Panel {
 	/**
 	 *
 	 */
@@ -35,16 +37,13 @@ class ThreeDView extends Panel implements ItemListener {
 
 	boolean mBezierBoardChangedFor3D = false;
 
-//	Brd3DModelGenerator mBrd3DModelGenerator = new Brd3DModelGenerator();
 	FasterBrd3DModelGenerator mBrd3DModelGenerator = new FasterBrd3DModelGenerator();
 
 	private JPopupMenu mViewMenu;
-	private JCheckBoxMenuItem mShadeItem;
 
 	private SimpleUniverse mUniverse = null;
 	public BranchGroup mScene;
 	private Shape3D mShape;
-	private Appearance mLook;
 	private Background mBackgroundNode;
 
 	private DirectionalLight mUpLight;
@@ -76,8 +75,6 @@ class ThreeDView extends Panel implements ItemListener {
 		mShape.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
 		mShape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
 		mCanvas3D.addMouseListener(new ThreeDMouse(this));
-
-		mLook = new Appearance();
 
 		// Create a simple scene and attach it to the virtual universe
 		mScene = createSceneGraph();
@@ -111,14 +108,17 @@ class ThreeDView extends Panel implements ItemListener {
 
 		mUniverse.addBranchGraph(mScene);
 
-		mShadeItem = new JCheckBoxMenuItem("Shade", false);
+		JMenuItem refreshItem = new JMenuItem("Refresh");
+		refreshItem.setMnemonic(KeyEvent.VK_R);
+		refreshItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refresh();
+			}
+		});
+		mViewMenu.add(refreshItem);
 
-		mShadeItem.addItemListener(this);
-
-		mViewMenu.add(mShadeItem);
-
-		JCheckBoxMenuItem toggleUpLight = new JCheckBoxMenuItem(
-				"Toggle up light");
+		JCheckBoxMenuItem toggleUpLight = new JCheckBoxMenuItem("Toggle up light");
 		toggleUpLight.setMnemonic(KeyEvent.VK_U);
 		toggleUpLight.setSelected(mUpLight.getEnable());
 		toggleUpLight.addItemListener(new ItemListener() {
@@ -129,8 +129,7 @@ class ThreeDView extends Panel implements ItemListener {
 		});
 		mViewMenu.add(toggleUpLight);
 
-		JCheckBoxMenuItem toggleDownLight = new JCheckBoxMenuItem(
-				"Toggle down light");
+		JCheckBoxMenuItem toggleDownLight = new JCheckBoxMenuItem("Toggle down light");
 		toggleDownLight.setMnemonic(KeyEvent.VK_R);
 		toggleDownLight.setSelected(mDownLight.getEnable());
 		toggleDownLight.addItemListener(new ItemListener() {
@@ -141,8 +140,7 @@ class ThreeDView extends Panel implements ItemListener {
 		});
 		mViewMenu.add(toggleDownLight);
 
-		JCheckBoxMenuItem toggleLeftLight = new JCheckBoxMenuItem(
-				"Toggle left light");
+		JCheckBoxMenuItem toggleLeftLight = new JCheckBoxMenuItem("Toggle left light");
 		toggleLeftLight.setMnemonic(KeyEvent.VK_L);
 		toggleLeftLight.setSelected(mLeftLight.getEnable());
 		toggleLeftLight.addItemListener(new ItemListener() {
@@ -153,8 +151,7 @@ class ThreeDView extends Panel implements ItemListener {
 		});
 		mViewMenu.add(toggleLeftLight);
 
-		JCheckBoxMenuItem toggleRightLight = new JCheckBoxMenuItem(
-				"Toggle right light");
+		JCheckBoxMenuItem toggleRightLight = new JCheckBoxMenuItem("Toggle right light");
 		toggleRightLight.setMnemonic(KeyEvent.VK_R);
 		toggleRightLight.setSelected(mRightLight.getEnable());
 		toggleRightLight.addItemListener(new ItemListener() {
@@ -165,8 +162,7 @@ class ThreeDView extends Panel implements ItemListener {
 		});
 		mViewMenu.add(toggleRightLight);
 
-		JCheckBoxMenuItem toggleHeadLight = new JCheckBoxMenuItem(
-				"Toggle head light");
+		JCheckBoxMenuItem toggleHeadLight = new JCheckBoxMenuItem("Toggle head light");
 		toggleHeadLight.setMnemonic(KeyEvent.VK_R);
 		toggleHeadLight.setSelected(mHeadLight.getEnable());
 		toggleHeadLight.addItemListener(new ItemListener() {
@@ -177,8 +173,7 @@ class ThreeDView extends Panel implements ItemListener {
 		});
 		mViewMenu.add(toggleHeadLight);
 
-		JCheckBoxMenuItem toggleAmbientLight = new JCheckBoxMenuItem(
-				"Toggle ambient light");
+		JCheckBoxMenuItem toggleAmbientLight = new JCheckBoxMenuItem("Toggle ambient light");
 		toggleAmbientLight.setMnemonic(KeyEvent.VK_R);
 		toggleAmbientLight.setSelected(mAmbientLight.getEnable());
 		toggleAmbientLight.addItemListener(new ItemListener() {
@@ -212,20 +207,16 @@ class ThreeDView extends Panel implements ItemListener {
 	void initBezierModel() {
 
 		mRoot = new BranchGroup();
+		mRoot.setCapability(BranchGroup.ALLOW_DETACH);
 
-		mBezier3DOnSwitch = new Switch();
-		mBezier3DOnSwitch.setCapability(Switch.ALLOW_SWITCH_READ);
-		mBezier3DOnSwitch.setCapability(Switch.ALLOW_SWITCH_WRITE);
-
-		mBezier3DOnSwitch.setWhichChild(Switch.CHILD_ALL);
-
-		mRoot.addChild(mBezier3DOnSwitch);
 		mScaleTransform = new TransformGroup();
 		mScaleTransform.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		mBezier3DOnSwitch.addChild(mScaleTransform);
+		mRoot.addChild(mScaleTransform);
+
 		mBezier3DModel = new Shape3D();
 		mBezier3DModel.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
 		mBezier3DModel.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+
 		// Create an Appearance.
 		Appearance a = new Appearance();
 		Color3f ambient = new Color3f(0.4f, 0.4f, 0.4f);
@@ -253,15 +244,18 @@ class ThreeDView extends Panel implements ItemListener {
 		mScaleTransform.setTransform(transform);
 	}
 
-	public void updateBezier3DModel(BezierBoard brd) {
-
-		System.out.println("DesignPanel.updateBezier3DModel()");
-
+	public void updateBezier3DModel(boolean forceRefresh) {
+		BezierBoard brd = BoardCAD.getInstance().getCurrentBrd();
 		double scale = 0.008;
 		double offset = -brd.getLength() * scale / 2.0;
-		if (brd != null && mBezierBoardChangedFor3D) {
+		if (brd != null && (mBezierBoardChangedFor3D || forceRefresh)) {
+			/* TODO: Fails with javax.media.j3d.CapabilityNotSetException: Group: no capability to remove children
+			if(forceRefresh){
+				removeModel(mRoot);
+				initBezierModel();
+			} */
 			setBezierScale(scale, offset);
-			mBrd3DModelGenerator.update3DModel(brd, getBezier3DModel(), 8);
+			mBrd3DModelGenerator.update3DModel(brd, getBezier3DModel(), BoardCADSettings.getInstance().getNumberOf3DProcesses(), forceRefresh);
 			mBezierBoardChangedFor3D = false;
 		}
 	}
@@ -272,6 +266,10 @@ class ThreeDView extends Panel implements ItemListener {
 
 	public void addModel(BranchGroup model) {
 		mScene.addChild(model);
+	}
+
+	public void removeModel(BranchGroup model) {
+		mScene.removeChild(model);
 	}
 
 	void toggleUpLight() {
@@ -298,12 +296,6 @@ class ThreeDView extends Panel implements ItemListener {
 		mAmbientLight.setEnable(!mAmbientLight.getEnable());
 	}
 
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		if (e.getSource() == mShadeItem) {
-		}
-	}
-
 	class ThreeDMouse extends MouseAdapter {
 		private ThreeDView the_view;
 
@@ -321,14 +313,14 @@ class ThreeDView extends Panel implements ItemListener {
 	private BranchGroup createSceneGraph() {
 		BranchGroup branchRoot = new BranchGroup();
 		branchRoot.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+		branchRoot.setCapability(BranchGroup.ALLOW_DETACH);
 
 		// Create a bounds for the background and lights
 		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
 				100.0);
 
 		// Set up the background
-		Color3f bgColor = new Color3f(BoardCADSettings.getInstance()
-				.getBackgroundColor());
+		Color3f bgColor = new Color3f(BoardCADSettings.getInstance().getBackgroundColor().getRGBColorComponents(new float[3]));
 		mBackgroundNode = new Background(bgColor);
 		mBackgroundNode.setApplicationBounds(bounds);
 		mBackgroundNode.setCapability(Background.ALLOW_COLOR_WRITE);
@@ -374,37 +366,6 @@ class ThreeDView extends Panel implements ItemListener {
 		mRightLight.setEnable(false);
 		branchRoot.addChild(mRightLight);
 
-		// Create a Transform group to scale all objects so they appear in the scene.
-		TransformGroup objScale = new TransformGroup();
-		Transform3D t3d = new Transform3D();
-		t3d.setScale(1.5);
-		objScale.setTransform(t3d);
-		branchRoot.addChild(objScale);
-
-		// Create an Appearance.
-		Color3f boardEmissiveColor = new Color3f(0.0f, 0.0f, 0.0f);
-		Color3f boardAmbientColor = new Color3f(0.2f, 0.2f, 0.2f);
-		Color3f boardDiffuseColor = new Color3f(1.0f, 1.0f, 1.0f);
-		Color3f boardSpecularColor = new Color3f(0.8f, 0.8f, 1.0f);
-		float shininess = 70.0f;
-
-		TextureAttributes texAttr = new TextureAttributes();
-		texAttr.setTextureMode(TextureAttributes.MODULATE);
-		mLook.setTextureAttributes(texAttr);
-
-		// Set up the material properties
-		mLook.setMaterial(new Material(boardAmbientColor, boardEmissiveColor, boardDiffuseColor, boardSpecularColor, shininess));
-
-		// Create board transform group, enable the TRANSFORM_WRITE capability so that our behavior code can modify it at runtime.
-		TransformGroup boardTransformGroup = new TransformGroup();
-		boardTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		boardTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		objScale.addChild(boardTransformGroup);
-
-		mShape.setGeometry(new TriangleArray(3, TriangleArray.COORDINATES | TriangleArray.NORMALS));
-		mShape.setAppearance(mLook);
-		boardTransformGroup.addChild(mShape);
-
 		// Have Java 3D perform optimizations on this scene graph.
 		branchRoot.compile();
 
@@ -415,6 +376,10 @@ class ThreeDView extends Panel implements ItemListener {
 		float[] components = color.getRGBComponents(null);
 		mBackgroundNode.setColor(new Color3f(components[0], components[1],
 				components[2]));
+	}
+
+	public void refresh() {
+		updateBezier3DModel(true);
 	}
 
 }

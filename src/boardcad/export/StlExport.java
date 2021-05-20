@@ -4,8 +4,7 @@ import java.io.File;
 
 import java.io.PrintStream;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.*;
 
 import board.BezierBoard;
 

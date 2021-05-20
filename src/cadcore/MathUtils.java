@@ -2,7 +2,7 @@ package cadcore;
 
 import java.awt.geom.Point2D;
 
-import javax.vecmath.Point3d;
+import org.jogamp.vecmath.*;
 
 public class MathUtils {
 
@@ -383,12 +383,12 @@ public class MathUtils {
 
 	static public double[][] invert(double[][] a) {
 		/*
-		 * 
+		 *
 		 * | a11 a12 a13 |-1 | a33a22-a32a23 -(a33a12-a32a13) a23a12-a22a13 | |
 		 * a21 a22 a23 | = 1/DET(A) * | -(a33a21-a31a23) a33a11-a31a13
 		 * -(a23a11-a21a13) | | a31 a32 a33 | | a32a21-a31a22 -(a32a11-a31a12)
 		 * a22a11-a21a12 |
-		 * 
+		 *
 		 * DET(A) = a11(a33a22-a32a23)-a21(a33a12-a32a13)+a31(a23a12-a22a13)
 		 */
 

@@ -27,7 +27,6 @@ package board;
 
 import cadcore.AbstractBezierBoardSurfaceModel;
 import cadcore.BezierBoardCrossSection;
-import boardcad.gui.jdk.BoardCAD;	//TODO: BAD DEPENDENCY
 import boardcad.i18n.LanguageResource;
 import boardcad.settings.BoardCADSettings;
 import cadcore.UnitUtils;
@@ -38,9 +37,7 @@ import cadcore.MathUtils;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 public class BezierBoard extends AbstractBoard implements Cloneable {
 
@@ -1206,8 +1203,6 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 		MathUtils.Function crsSecAreaFunc = new MathUtils.Function(){public double f(double x){return getCrossSectionAreaAt(x,VOLUME_X_SPLITS);}};
 
-		//System.out.println("--------------");
-
 		double pos = a;
 		double pos_step = (b-a)/VOLUME_Y_SPLITS;
 		double density = 3.0/30;	//3kg board of 30 liters is a good estimate for a modern performance board
@@ -1224,8 +1219,6 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 			r/=UnitUtils.CENTIMETER_PR_METER;	//To get the unit right kgm2
 
 			momentOfInertia += volume*density*r*r;
-
-			//System.out.printf("x:%f y:%f dx:%f, dy:%f r: %f volume:%f\n",x,y,dx,dy,r, volume);
 
 			pos += pos_step;
 		}
@@ -1376,8 +1369,6 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		double sin = Math.sin(Math.PI - tangentAngle);
 		double cos = Math.cos(Math.PI - tangentAngle);
 
-//DEBUG		System.out.printf("Brd.adjustRockerToCenterTangent() angle: %f sin: %f cos: %f\n", tangentAngle*180/Math.PI, sin, cos);
-
 		double x=0;
 		double y=0;
 		BezierKnot current = null;
@@ -1513,19 +1504,16 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 				x = getLength() - BezierSpline.ZERO;
 			}
 			double thickness = point.getEndPoint().y - mBottomSpline.getValueAt(x);
-			System.out.printf("x:%f, Thickness: %f\n", point.getEndPoint().x, thickness);
 
 			thicknesses.add(thickness);
 		}
 
 		mOutlineSpline.scale(widthScale, lengthScale);
 		mDeckSpline.scale(1.0, lengthScale);
-//problem...from here the value of BoardCAD.getInstance().getCurrentBrd().getMaxThickness() is not what the user asked
 
 		mBottomSpline.scale(lengthScale, lengthScale);
 
 		double angle = Math.atan2(thicknessDiff, maxThicknessPos);
-	//	System.out.printf("Angle:%f\n", angle);
 
 		for(int i = 1; i < mDeckSpline.getNrOfControlPoints()-1; i++)
 		{
@@ -1549,14 +1537,10 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 			double dy = targetThickness - actualThickness;
 
-//			System.out.printf("x:%f, Thickness:%f, thicknessScale:%f, targetThickness:%f, actualThickness:%f, dy:%f\n", x, thickness, thicknessScale, targetThickness, actualThickness, dy);
-
 			point.setControlPointLocation(point.getEndPoint().x, point.getEndPoint().y + dy);
 
 
 			double usedAngle = angle*((maxThicknessPos-x)/maxThicknessPos);
-
-//			System.out.printf("usedAngle:%f\n", usedAngle);
 
 			point.setTangentToNextAngle(point.getTangentToNextAngle() + usedAngle);
 			point.setTangentToPrevAngle(point.getTangentToPrevAngle() + usedAngle);

@@ -2,11 +2,8 @@ package boardcam.cutters;
 
 import java.util.HashMap;
 
-import javax.media.j3d.BranchGroup;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector2d;
-import javax.vecmath.Vector3d;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
 import board.AbstractBoard;
 import boardcad.gui.jdk.Machine3DView;
@@ -35,7 +32,6 @@ public class RotatingBoardCutter extends AbstractCutter
 		{
 			public void onSettingChanged(Setting setting)
 			{
-				System.out.printf("RotatingBoardCutter Setting changed\n");
 				Settings cutterSettings = mConfig.getCategory(LanguageResource.getString("CUTTERCATEGORY_STR"));
 				cutterSettings.putPreferences();
 				cutterSettings.clear();
@@ -84,8 +80,6 @@ public class RotatingBoardCutter extends AbstractCutter
 		Vector2d normal2D = new Vector2d(normal.y,normal.z);
 		double angle = normal2D.angle(mUpVector);
 		angle *= (normal2D.x > 0.0) ? 1.0 : -1.0;
-
-		//System.out.printf("Angle:%f\n", angle);
 
 		mRotMatrix.rotX(angle);
 

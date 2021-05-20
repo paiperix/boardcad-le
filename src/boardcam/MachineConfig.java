@@ -1,7 +1,8 @@
 package boardcam;
 
 import java.util.HashMap;
-import javax.vecmath.Point3d;
+
+import org.jogamp.vecmath.*;
 
 import board.BezierBoard;
 import boardcad.settings.*;
@@ -105,8 +106,6 @@ public class MachineConfig extends CategorizedSettings {
 
 		Settings.SettingChangedCallback onCutterTypeChanged = new Settings.SettingChangedCallback() {
 			public void onSettingChanged(Setting setting) {
-				System.out.printf("Cutter Setting changed\n");
-
 				Settings cutterSettings = getCategory(LanguageResource.getString("CUTTERCATEGORY_STR"));
 				Settings generalSettings = getCategory(LanguageResource.getString("GENERALCATEGORY_STR"));
 				cutterSettings.putPreferences();
@@ -148,8 +147,6 @@ public class MachineConfig extends CategorizedSettings {
 
 		Settings.SettingChangedCallback onBlankHoldingSystemChanged = new Settings.SettingChangedCallback() {
 			public void onSettingChanged(Setting setting) {
-				System.out.printf("Blankholdingsystem Setting changed\n");
-
 				MachineConfig.this.getCategory(LanguageResource.getString("BLANKHOLDINGSYSTEMCATEGORY_STR")).putPreferences();
 				Settings generalSettings = getCategory(LanguageResource.getString("GENERALCATEGORY_STR"));
 
@@ -196,8 +193,6 @@ public class MachineConfig extends CategorizedSettings {
 					@Override
 					public void onChange() {
 						if (mMachineView != null) {
-							System.out.printf("On change %f, %f, %f\n", mBlankHoldingSystem.getBlankDeckOffsetPos().x, mBlankHoldingSystem.getBlankDeckOffsetPos().y, mBlankHoldingSystem.getBlankDeckOffsetPos().z);
-
 							mMachineView.get3DView().setBlankDeckOffset(new Point3d(mBlankHoldingSystem.getBlankDeckOffsetPos()), mBlankHoldingSystem.getBlankDeckOffsetAngle());
 							mMachineView.get3DView().setBlankBottomOffset(new Point3d(mBlankHoldingSystem.getBlankBottomOffsetPos()), mBlankHoldingSystem.getBlankBottomOffsetAngle());
 							mMachineView.get3DView().setBrdDeckOffset(new Point3d(mBlankHoldingSystem.getBoardDeckOffsetPos()), mBlankHoldingSystem.getBoardDeckOffsetAngle());
@@ -257,7 +252,7 @@ public class MachineConfig extends CategorizedSettings {
 					}
 				}
 				if (mMachineView != null) {
-					mBlank3DModelGenerator.update3DModel(mBlank, mMachineView.get3DView().getBlankModel(), 8);
+					mBlank3DModelGenerator.update3DModel(mBlank, mMachineView.get3DView().getBlankModel(), BoardCADSettings.getInstance().getNumberOf3DProcesses(), true);
 					mMachineView.update();
 				}
 			}
@@ -460,7 +455,7 @@ public class MachineConfig extends CategorizedSettings {
 		mMachineView.get3DView().setCutterModel(mCutter.get3DModel());
 		mMachineView.get3DView().setBlankHoldingSystemModel(mBlankHoldingSystem.get3DModel());
 
-		mBrd3DModelGenerator.update3DModel(mBrd, mMachineView.get3DView().getBrdModel(), 8);
+		mBrd3DModelGenerator.update3DModel(mBrd, mMachineView.get3DView().getBrdModel(), BoardCADSettings.getInstance().getNumberOf3DProcesses(), true);
 	}
 
 	public void updateClearHeightSetting() {

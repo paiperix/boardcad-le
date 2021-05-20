@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
 
-import javax.vecmath.*;
+import org.jogamp.vecmath.*;
 
 import board.*;
 import cadcore.*;
@@ -1286,50 +1286,6 @@ public class BezierBoardDrawUtil {
 		AffineTransform savedTransform = setTransform(d, offsetX, offsetY, scale, rotation, flipX, flipY);
 
 		double splitAngle = TUCK_UNDER_DEFINITION_ANGLE;
-		/*
-		 * BezierBoardCrossSection c1 = brd.getPreviousCrossSection(pos);
-		 * BezierBoardCrossSection c2 = brd.getNextCrossSection(pos);
-		 *
-		 * //Scaling double targetWidth = mBrd.getWidthAt(pos); double
-		 * targetThickness = mBrd.getThicknessAtPos(pos);
-		 *
-		 * double c1Width = c1.getWidth(); double c1Thickness =
-		 * c1.getThicknessAtPos(BezierSpline.ZERO);
-		 *
-		 * double c2Width = c2.getWidth(); double c2Thickness =
-		 * c2.getThicknessAtPos(BezierSpline.ZERO);
-		 *
-		 * double c1ThicknessScale = targetThickness/c1Thickness; double
-		 * c1WidthScale = targetWidth/c1Width;
-		 *
-		 * double c2ThicknessScale = targetThickness/c2Thickness; double
-		 * c2WidthScale = targetWidth/c2Width;
-		 *
-		 * /* System.out.printf("getSurfacePoint()\n");
-		 * System.out.printf("Target width: %f thickness: %f\n", targetWidth,
-		 * targetThickness); System.out.printf("C1 width: %f thickness: %f\n",
-		 * c1Width, c1Thickness);
-		 * System.out.printf("C2 width: %f thickness: %f\n", c2Width,
-		 * c2Thickness);
-		 * System.out.printf("C1 width scale: %f thickness scale: %f\n",
-		 * c1WidthScale, c1ThicknessScale);
-		 * System.out.printf("C2 width scale: %f thickness scale: %f\n",
-		 * c2WidthScale, c2ThicknessScale);
-		 */
-
-		/*
-		 * double s1 =
-		 * c1.getBezierSpline().getSByNormalReverseScaled(splitAngle, true,
-		 * c1WidthScale, c1ThicknessScale); double s2 =
-		 * c2.getBezierSpline().getSByNormalReverseScaled(splitAngle, true,
-		 * c2WidthScale, c2ThicknessScale);
-		 *
-		 * // d.setColor(new Color(0,0,255));
-		 * paintSlidingCrossSectionBlendFromSInterpolation(pos,
-		 * BezierSpline.ZERO, s1, BezierSpline.ZERO, s2); // d.setColor(new
-		 * Color(0,250,0)); paintSlidingCrossSectionBlendFromSInterpolation(pos,
-		 * s1, BezierSpline.ONE, s2, BezierSpline.ONE);
-		 */
 
 		double start = -90.0;
 		double shoulder = 25.0f;
@@ -2527,7 +2483,7 @@ public class BezierBoardDrawUtil {
 			return;
 		}
 
-		System.out.printf("\nPROFILE\n");
+		//System.out.printf("\nPROFILE\n");
 
 		if (paintGrid) {
 			paintGrid(d, offsetX, offsetY, scale, rotation, new Color(128, 128, 128), brd.getLength(), brd.getMaxRocker(), false, false);
@@ -2584,7 +2540,7 @@ public class BezierBoardDrawUtil {
 			}
 		}
 
-		System.out.printf("At end of deck x:%f\n", x);
+		//System.out.printf("At end of deck x:%f\n", x);
 
 		// Bottom
 		first = true;
@@ -2715,7 +2671,7 @@ public class BezierBoardDrawUtil {
 		double x = pos - (distanceFromRail * Math.sin(normalAngle));
 		double y = oy - (distanceFromRail * Math.cos(normalAngle));
 
-		System.out.printf("getRailDeck() pos:%f distanceFromRail:%f normalAngle:%f x:%f y:%f\n", pos, distanceFromRail, Math.toDegrees(normalAngle), x, y);
+		//System.out.printf("getRailDeck() pos:%f distanceFromRail:%f normalAngle:%f x:%f y:%f\n", pos, distanceFromRail, Math.toDegrees(normalAngle), x, y);
 
 		return getDeckWithSkinCompensation(board, x, y, skinThickness);
 	}
@@ -2730,7 +2686,7 @@ public class BezierBoardDrawUtil {
 		double x = pos - (distanceFromRail * Math.sin(normalAngle));
 		double y = oy - (distanceFromRail * Math.cos(normalAngle));
 
-		System.out.printf("getRailBottom() pos:%f distanceFromRail:%f normalAngle:%f x:%f y:%f\n", pos, distanceFromRail, Math.toDegrees(normalAngle), x, y);
+		//System.out.printf("getRailBottom() pos:%f distanceFromRail:%f normalAngle:%f x:%f y:%f\n", pos, distanceFromRail, Math.toDegrees(normalAngle), x, y);
 
 		return getBottomWithSkinCompensation(board, x, y, skinThickness);
 	}

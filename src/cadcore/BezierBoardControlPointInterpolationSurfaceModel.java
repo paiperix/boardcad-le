@@ -4,8 +4,7 @@ import board.BezierBoard;
 
 import java.awt.geom.Point2D;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.*;
 
 import cadcore.MathUtils.Function;
 
@@ -23,15 +22,12 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 
 		Point3d point = getPointAt(brd, x, s, -90.0, 90.0, true);
 
-		// System.out.printf("getDeckAt() s:%f point: %f,%f,%f\n", s,
-		// point.x,point.y,point.z);
-
 		return point;
 	}
 
 	public Point3d getBottomAt(final BezierBoard brd, final double x,
 			final double y) {
-		
+
 		Function func = new Function() {
 			public double f(double s) {
 				return getPointAt(brd, x, s, 90.0, 270.0, true).y;
@@ -45,7 +41,7 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 	public Point3d getPointAt(final BezierBoard brd, double x, double s,
 			double minAngle, double maxAngle,
 			boolean useMinimumAngleOnSharpCorners) {
-		
+
 		if (x < 0.1)
 			x = 0.1;
 
@@ -116,14 +112,14 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 		double minS = BezierSpline.ONE;
 		double maxS = BezierSpline.ZERO;
 
-		if (minAngle > 0.0) 
+		if (minAngle > 0.0)
 		{
 			minS = crossSection.getBezierSpline().getSByNormalReverse(
 					minAngle * MathUtils.DEG_TO_RAD,
 					useMinimumAngleOnSharpCorners);
 		}
 
-		if (maxAngle < 270.0) 
+		if (maxAngle < 270.0)
 		{
 			maxS = crossSection.getBezierSpline().getSByNormalReverse(
 					maxAngle * MathUtils.DEG_TO_RAD,
@@ -134,7 +130,7 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 		{
 			minS = BezierSpline.ONE;
 		}
-		
+
 		if (maxS < BezierSpline.ZERO)
 		{
 			maxS = BezierSpline.ZERO;
@@ -159,9 +155,6 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 		Point2D.Double pso = crossSection.getPointAtS(so);
 		Point2D.Double pxo = crossSectionXO.getPointAtS(currentS);
 
-		// System.out.printf("x:%f, xo: %f crossection width: %f crossectionXO width: %f\n",
-		// x, xo, crossSection.getWidth(), crossSectionXO.getWidth());
-
 		Vector3d vc = new Vector3d(0, p.x - pso.x, p.y - pso.y); // Vector
 																	// across
 		vc.normalize();
@@ -175,25 +168,9 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 		normalVec.normalize();
 
 		if (flipNormal == true) {
-			
+
 			normalVec.scale(-1.0);
 		}
-
-		//DEBUG 
-//		if(cv.angle(lv)*180.0/Math.PI < 15)
-//		{ 
-//			System.out.printf( "getSurfaceNormalAtPos() Low angle between vectors: %f\n", cv.angle(lv)*180.0/Math.PI); 
-//		}
-//		 
-//		if(last != null && last.angle(normalVec)*180.0/Math.PI > 15) 
-//		{
-//			System.out.printf( "getSurfaceNormalAtPos() large angle between last and current normal:%f\n" , last.angle(normalVec)*180.0/Math.PI); 
-//		}
-//		 
-//		last = new Vector3d(normalVec);
-//		 
-//		System.out.printf( "getNormalAtPos() x:%f, xo:%f, sa:%f, sao:%f, sb:%f, sbo:%f\n", x, xo, sa, sao, sb, sbo); //
-//		System.out.printf("getNormalAtPos() %f, %f, %f\n", normalVec.x,normalVec.y,normalVec.z);
 
 		return normalVec;
 	}
@@ -225,8 +202,6 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 
 		if (area < 0)
 			area = 0.0;
-
-		// System.out.printf("getCrosssectionAreaAt() x:%f area:%f\n", x, area);
 
 		return area;
 	}

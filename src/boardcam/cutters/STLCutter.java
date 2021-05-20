@@ -7,9 +7,8 @@ import java.io.IOException;
 
 import java.io.PrintStream;
 
-import javax.media.j3d.BranchGroup;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+import org.jogamp.java3d.*;
+import org.jogamp.vecmath.*;
 
 import board.AbstractBoard;
 import boardcam.MachineConfig;
