@@ -137,6 +137,11 @@ public class Settings {
 		addObject(key, new Enumeration(value, alternatives), description, cb);
 	}
 
+	public void addPairType(final String key, final String value, Map<String, String> alternatives, final String description, final SettingChangedCallback cb  )
+	{
+		addObject(key, new PairType(value, alternatives), description, cb);
+	}
+
 	public void setObject(final String key, final Object value)
 	{
 		mSettings.get(key).mValue = value;
@@ -181,6 +186,12 @@ public class Settings {
 	{
 		((Enumeration)mSettings.get(key).mValue).setValue(value);
 	}
+	
+	public void setPairType(final String key, final String value)
+	{
+		((PairType)mSettings.get(key).mValue).setValue(value);
+	}
+
 
 	public boolean containsSetting(final String key)
 	{
@@ -235,6 +246,11 @@ public class Settings {
 	public int getEnumeration(final String key)
 	{
 		return ((Enumeration)getSettingValue(key)).getValue();
+	}
+
+	public String getPairType(final String key)
+	{
+		return ((PairType)getSettingValue(key)).getValue();
 	}
 
 	public String getKey(final int pos)
@@ -351,6 +367,10 @@ public class Settings {
 			{
 				((Enumeration)setting.mValue).setValue(prefs.getInt(e.getKey(), ((Enumeration)setting.mValue).mValue));
 			}
+			else if(className.compareTo(PairType.class.getName()) == 0)
+			{
+				((PairType)setting.mValue).setValue(prefs.get(e.getKey(), ((PairType)setting.mValue).mValue));
+			}
 			else if(className.compareTo(SettingsAction.class.getName()) == 0)
 			{
 				continue;
@@ -433,6 +453,10 @@ public class Settings {
 			else if(className.compareTo(Enumeration.class.getName()) == 0)
 			{
 				prefs.putInt(key, ((Enumeration)setting.mValue).getValue() );
+			}
+			else if(className.compareTo(PairType.class.getName()) == 0)
+			{
+				prefs.put(key, ((PairType)setting.mValue).getValue() );
 			}
 			else
 			{
@@ -525,6 +549,43 @@ public class Settings {
 		}
 
 		public Map<Integer, String> getAlternatives(){
+			return mAlternatives;
+		}
+	}
+	
+	public class PairType
+	{
+		protected String mValue;
+		Map<String, String> mAlternatives = null;
+
+		public PairType(final String value, Map<String, String> alternatives)
+		{
+			mValue = value;
+			mAlternatives = alternatives;
+		}
+
+		@Override
+		public String toString()
+		{
+			return mValue;
+		}
+
+		public void setValue(String value)
+		{
+			mValue = value;
+		}
+
+		public String getValue()
+		{
+			return mValue;
+		}
+		
+		public String getSelected()
+		{
+			return mAlternatives.get(mValue);
+		}
+
+		public Map<String, String> getAlternatives(){
 			return mAlternatives;
 		}
 	}

@@ -33,6 +33,7 @@ public class SrfReader {
 			byte[] dataBytes = new byte[(int)size];
 
 			dataStream.read(dataBytes,0,(int)size);
+			dataStream.close();
 
 			ByteBuffer data = ByteBuffer.wrap(dataBytes);
 			data.order(ByteOrder.LITTLE_ENDIAN);

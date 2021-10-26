@@ -1,9 +1,6 @@
 package cadcore;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-
-import cadcore.BezierKnot;
 
 public class BezierCurve implements Cloneable, BezierKnotChangeListener {
 	BezierKnot mStartKnot;

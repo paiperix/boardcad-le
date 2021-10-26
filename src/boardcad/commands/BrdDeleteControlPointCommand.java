@@ -2,8 +2,6 @@ package boardcad.commands;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 import boardcad.gui.jdk.BoardEdit;
 import boardcad.i18n.LanguageResource;
@@ -11,7 +9,6 @@ import cadcore.BezierCurve;
 import cadcore.BezierFit;
 import cadcore.BezierKnot;
 import cadcore.BezierSpline;
-import cadcore.VecMath;
 
 public class BrdDeleteControlPointCommand extends BrdAbstractEditCommand
 {

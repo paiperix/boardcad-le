@@ -328,6 +328,10 @@ public class PrintSandwichTemplates extends JComponent implements Printable {
 		
 				break;
 			}
+			
+			default:
+			case NO_STATE:
+				break;
 		}
 	
 		return NO_SUCH_PAGE;

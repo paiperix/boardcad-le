@@ -5,10 +5,6 @@ import java.util.ArrayList;
 
 import boardcad.gui.jdk.BezierBoardDrawUtil;
 
-import cadcore.BezierKnot;
-import cadcore.BezierSpline;
-import cadcore.MathUtils;
-
 public class BezierBoardCrossSection implements Cloneable, Comparable {
 	double mPosition;
 

@@ -2,6 +2,8 @@ package boardcad.gui.jdk;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
 
 import javax.swing.JDialog;
 
@@ -19,6 +21,8 @@ class BoardCADSettingsDialog extends JDialog
 	{
 		this.setTitle(LanguageResource.getString("BOARDCADSETTINGSTITLE_STR"));
 		this.setSize(new Dimension(500, 500));
+		Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/boardcad/icons/BoardCAD icon 32x32.png"));
+		this.setIconImage(icon);
 		this.setLayout(new BorderLayout());
 		this.add(new CategorizedSettingsComponent(settings), BorderLayout.CENTER);
 		this.setLocationRelativeTo(null);

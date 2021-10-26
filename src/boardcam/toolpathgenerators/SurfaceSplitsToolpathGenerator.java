@@ -318,7 +318,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 					script.concat(line);
 					line = reader.readLine();
 				}
-
+				reader.close();
 				mCurrentWriter.writeScript(mStream, script);
 			} catch (Exception e) {
 				String str = new String();
@@ -396,7 +396,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 					script.concat(line);
 					line = reader.readLine();
 				}
-
+				reader.close();
 				mCurrentWriter.writeScript(mStream, script);
 			} catch (Exception e) {
 				String str = new String();

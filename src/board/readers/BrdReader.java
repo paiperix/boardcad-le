@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ public class BrdReader {
 	static String mErrorStr;
 
 	static public int loadFile(BezierBoard brd, String aFilename) {
+		int retVal = -1;
 		BufferedReader cFile;
 
 		try {
@@ -37,21 +37,20 @@ public class BrdReader {
 
 			String strLine = cFile.readLine();
 			if (strLine.startsWith("%BRD-1.02")) {
-				return loadEncryptedFile(brd, aFilename, "deltaXTaildeltaXMiddle");
+				retVal = loadEncryptedFile(brd, aFilename, "deltaXTaildeltaXMiddle");
 			} else if (strLine.startsWith("%BRD-1.01")) {
-				return loadEncryptedFile(brd, aFilename, "deltaXTail");
+				retVal = loadEncryptedFile(brd, aFilename, "deltaXTail");
+			} else {
+				cFile.reset();
+	
+				retVal = loadFile(brd, cFile);
+				brd.setFilename(aFilename);
 			}
-			cFile.reset();
-
-			int retVal = loadFile(brd, cFile);
-			brd.setFilename(aFilename);
-
-			return retVal;
-
 		} catch (Exception e) {
 			setErrorStr("exception occured during load: " + e.toString());
-			return -1;
+			retVal = -1;
 		}
+		return retVal;
 
 	}
 
@@ -78,7 +77,6 @@ public class BrdReader {
 		BufferedReader cFile;
 
 		try {
-
 			char[] ac = new char[key.length()];
 			key.getChars(0, key.length(), ac, 0);
 			PBEKeySpec pbekeyspec = new PBEKeySpec(ac);
@@ -110,7 +108,6 @@ public class BrdReader {
 	}
 
 	static public int loadFile(BezierBoard brd, BufferedReader cFile)
-
 	{
 		brd.reset();
 
