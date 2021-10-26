@@ -7,6 +7,7 @@ import java.util.List;
 import boardcad.settings.Settings.Enumeration;
 import boardcad.settings.Settings.FileName;
 import boardcad.settings.Settings.Measurement;
+import boardcad.settings.Settings.PairType;
 import boardcad.settings.Settings.SettingChangedCallback;
 
 public class Setting
@@ -75,6 +76,10 @@ public class Setting
 		return (Enumeration)mValue;
 	}
 
+	public PairType pairTypeValue(){
+		return (PairType)mValue;
+	}
+	
 	public double doubleValue(){
 		return ((Double)mValue).doubleValue();
 	}

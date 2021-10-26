@@ -45,6 +45,7 @@ abstract public class AbstractPluginHandler {
 			try{
 				URLClassLoader loader = new URLClassLoader(new URL[]{new URL("file:///" + jarFiles[i])});
 				Class c = loader.loadClass(FileTools.getFilename(jarFiles[i]));
+				loader.close();
 				Method m = c.getMethod("getMenu", new Class[] { });
 				m.setAccessible(true);
 				int mods = m.getModifiers();

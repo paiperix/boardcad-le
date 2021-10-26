@@ -63,7 +63,8 @@ public class PrintBrd extends JComponent implements Printable {
 
 	 private PageFormat myPageFormat;
 
-	protected enum PrintState {NO_STATE,
+	protected enum PrintState {
+		NO_STATE,
 		PRINT_OUTLINE,
 		PRINT_SPINTEMPLATE,
 		PRINT_PROFILE,
@@ -370,21 +371,21 @@ public class PrintBrd extends JComponent implements Printable {
 
 		switch(mCurrentPrintState)
 		{
-		case PRINT_OUTLINE:
-		{
-			if(printOutline(pageFormat, pageIndex, g) == 0)
-				return PAGE_EXISTS;
-
-			break;
-		}
-		case PRINT_SPINTEMPLATE:
-		{
-			if(printSpinTemplate(pageFormat, pageIndex, g) == 0)
-				return PAGE_EXISTS;
-
-			break;
-		}
-
+			case PRINT_OUTLINE:
+			{
+				if(printOutline(pageFormat, pageIndex, g) == 0)
+					return PAGE_EXISTS;
+	
+				break;
+			}
+			case PRINT_SPINTEMPLATE:
+			{
+				if(printSpinTemplate(pageFormat, pageIndex, g) == 0)
+					return PAGE_EXISTS;
+	
+				break;
+			}
+	
 			case PRINT_PROFILE:
 			{
 				if(printProfile(pageFormat, pageIndex, g) == 0)
@@ -400,11 +401,13 @@ public class PrintBrd extends JComponent implements Printable {
 
 				break;
 			}
+			
+			default:
+			case NO_STATE:
+				break;
 
 		}
-
 		return NO_SUCH_PAGE;
-
 	}
 
 

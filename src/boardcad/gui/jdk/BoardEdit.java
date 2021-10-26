@@ -19,8 +19,10 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -65,25 +67,21 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	boolean mHasMouse = false;
 
-	Point mScreenCoord = new Point();  //  @jve:decl-index=0:
+	Point mScreenCoord = new Point();  
 
 	Font mBrdCoordFont = new Font("Dialog", Font.PLAIN, 12);
-	Point2D.Double mBrdCoord = new Point2D.Double();  //  @jve:decl-index=0:
-	String mBrdCoordString = new String();  //  @jve:decl-index=0:
+	Point2D.Double mBrdCoord = new Point2D.Double();  
+	String mBrdCoordString = new String();  
 
 	Font mSlidingInfoFont = new Font("Dialog", Font.PLAIN, 12);
-	String mSlidingInfoString = new String();  //  @jve:decl-index=0:
-	Line2D.Double mSlidingInfoLine = new Line2D.Double();  //  @jve:decl-index=0:
+	String mSlidingInfoString = new String();  
+	Line2D.Double mSlidingInfoLine = new Line2D.Double();  
 
 	double mCurvatureScale = 500;
 	double mVolumeDistributionScale = 0.1;
 
 	Image mBackgroundImage = null;
-//	AffineTransform mBackgroundImageTransform = new AffineTransform();
-	double mBackgroundImageOffsetX = 0;
-	double mBackgroundImageOffsetY = 0;
-	double mBackgroundImageScale = 1;
-	double mBackgroundImageRot = 0;
+	AffineTransform mBackgroundImageTransform = new AffineTransform();
 
 	BrdEditParentContainer mParentContainer = null;
 
@@ -371,10 +369,16 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	public void loadBackgroundImage(String filename)
 	{
-		mBackgroundImage = Toolkit.getDefaultToolkit().getImage(filename);
+		try {
+			mBackgroundImage = ImageIO.read(new File(filename));
+		}catch(Exception e){
+			System.out.println("BoardEdit.loadBackgroundImage() Exception: " + e.toString());
+			return;
+		};
 
 
 		int height = mBackgroundImage.getHeight(this);
+		System.out.printf("loadBackgroundImage height %d", height);
 		while(height == -1)
 		{
 			try{
@@ -398,41 +402,30 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 			width = mBackgroundImage.getWidth(this);
 		}
 
-		Point2D.Double tail = getTail();
-		Point2D.Double nose = getNose();
+		Point2D.Double tail = getTailPos();
+		Point2D.Double nose = getNosePos();
 
 		Point2D.Double brdVec = new Point2D.Double();
 		VecMath.subVector(tail, nose, brdVec);
 
 		double brdVecLen = VecMath.getVecLength(brdVec);
 
-		mBackgroundImageScale = 1;
-		mBackgroundImageOffsetX = 0;
-		mBackgroundImageOffsetY = 0;
-		mBackgroundImageRot = 0;
-
-		if(width > height)
-		{
-			mBackgroundImageScale = (brdVecLen/width);
-			mBackgroundImageOffsetY = -(height/2)*mBackgroundImageScale;
-		}
-		else
-		{
-			mBackgroundImageRot = -Math.PI/2;
-			mBackgroundImageScale = (brdVecLen/height);
-			mBackgroundImageOffsetY = (width/2)*mBackgroundImageScale;
-		}
+		double scale = (brdVecLen/width);
+		
+		mBackgroundImageTransform = new AffineTransform();
+		mBackgroundImageTransform.setToScale(scale, scale);
+		mBackgroundImageTransform.translate(0, -(height/2));
+		
 		repaint();
 	}
 
 	public void adjustBackgroundImageTail(Point clickedScreenCoord)
 	{
-//		double mulX = ((mDrawControl&Brd.FlipX)!=0?-1.0f:1.0f);
-		double mulY = ((mDrawControl&BezierBoardDrawUtil.FlipY)!=0?-1.0f:1.0f);
+		double mulYSign = ((mDrawControl&BezierBoardDrawUtil.FlipY)!=0?-1.0f:1.0f);
 
 		Point2D.Double pos = screenCoordinateToBrdCoordinate(clickedScreenCoord);
-		Point2D.Double tail = getTail();
-		Point2D.Double nose = getNose();
+		Point2D.Double tail = getTailPos();
+		Point2D.Double nose = getNosePos();
 
 		Point2D.Double brdVec = new Point2D.Double();
 		VecMath.subVector(tail, nose, brdVec);
@@ -442,29 +435,33 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		double brdVecLen = VecMath.getVecLength(brdVec);
 		double imgVecLen = VecMath.getVecLength(imgVec);
-		double rot = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulY;
+		double angleBetweenBoardAndImage = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulYSign;
 		double newScale = (brdVecLen/imgVecLen);
+		double xOffset = (tail.x - pos.x);
+		double yOffset =  (tail.y - pos.y) * mulYSign;
 
-		mBackgroundImageRot += rot;
+		final AffineTransform tmp = new AffineTransform();
+		tmp.setToTranslation(xOffset, yOffset);
+		mBackgroundImageTransform.preConcatenate(tmp);
 
-		mBackgroundImageOffsetX = (mBackgroundImageOffsetX + (tail.x - pos.x))*newScale;
-		mBackgroundImageOffsetY = (mBackgroundImageOffsetY + (tail.y - pos.y)*mulY)*newScale;
+		tmp.setToRotation(angleBetweenBoardAndImage);
+		mBackgroundImageTransform.preConcatenate(tmp);
 
-		mBackgroundImageScale *= newScale;
+		tmp.setToScale(newScale, newScale);
+		mBackgroundImageTransform.preConcatenate(tmp);
 
-//		System.out.printf("adjustBackgroundImageTail() rot:%f mulY:%f mBackgroundImageRot: %f, mBackgroundImageOffsetX: %f, mBackgroundImageOffsetY: %f, mBackgroundImageScale: %f", rot, mulY, mBackgroundImageRot, mBackgroundImageOffsetX, mBackgroundImageOffsetY, mBackgroundImageScale);
+		//System.out.printf("adjustBackgroundImageTail() angleBetweenBoardAndImage:%f mulY:%f xOffset:%f , yOffset:%f , newScaleScale: %f\n", angleBetweenBoardAndImage, mulYSign,  xOffset, yOffset, newScale);
 
 		repaint();
 	}
 
 	public void adjustBackgroundImageNose(Point clickedScreenCoord)
 	{
-//		double mulX = ((mDrawControl&Brd.FlipX)!=0?-1.0f:1.0f);
-		double mulY = ((mDrawControl&BezierBoardDrawUtil.FlipY)!=0?-1.0f:1.0f);
+		double mulYSign = ((mDrawControl&BezierBoardDrawUtil.FlipY)!=0?-1.0f:1.0f);
 
 		Point2D.Double pos = screenCoordinateToBrdCoordinate(clickedScreenCoord);
-		Point2D.Double tail = getTail();
-		Point2D.Double nose =  getNose();
+		Point2D.Double tail = getTailPos();
+		Point2D.Double nose =  getNosePos();
 
 		Point2D.Double brdVec = new Point2D.Double();
 		VecMath.subVector(tail, nose, brdVec);
@@ -475,26 +472,26 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		double brdVecLen = VecMath.getVecLength(brdVec);
 		double imgVecLen = VecMath.getVecLength(imgVec);
 		double newScale = (brdVecLen/imgVecLen);
-		double rot = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulY;
+		double angleBetweenBoardAndImage = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulYSign;
 
-		mBackgroundImageRot += rot;
+		final AffineTransform tmp = new AffineTransform();
+		tmp.setToRotation(angleBetweenBoardAndImage);
+		mBackgroundImageTransform.preConcatenate(tmp);
 
-		mBackgroundImageOffsetX *=newScale;
-		mBackgroundImageOffsetY *=newScale;
-
-		mBackgroundImageScale *= newScale;
-
-//		System.out.printf("adjustBackgroundImageNose() rot:%f mulY:%f mBackgroundImageRot: %f, mBackgroundImageOffsetX: %f, mBackgroundImageOffsetY: %f, mBackgroundImageScale: %f\n", rot, mulY, mBackgroundImageRot, mBackgroundImageOffsetX, mBackgroundImageOffsetY, mBackgroundImageScale);
+		tmp.setToScale(newScale, newScale);
+		mBackgroundImageTransform.preConcatenate(tmp);
+		
+		//System.out.printf("adjustBackgroundImageNose() angleBetweenBoardAndImage:%f newScale: %f\n", angleBetweenBoardAndImage, newScale);
 
 		repaint();
 	}
 
-	Point2D.Double getTail()
+	Point2D.Double getTailPos()
 	{
 		return (Point2D.Double)getActiveBezierSplines(getCurrentBrd())[0].getControlPoint(0).getEndPoint().clone();
 	}
 
-	Point2D.Double getNose()
+	Point2D.Double getNosePos()
 	{
 		return (Point2D.Double)getActiveBezierSplines(getCurrentBrd())[0].getControlPoint(getActiveBezierSplines(getCurrentBrd())[0].getNrOfControlPoints()-1).getEndPoint().clone();
 	}
@@ -510,13 +507,13 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		 * Copy the graphics context so we can change it.
 
-		 * Cast it to Graphics2D so we can use antialiasing.
+		 * Cast it to Graphics2D so we can use anti-aliasing.
 
 		 */
 
 		Graphics2D g2d = (Graphics2D)g.create();
 
-		// Turn on antialiasing so painting is smooth.
+		// Turn on anti-aliasing so painting is smooth.
 		BoardCAD boardCAD = BoardCAD.getInstance();
 		BoardCADSettings boardCADSettings = BoardCADSettings.getInstance();
 		if(BoardCAD.getInstance().isAntialiasing())
@@ -833,26 +830,10 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		if(mBackgroundImage != null)
 		{
 			AffineTransform savedTransform = BezierBoardDrawUtil.setTransform(new JavaDraw(g), mOffsetX, mOffsetY, mScale, 0.0);
-
-			final AffineTransform tmp = new AffineTransform();
-
-			tmp.setToRotation(mBackgroundImageRot);
-
-			g.transform(tmp);
-
-			tmp.setToTranslation(mBackgroundImageOffsetX, mBackgroundImageOffsetY);
-
-			g.transform(tmp);
-
-			tmp.setToScale(mBackgroundImageScale, mBackgroundImageScale);
-
-			g.transform(tmp);
-
+			g.transform(mBackgroundImageTransform);
 			g.drawImage(mBackgroundImage,0,0,this);
-
 			g.setTransform(savedTransform);
 		}
-
 	}
 
 	public void drawBrdCoordinate(Graphics2D g)
@@ -1010,18 +991,15 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		if(mDrawControl == BezierBoardDrawUtil.MirrorY)
 		{
-			BoardCAD.getInstance().mStatusPanel.set_point_name("");
-			BoardCAD.getInstance().mStatusPanel.set_coordinates(mBrdCoord.x*10, 0, mBrdCoord.y*10);
+			BoardCAD.getInstance().mStatusPanel.setCoordinates(mBrdCoord.x*10, 0, mBrdCoord.y*10);
 		}
 		else if(mDrawControl == BezierBoardDrawUtil.FlipY)
 		{
-			BoardCAD.getInstance().mStatusPanel.set_point_name("");
-			BoardCAD.getInstance().mStatusPanel.set_coordinates(mBrdCoord.x*10, mBrdCoord.y*10, 0);
+			BoardCAD.getInstance().mStatusPanel.setCoordinates(mBrdCoord.x*10, mBrdCoord.y*10, 0);
 		}
 		else if(mDrawControl == (BezierBoardDrawUtil.MirrorX | BezierBoardDrawUtil.FlipY))
 		{
-			BoardCAD.getInstance().mStatusPanel.set_point_name("");
-			BoardCAD.getInstance().mStatusPanel.set_coordinates(0, mBrdCoord.y*10, mBrdCoord.x*10);
+			BoardCAD.getInstance().mStatusPanel.setCoordinates(0, mBrdCoord.y*10, mBrdCoord.x*10);
 		}
 
 		repaint();

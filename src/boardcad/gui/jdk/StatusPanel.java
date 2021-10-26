@@ -4,54 +4,44 @@ import java.awt.FlowLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import boardcad.i18n.LanguageResource;
 
 //=========================================================Status Panel
 public class StatusPanel extends JPanel
 {
 	private static final long serialVersionUID = 1L;
-//	private UserInterface user_interface;
-	private JLabel status_text;
-	private String point_name, mode;
-	private int x,y,z;
+	private JLabel mStatusText;
+	private String mMode;
+	private int mX,mY,mZ;
 
 	public StatusPanel()
 	{
-//		user_interface=ui;
 		setLayout(new FlowLayout(FlowLayout.LEFT,2,0));
-		status_text=new JLabel(LanguageResource.getString("NURBSSURFACE_STR"));
-		point_name="";
-		mode="";
-		x=0;
-		y=0;
-		z=0;
-		add(status_text);
+		mStatusText = new JLabel("");
+		mMode="";
+		mX=0;
+		mY=0;
+		mZ=0;
+		add(mStatusText);
 	}
 
 	public void setMode(String text)
 	{
-		mode=text;
-		update_status();
-	}
-	public void set_point_name(String text)
-	{
-		point_name=text;
-		update_status();
+		mMode = text;
+		updateStatus();
 	}
 
-	public void set_coordinates(double x_coord, double y_coord, double z_coord)
+	public void setCoordinates(double x_coord, double y_coord, double z_coord)
 	{
-		x=(int)x_coord;
-		y=(int)y_coord;
-		z=(int)z_coord;
-		update_status();
+		mX = (int)x_coord;
+		mY = (int)y_coord;
+		mZ = (int)z_coord;
+		updateStatus();
 	}
 
-	private void update_status()
+	private void updateStatus()
 	{
-		String text;
-		text=mode + ":" + point_name+": x=" + x + " y=" + y + " z=" + z;
-		status_text.setText(text);
+		String text = mMode + "  x:" + mX + " y:" + mY + " z:" + mZ;
+		mStatusText.setText(text);
 	}
 }
 

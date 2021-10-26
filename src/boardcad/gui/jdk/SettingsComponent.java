@@ -105,6 +105,10 @@ class SettingsComponent extends JComponent
 					{
 						return new EnumEditor();
 					}
+					else if(className.compareTo(PairType.class.getName()) == 0)
+					{
+						return new PairTypeEditor();
+					}
 					else
 					{
 						return super.getDefaultEditor(c);
@@ -135,8 +139,6 @@ class SettingsComponent extends JComponent
 
 
 			};
-
-// JAVA 6			settingsTable.setAutoCreateRowSorter(true);
 
 			settingsTable.setModel(new AbstractTableModel(){
 				/**
@@ -489,6 +491,58 @@ class EnumEditor extends AbstractCellEditor implements TableCellEditor {
 		for(Map.Entry<Integer, String> entry : enu.getAlternatives().entrySet())
 		{
 			comboBox.addItem(entry.getValue());
+		}
+
+		return comboBox;
+	}
+}
+
+class PairTypeEditor extends AbstractCellEditor implements TableCellEditor {
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 4268145246290497799L;
+	JButton button;
+	JComboBox comboBox;
+	protected static final String EDIT = "edit";
+	PairType p;
+	String result;
+
+	public PairTypeEditor() {
+		comboBox = new JComboBox();
+		comboBox.setEditable(false);
+		comboBox.addActionListener(new ActionListener()
+		{
+			    @Override
+				public void actionPerformed(ActionEvent e) {
+			        fireEditingStopped();
+			    }
+		});
+	}
+
+
+//	Implement the one CellEditor method that AbstractCellEditor doesn't.
+	@Override
+	public Object getCellEditorValue() {
+		String selected = String.valueOf(comboBox.getSelectedItem());
+		System.out.printf("Selected look and feel: %s\n", selected);
+		return new Settings().new PairType(selected, p.getAlternatives());
+	}
+
+//	Implement the one method defined by TableCellEditor.
+	@Override
+	public Component getTableCellEditorComponent(final JTable table,
+			final Object value,
+			final boolean isSelected,
+			final int row,
+			final int column) {
+		p = (PairType)value;
+
+		comboBox.removeAllItems();
+
+		for(Map.Entry<String, String> entry : p.getAlternatives().entrySet())
+		{
+			comboBox.addItem(entry.getKey());
 		}
 
 		return comboBox;

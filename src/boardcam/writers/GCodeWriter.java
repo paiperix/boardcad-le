@@ -4,9 +4,6 @@ import java.io.PrintStream;
 
 import org.jogamp.vecmath.*;
 
-import boardcam.MachineConfig;
-import boardcam.toolpathgenerators.ext.CoordinateScaling;
-
 public class GCodeWriter extends AbstractMachineWriter{
 
 	private static String  mAxis = "XYZAF";

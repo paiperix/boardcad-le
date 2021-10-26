@@ -59,7 +59,6 @@ import boardcad.export.StlExport;
 import boardcad.i18n.LanguageResource;
 import boardcam.cutters.AbstractCutter;
 import boardcam.MachineConfig;
-import boardcam.cutters.SimpleBullnoseCutter;
 import boardcam.holdingsystems.SupportsBlankHoldingSystem;
 import boardcam.toolpathgenerators.*;
 import boardcam.toolpathgenerators.ext.SandwichCompensation;
@@ -220,15 +219,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * squarePath.lineTo(-1.0, 1.0); squarePath.lineTo(-1.0, -1.0);
 		 * squarePath.closePath();
 		 *
-		 * GeneralPath linePath = new GeneralPath(); linePath.moveTo(-1.0, 0.0);
-		 * int steps = 100; for (int i = 0; i < steps; i++) {
-		 * linePath.moveTo(-1.0 + ((2.0 * i) / steps), 0.0); }
+		 * GeneralPath linePath = new GeneralPath(); linePath.moveTo(-1.0, 0.0); int
+		 * steps = 100; for (int i = 0; i < steps; i++) { linePath.moveTo(-1.0 + ((2.0 *
+		 * i) / steps), 0.0); }
 		 *
 		 * GCodeDraw gdrawSquare = new GCodeDraw(
-		 * "C:/Users/Haavard/Desktop/G-Code/SquareTest.nc", 0.05, -0.05, 0.05,
-		 * 0.01, 0.2, 0.03); GCodeDraw gdrawSquareNoOffset = new GCodeDraw(
-		 * "C:/Users/Haavard/Desktop/G-Code/SquareTestNoOffset.nc", 0.0, -0.05,
-		 * 0.05, 0.01, 0.2, 0.03);
+		 * "C:/Users/Haavard/Desktop/G-Code/SquareTest.nc", 0.05, -0.05, 0.05, 0.01,
+		 * 0.2, 0.03); GCodeDraw gdrawSquareNoOffset = new GCodeDraw(
+		 * "C:/Users/Haavard/Desktop/G-Code/SquareTestNoOffset.nc", 0.0, -0.05, 0.05,
+		 * 0.01, 0.2, 0.03);
 		 *
 		 * gdrawSquare.draw(squarePath); gdrawSquareNoOffset.draw(squarePath);
 		 */
@@ -255,8 +254,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final Preferences prefs = Preferences.userNodeForPackage(BoardCAD.class);
 
 		defaultDirectory = prefs.get("defaultDirectory", "");
-		mIsPaintingGridMenuItem
-				.setSelected(prefs.getBoolean("mIsPaintingGridMenuItem", false));
+		mIsPaintingGridMenuItem.setSelected(prefs.getBoolean("mIsPaintingGridMenuItem", false));
 		mIsPaintingOriginalBrdMenuItem.setSelected(
 				prefs.getBoolean("mIsPaintingOriginalBrdMenuItem", mIsPaintingOriginalBrdMenuItem.isSelected()));
 		mIsPaintingGhostBrdMenuItem
@@ -856,7 +854,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	private void createAndShowGUI() {
 
 		// Make sure we have nice window decorations.
-		JFrame.setDefaultLookAndFeelDecorated(false);
+		JFrame.setDefaultLookAndFeelDecorated(true);
 
 		// Create and set up the window.
 		mFrame = new JFrame(" " + appname);
@@ -995,7 +993,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			static final long serialVersionUID = 1L;
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("BOARDSAVEAS_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getClassLoader().getResource("boardcad/icons/save-as.png")));
+				this.putValue(Action.SMALL_ICON,
+						new ImageIcon(getClass().getClassLoader().getResource("boardcad/icons/save-as.png")));
 			};
 
 			@Override
@@ -1076,10 +1075,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				int returnVal = fc.showOpenDialog(BoardCAD.getInstance().getFrame());
 				if (returnVal != JFileChooser.APPROVE_OPTION)
 					return;
-
+				
+				System.out.printf("Loading image");
+				
 				File file = fc.getSelectedFile();
 
 				String filename = file.getPath(); // Load and display
+				System.out.printf("Loading image %s", filename);
 				// selection
 				if (filename == null)
 					return;
@@ -1613,13 +1615,11 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		printMenu.addSeparator();
 
 		/*
-		 * final JMenuItem printSpecSheet = new
-		 * JMenuItem(LanguageResource.getString
+		 * final JMenuItem printSpecSheet = new JMenuItem(LanguageResource.getString
 		 * ("PRINTSPECSHEET_STR"),KeyEvent.VK_H);
 		 * printSpecSheet.setAccelerator(KeyStroke
 		 * .getKeyStroke(KeyEvent.VK_5,ActionEvent.ALT_MASK));
-		 * printSpecSheet.addActionListener(this);
-		 * printMenu.add(printSpecSheet);
+		 * printSpecSheet.addActionListener(this); printMenu.add(printSpecSheet);
 		 */
 
 		final AbstractAction printSpecSheet = new AbstractAction() {
@@ -2726,19 +2726,18 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				MachineConfig config = new MachineConfig();
 				config.getPreferences();
 
-				AbstractToolpathGenerator toolpathGenerator = new WidthSplitsToolpathGenerator(new AbstractCutter() {
-					public double[] calcOffset(Point3d point, Vector3d normal, AbstractBoard board) {
-						return new double[] { point.x, point.y, point.z };
-					}
-
-					public double calcSpeed(Point3d point, Vector3d normal, AbstractBoard board,
-							boolean isCuttingStringer) {
-						return 10;
-					}
-
-				}, null, new GCodeWriter(), config);
-
 				try {
+					AbstractToolpathGenerator toolpathGenerator = new WidthSplitsToolpathGenerator(new AbstractCutter() {
+						public double[] calcOffset(Point3d point, Vector3d normal, AbstractBoard board) {
+							return new double[] { point.x, point.y, point.z };
+						}
+	
+					}, null, new GCodeWriter(), config) {
+						public double calcSpeed(Point3d point, Vector3d normal, AbstractBoard board, boolean isCuttingStringer) {
+							return 10;
+						}
+					};
+	
 					toolpathGenerator.writeToolpath(filename, getCurrentBrd(), null);
 				} catch (Exception e) {
 					String str = LanguageResource.getString("GCODEBOTTOMFAILEDMSG_STR") + e.toString();
@@ -3327,36 +3326,33 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				double scale = 1.0;
 
 				/*
-				 * PrintHollowWoodTemplates.printStringerWebbing(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(), skinThickness,
-				 * frameThickness, webbing);
+				 * PrintHollowWoodTemplates.printStringerWebbing(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), skinThickness, frameThickness,
+				 * webbing);
 				 *
 				 * gdraw.setFlipNormal(false);
 				 *
 				 *
 				 * BezierBoardDrawUtil.printProfile(gdraw, x, y, scale, false,
-				 * BoardCAD.getInstance().getCurrentBrd(), 0.0, skinThickness,
-				 * false, tailOffset, noseOffset);
+				 * BoardCAD.getInstance().getCurrentBrd(), 0.0, skinThickness, false,
+				 * tailOffset, noseOffset);
 				 *
 				 * //Debug without offset gdraw.setCutterDiameter(0.0);
 				 * BezierBoardDrawUtil.printProfile(gdraw, x, y, scale, false,
-				 * BoardCAD.getInstance().getCurrentBrd(), 0.0, skinThickness,
-				 * false, tailOffset, noseOffset);
-				 *
-				 *
-				 * PrintHollowWoodTemplates.printStringerTailPieceCutOut(gdraw,
-				 * x, y, scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
+				 * BoardCAD.getInstance().getCurrentBrd(), 0.0, skinThickness, false,
 				 * tailOffset, noseOffset);
 				 *
-				 * PrintHollowWoodTemplates.printStringerNosePieceCutOut(gdraw,
-				 * x, y, scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset);
 				 *
-				 * y+=
-				 * BoardCAD.getInstance().getCurrentBrd().getThickness()*10.0;
-				 * y+= cutterDiam*2.0;
+				 * PrintHollowWoodTemplates.printStringerTailPieceCutOut(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset);
+				 *
+				 * PrintHollowWoodTemplates.printStringerNosePieceCutOut(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset);
+				 *
+				 * y+= BoardCAD.getInstance().getCurrentBrd().getThickness()*10.0; y+=
+				 * cutterDiam*2.0;
 				 */
 				// Print rails twice
 				gdraw.writeComment("Rails");
@@ -3384,105 +3380,89 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				gdraw.close();
 				return;
 				/*
-				 * x+= BoardCAD.getInstance().getCurrentBrd().getThickness();
-				 * x+= cutterDiam*2.0;
+				 * x+= BoardCAD.getInstance().getCurrentBrd().getThickness(); x+=
+				 * cutterDiam*2.0;
 				 *
-				 * BezierBoardDrawUtil.printRailTemplate(gdraw, x, y, scale,
-				 * false, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, tailOffset, noseOffset,
-				 * false);
+				 * BezierBoardDrawUtil.printRailTemplate(gdraw, x, y, scale, false,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * tailOffset, noseOffset, false);
 				 *
 				 * PrintHollowWoodTemplates.printRailWebbing(gdraw, x, y, scale,
-				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail,
-				 * skinThickness, frameThickness, webbing, tailOffset,
-				 * noseOffset);
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset);
 				 *
-				 * PrintHollowWoodTemplates.printRailNotching(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset);
+				 * PrintHollowWoodTemplates.printRailNotching(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset);
 				 *
-				 * PrintHollowWoodTemplates.printRailNosePieceNotches(gdraw, x,
-				 * y, scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset);
+				 * PrintHollowWoodTemplates.printRailNosePieceNotches(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset);
 				 *
-				 * PrintHollowWoodTemplates.printRailTailPieceNotches(gdraw, x,
-				 * y, scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset);
+				 * PrintHollowWoodTemplates.printRailTailPieceNotches(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset);
 				 *
 				 * //Print cross sections gdraw.writeComment("Ribs"); x+=
-				 * BoardCAD.getInstance().getCurrentBrd().getThickness(); x+=
-				 * cutterDiam*2.0; y=offsetY;
+				 * BoardCAD.getInstance().getCurrentBrd().getThickness(); x+= cutterDiam*2.0;
+				 * y=offsetY;
 				 *
 				 * int nrOfCrossSections =
 				 * (int)((BoardCAD.getInstance().getCurrentBrd().getLength() -
-				 * 9.0*UnitUtils.INCH)/UnitUtils.FOOT); double crosssectionPos =
-				 * 0.0; for(int i = 0; i < nrOfCrossSections; i++) {
-				 * crosssectionPos = (i+1)* UnitUtils.FOOT;
+				 * 9.0*UnitUtils.INCH)/UnitUtils.FOOT); double crosssectionPos = 0.0; for(int i
+				 * = 0; i < nrOfCrossSections; i++) { crosssectionPos = (i+1)* UnitUtils.FOOT;
 				 *
 				 * gdraw.writeComment("Rib at " +
 				 * UnitUtils.convertLengthToCurrentUnit(crosssectionPos, true));
 				 *
-				 * PrintHollowWoodTemplates.printCrossSection(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * crosssectionPos, distanceToRail, skinThickness,
-				 * frameThickness, webbing, false);
+				 * PrintHollowWoodTemplates.printCrossSection(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), crosssectionPos, distanceToRail,
+				 * skinThickness, frameThickness, webbing, false);
 				 *
-				 * PrintHollowWoodTemplates.printCrossSectionWebbing(gdraw, x,
-				 * y, scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * crosssectionPos, distanceToRail, skinThickness,
-				 * frameThickness, webbing, false);
+				 * PrintHollowWoodTemplates.printCrossSectionWebbing(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), crosssectionPos, distanceToRail,
+				 * skinThickness, frameThickness, webbing, false);
 				 *
 				 * double verticalStep =
-				 * BoardCAD.getInstance().getCurrentBrd().getThicknessAtPos
-				 * (crosssectionPos) - skinThickness + (cutterDiam*2.0);
+				 * BoardCAD.getInstance().getCurrentBrd().getThicknessAtPos (crosssectionPos) -
+				 * skinThickness + (cutterDiam*2.0);
 				 *
 				 * y += verticalStep; }
 				 *
 				 *
 				 * //Nose piece gdraw.writeComment("Nose");
 				 * PrintHollowWoodTemplates.printNosePiece(gdraw, x, y, scale,
-				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail,
-				 * skinThickness, frameThickness, webbing, tailOffset,
-				 * noseOffset, false);
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, false);
 				 *
 				 * PrintHollowWoodTemplates.printNosePiece(gdraw, x, y, scale,
-				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail,
-				 * skinThickness, frameThickness, webbing, tailOffset,
-				 * noseOffset, true);
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, true);
 				 *
-				 * PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset, false);
+				 * PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, false);
 				 *
-				 * PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset, true);
+				 * PrintHollowWoodTemplates.printNosePieceWebbing(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, true);
 				 *
 				 * //Tail piece gdraw.writeComment("Tail"); y += UnitUtils.FOOT;
 				 * PrintHollowWoodTemplates.printTailPiece(gdraw, x, y, scale,
-				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail,
-				 * skinThickness, frameThickness, webbing, tailOffset,
-				 * noseOffset, false);
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, false);
 				 *
 				 * PrintHollowWoodTemplates.printTailPiece(gdraw, x, y, scale,
-				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail,
-				 * skinThickness, frameThickness, webbing, tailOffset,
-				 * noseOffset, true);
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, true);
 				 *
-				 * PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset, false);
+				 * PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, false);
 				 *
-				 * PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, x, y,
-				 * scale, BoardCAD.getInstance().getCurrentBrd(),
-				 * distanceToRail, skinThickness, frameThickness, webbing,
-				 * tailOffset, noseOffset, true);
+				 * PrintHollowWoodTemplates.printTailPieceWebbing(gdraw, x, y, scale,
+				 * BoardCAD.getInstance().getCurrentBrd(), distanceToRail, skinThickness,
+				 * frameThickness, webbing, tailOffset, noseOffset, true);
 				 *
 				 *
 				 * settingsDialog.dispose();
@@ -3652,84 +3632,68 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				/*
 				 * CategorizedSettings settings = new CategorizedSettings();
 				 * settings.addCategory("test");
-				 * settings.getSettings("test").addBoolean("Test1", true,
-				 * "Test 1");
+				 * settings.getSettings("test").addBoolean("Test1", true, "Test 1");
 				 *
-				 * SettingDialog dialog = new SettingDialog(settings);
-				 * dialog.setModal(true); dialog.setVisible(true);
-				 * if(!dialog.wasCancelled()) { boolean test1 =
+				 * SettingDialog dialog = new SettingDialog(settings); dialog.setModal(true);
+				 * dialog.setVisible(true); if(!dialog.wasCancelled()) { boolean test1 =
 				 * settings.getSettings("test").getBoolean("Test1");
 				 * System.out.printf("Test1: %s", test1?"true":"false"); }
 				 *
-				 * BezierSpline b =
-				 * getCurrentBrd().getNearestCrossSection(getCurrentBrd
+				 * BezierSpline b = getCurrentBrd().getNearestCrossSection(getCurrentBrd
 				 * ().getLength()/2.0f).getBezierSpline(); double startAngle =
 				 * b.getNormalByS(BezierSpline.ZERO); double endAngle =
 				 * b.getNormalByS(BezierSpline.ONE);
 				 *
 				 * System.out.printf("startAngle: %f endAngle: %f\n",
-				 * startAngle/BezierBoard.DEG_TO_RAD,
-				 * endAngle/BezierBoard.DEG_TO_RAD);
+				 * startAngle/BezierBoard.DEG_TO_RAD, endAngle/BezierBoard.DEG_TO_RAD);
 				 *
 				 * int steps = 20;
 				 *
-				 * System.out.printf(
-				 * "----------------------------------------\n" );
-				 * System.out.printf(
-				 * "----------------------------------------\n" ); System.out.
-				 * printf("---------------TEST BEGIN---------------\n" );
-				 * System.out.printf(
-				 * "----------------------------------------\n" );
+				 * System.out.printf( "----------------------------------------\n" );
+				 * System.out.printf( "----------------------------------------\n" );
+				 * System.out. printf("---------------TEST BEGIN---------------\n" );
+				 * System.out.printf( "----------------------------------------\n" );
 				 *
 				 * for(int i = 0; i < steps; i++) { double currentAngle =
-				 * b.getNormalByS((double)i/(double)steps);
-				 * System.out.printf("Angle:%f\n",
+				 * b.getNormalByS((double)i/(double)steps); System.out.printf("Angle:%f\n",
 				 * currentAngle/BezierBoard.DEG_TO_RAD); }
 				 *
-				 * System.out.printf(
-				 * "----------------------------------------\n" );
-				 * System.out.printf(
-				 * "----------------------------------------\n" );
+				 * System.out.printf( "----------------------------------------\n" );
+				 * System.out.printf( "----------------------------------------\n" );
 				 *
 				 * double angleStep = (endAngle-startAngle) / steps;
 				 *
 				 * for(int i = 0; i < steps; i++) { System.out.printf(
-				 * "----------------------------------------\n" ); double
-				 * currentAngle = startAngle + (angleStep*i); double s =
-				 * b.getSByNormalReverse(currentAngle); double checkAngle =
-				 * b.getNormalByS(s); System.out.
+				 * "----------------------------------------\n" ); double currentAngle =
+				 * startAngle + (angleStep*i); double s = b.getSByNormalReverse(currentAngle);
+				 * double checkAngle = b.getNormalByS(s); System.out.
 				 * printf("Target Angle:%f Result s:%f Angle for s:%f\n" ,
-				 * currentAngle/BezierBoard.DEG_TO_RAD, s,
-				 * checkAngle/BezierBoard.DEG_TO_RAD); }
+				 * currentAngle/BezierBoard.DEG_TO_RAD, s, checkAngle/BezierBoard.DEG_TO_RAD); }
 				 */
 				/*
-				System.out.printf("__________________________________\n");
-				// Test SimpleBullnoseCutter
-				SimpleBullnoseCutter cutter = new SimpleBullnoseCutter(50, 10, 100);
-				System.out.printf("TEST!!! Cutter diam: 50 corner: 10 height: 100\n");
-
-				Point3d point = new Point3d(0.0, 0.0, 0.0);
-
-				Vector<Vector3d> testVectors = new Vector<Vector3d>();
-
-				testVectors.add(new Vector3d(1.0, 1.0, 1.0));
-				// testVectors.add(new Vector3d(1.0,0.0,1.0));
-				// testVectors.add(new Vector3d(-1.0,0.0,1.0));
-				// testVectors.add(new Vector3d(0.0,1.0,1.0));
-				// testVectors.add(new Vector3d(0.0,-1.0,1.0));
-				// testVectors.add(new Vector3d(0.0,-1.0,0.0));
-				// testVectors.add(new Vector3d(1.0,0.0,1.0));
-
-				System.out.printf("\n__________________________________\n");
-				for (int i = 0; i < testVectors.size(); i++) {
-					Vector3d vector = testVectors.elementAt(i);
-					vector.normalize();
-					System.out.printf("\nTEST!!! Vector%d: %f,%f,%f\n", i, vector.x, vector.y, vector.z);
-					double[] result = cutter.calcOffset(point, vector, null);
-					System.out.printf("Result: %f, %f, %f\n", result[0], result[1], result[2]);
-				}
-				System.out.printf("\n__________________________________\n");
-				*/
+				 * System.out.printf("__________________________________\n"); // Test
+				 * SimpleBullnoseCutter SimpleBullnoseCutter cutter = new
+				 * SimpleBullnoseCutter(50, 10, 100);
+				 * System.out.printf("TEST!!! Cutter diam: 50 corner: 10 height: 100\n");
+				 * 
+				 * Point3d point = new Point3d(0.0, 0.0, 0.0);
+				 * 
+				 * Vector<Vector3d> testVectors = new Vector<Vector3d>();
+				 * 
+				 * testVectors.add(new Vector3d(1.0, 1.0, 1.0)); // testVectors.add(new
+				 * Vector3d(1.0,0.0,1.0)); // testVectors.add(new Vector3d(-1.0,0.0,1.0)); //
+				 * testVectors.add(new Vector3d(0.0,1.0,1.0)); // testVectors.add(new
+				 * Vector3d(0.0,-1.0,1.0)); // testVectors.add(new Vector3d(0.0,-1.0,0.0)); //
+				 * testVectors.add(new Vector3d(1.0,0.0,1.0));
+				 * 
+				 * System.out.printf("\n__________________________________\n"); for (int i = 0;
+				 * i < testVectors.size(); i++) { Vector3d vector = testVectors.elementAt(i);
+				 * vector.normalize(); System.out.printf("\nTEST!!! Vector%d: %f,%f,%f\n", i,
+				 * vector.x, vector.y, vector.z); double[] result = cutter.calcOffset(point,
+				 * vector, null); System.out.printf("Result: %f, %f, %f\n", result[0],
+				 * result[1], result[2]); }
+				 * System.out.printf("\n__________________________________\n");
+				 */
 			}
 		};
 		fileMenu.add(test);
@@ -3758,7 +3722,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("UNDO_STR"));
 				this.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("UNDO_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/edit-undo.png")));
+				this.putValue(Action.SMALL_ICON,
+						new ImageIcon(getClass().getResource("/boardcad/icons/edit-undo.png")));
 				this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
 			};
 
@@ -3776,7 +3741,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			{
 				this.putValue(Action.NAME, LanguageResource.getString("REDO_STR"));
 				this.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("REDO_STR"));
-				this.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/edit-redo.png")));
+				this.putValue(Action.SMALL_ICON,
+						new ImageIcon(getClass().getResource("/boardcad/icons/edit-redo.png")));
 
 				this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
 			};
@@ -4832,38 +4798,33 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mToolBar.addSeparator();
 		/*
-		 * final JRadioButton millimeterButton = new
-		 * JRadioButton(LanguageResource
+		 * final JRadioButton millimeterButton = new JRadioButton(LanguageResource
 		 * .getString("MILLIMETERSRADIOBUTTON_STR"));
 		 * millimeterButton.addActionListener(new ActionListener() { public void
-		 * actionPerformed(final ActionEvent e) {
-		 * setCurrentUnit(UnitUtils.MILLIMETERS); } }); final JRadioButton
-		 * imperialButton = new
-		 * JRadioButton(LanguageResource.getString("FEETINCHESRADIOBUTTON_STR"
-		 * )); imperialButton.setSelected(true);
-		 * imperialButton.addActionListener(new ActionListener() { public void
-		 * actionPerformed(final ActionEvent e) {
+		 * actionPerformed(final ActionEvent e) { setCurrentUnit(UnitUtils.MILLIMETERS);
+		 * } }); final JRadioButton imperialButton = new
+		 * JRadioButton(LanguageResource.getString("FEETINCHESRADIOBUTTON_STR" ));
+		 * imperialButton.setSelected(true); imperialButton.addActionListener(new
+		 * ActionListener() { public void actionPerformed(final ActionEvent e) {
 		 * setCurrentUnit(UnitUtils.INCHES); } }); final JRadioButton
 		 * imperialDecimalButton = new JRadioButton(LanguageResource.getString(
 		 * "DECIMALFEETINCHESRADIOBUTTON_STR"));
-		 * imperialDecimalButton.addActionListener(new ActionListener() { public
-		 * void actionPerformed(final ActionEvent e) {
+		 * imperialDecimalButton.addActionListener(new ActionListener() { public void
+		 * actionPerformed(final ActionEvent e) {
 		 * setCurrentUnit(UnitUtils.INCHES_DECIMAL); } }); final JRadioButton
 		 * centimeterButton = new
-		 * JRadioButton(LanguageResource.getString("CENTIMETERSRADIOBUTTON_STR"
-		 * )); centimeterButton.addActionListener(new ActionListener() { public
-		 * void actionPerformed(final ActionEvent e) {
-		 * setCurrentUnit(UnitUtils.CENTIMETERS); } });
+		 * JRadioButton(LanguageResource.getString("CENTIMETERSRADIOBUTTON_STR" ));
+		 * centimeterButton.addActionListener(new ActionListener() { public void
+		 * actionPerformed(final ActionEvent e) { setCurrentUnit(UnitUtils.CENTIMETERS);
+		 * } });
 		 *
 		 * final ButtonGroup unitButtonGroup = new ButtonGroup();
-		 * unitButtonGroup.add(imperialButton);
-		 * unitButtonGroup.add(millimeterButton);
+		 * unitButtonGroup.add(imperialButton); unitButtonGroup.add(millimeterButton);
 		 * unitButtonGroup.add(centimeterButton);
-		 * unitButtonGroup.add(imperialDecimalButton);
-		 * mToolBar.add(imperialButton); //mToolBar.addSeparator();
-		 * mToolBar.add(millimeterButton); //mToolBar.addSeparator();
-		 * mToolBar.add(centimeterButton); //mToolBar.addSeparator();
-		 * mToolBar.add(imperialDecimalButton);
+		 * unitButtonGroup.add(imperialDecimalButton); mToolBar.add(imperialButton);
+		 * //mToolBar.addSeparator(); mToolBar.add(millimeterButton);
+		 * //mToolBar.addSeparator(); mToolBar.add(centimeterButton);
+		 * //mToolBar.addSeparator(); mToolBar.add(imperialDecimalButton);
 		 */
 		JLabel unitLabel = new JLabel(LanguageResource.getString("UNIT_STR"));
 		unitLabel.setForeground(mSettings.getTextColor());
@@ -5164,10 +5125,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				// context
 				int hgt = metrics.getHeight();
 
-				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR")
-						+ UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected()
-								? brd.getBottom().getLengthByX(crs.getPosition()) : crs.getPosition(), false)
-						+ (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
+				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR") + UnitUtils.convertLengthToCurrentUnit(
+						mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLengthByX(crs.getPosition())
+								: crs.getPosition(),
+						false) + (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
 
 				g.drawString(posStr, 10, hgt * 3);
 
@@ -5329,7 +5290,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			Point2D.Double getTail() {
+			Point2D.Double getTailPos() {
 				final BezierBoard brd = getCurrentBrd();
 				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
 						.getEndPoint().clone();
@@ -5338,7 +5299,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			Point2D.Double getNose() {
+			Point2D.Double getNosePos() {
 				final BezierBoard brd = getCurrentBrd();
 				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
 						.getEndPoint().clone();
@@ -5789,10 +5750,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				// context
 				int hgt = metrics.getHeight();
 
-				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR")
-						+ UnitUtils.convertLengthToCurrentUnit(mBoardSpec.isOverCurveSelected()
-								? brd.getBottom().getLengthByX(crs.getPosition()) : crs.getPosition(), false)
-						+ (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
+				String posStr = LanguageResource.getString("CROSSECTIONPOS_STR") + UnitUtils.convertLengthToCurrentUnit(
+						mBoardSpec.isOverCurveSelected() ? brd.getBottom().getLengthByX(crs.getPosition())
+								: crs.getPosition(),
+						false) + (mBoardSpec.isOverCurveSelected() ? " O.C" : "");
 
 				g.drawString(posStr, 10, hgt * 3);
 
@@ -5947,7 +5908,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			Point2D.Double getTail() {
+			Point2D.Double getTailPos() {
 				final BezierBoard brd = getCurrentBrd();
 				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
 						.getEndPoint().clone();
@@ -5956,7 +5917,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			}
 
 			@Override
-			Point2D.Double getNose() {
+			Point2D.Double getNosePos() {
 				final BezierBoard brd = getCurrentBrd();
 				final Point2D.Double tail = (Point2D.Double) getActiveBezierSplines(brd)[0].getControlPoint(0)
 						.getEndPoint().clone();
@@ -6208,18 +6169,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mTabbedPane.addTab(LanguageResource.getString("3DRENDEREDVIEW_STR"), mRenderedPanel);
 
-		/* DEBUG!
-		mTabbedPane.add("PrintBrd", mPrintBrd); // Only for debugging
-		mTabbedPane.add("PrintSpecSheet", mPrintSpecSheet); // Only for
-															// debugging
-		mTabbedPane.add("PrintChamberedWood", mPrintChamberedWoodTemplate); // Only
-																			// for
-																			// debugging
-		mTabbedPane.add("PrintSandwich", mPrintSandwichTemplates); // Only for
-																	// debugging
-		mTabbedPane.add("PrintHWS", mPrintHollowWoodTemplates); // Only for
-																// debugging
-		*/
+		/*
+		 * DEBUG! mTabbedPane.add("PrintBrd", mPrintBrd); // Only for debugging
+		 * mTabbedPane.add("PrintSpecSheet", mPrintSpecSheet); // Only for // debugging
+		 * mTabbedPane.add("PrintChamberedWood", mPrintChamberedWoodTemplate); // Only
+		 * // for // debugging mTabbedPane.add("PrintSandwich",
+		 * mPrintSandwichTemplates); // Only for // debugging
+		 * mTabbedPane.add("PrintHWS", mPrintHollowWoodTemplates); // Only for //
+		 * debugging
+		 */
 		mTabbedPane.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -6332,8 +6290,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * DefaultBrds.getInstance().getBoardArray("Funboard"), "funboard");
 		 * mOriginalBrd.set(getCurrentBrd()); fitAll(); onBrdChanged();
 		 *
-		 * getSelectedEdit().loadBackgroundImage("F:\\Gfx\\Misc\\Surfboards\\
-		 * horan 6'8 keelboard outline.jpg");
+		 * getSelectedEdit().loadBackgroundImage("F:\\Gfx\\Misc\\Surfboards\\ horan 6'8
+		 * keelboard outline.jpg");
 		 */
 
 		getPreferences();
@@ -6563,9 +6521,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 			}
 		}
-
-		if (edit == null)
-			return false;
 
 		final BrdInputCommand cmd = (BrdInputCommand) edit.getCurrentCommand();
 		if (cmd != null) {
@@ -7097,7 +7052,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionCenterline(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
-						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale
+						: 0),
 				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
@@ -7106,7 +7062,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionFlowLines(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
-						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale
+						: 0),
 				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
@@ -7115,7 +7072,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionApexline(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
-						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale
+						: 0),
 				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 
@@ -7124,7 +7082,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		boolean isCompensatedForRocker = mSettings.isUsingOffsetInterpolation();
 		BezierBoardDrawUtil.paintCrossSectionTuckUnderLine(new JavaDraw(g), source.mOffsetX,
 				source.mOffsetY + (isCompensatedForRocker
-						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale : 0),
+						? brd.getRockerAtPos(brd.getCurrentCrossSection().getPosition()) * source.mScale
+						: 0),
 				source.mScale, 0.0, color, stroke, brd, true, !isCompensatedForRocker);
 	}
 

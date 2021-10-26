@@ -1,15 +1,21 @@
 package boardcad.settings;
 
 import java.awt.Color;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import org.pushingpixels.substance.api.SubstanceLookAndFeel;
+
+import org.reflections.*;
+
 import boardcad.gui.jdk.BoardCAD;
 import boardcad.i18n.LanguageResource;
-import boardcad.settings.Settings.Enumeration;
+import boardcad.settings.Settings.PairType;
 import cadcore.UnitUtils;
 
 public class BoardCADSettings extends CategorizedSettings
@@ -181,26 +187,30 @@ public class BoardCADSettings extends CategorizedSettings
 		mSizeSettings.addDouble(GUIDEPNTTHICKNESS, 1.2, LanguageResource.getString("GUIDEPNTTHICKNESS_STR"));
 		mSizeSettings.addDouble(BASELINETHICKNESS, 1, LanguageResource.getString("BASELINETHICKNESS_STR"));
 
-		HashMap<Integer, String> looks = new HashMap<Integer, String>();
+		LinkedHashMap<String, String> looks = new LinkedHashMap<String, String>();
 
 		mMiscSettings = this.addCategory(LanguageResource.getString("MISC_STR"));
 		String systemLookAndFeelName = UIManager.getSystemLookAndFeelClassName();
-		int systemLookAndFeelIndex = 0;
-		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-			looks.put(looks.size(), info.getName());
-			if (systemLookAndFeelName == info.getClassName()) {
-				systemLookAndFeelIndex = looks.size() - 1;
+		LookAndFeelInfo[] installedLooksAndFeels = UIManager.getInstalledLookAndFeels();
+		for (LookAndFeelInfo info : installedLooksAndFeels) {
+			looks.put(info.getName(), info.getClassName());
+			if (info.getClassName() == "Nimbus") {
+				looks.put("DarkNimbus", info.getClassName());
 			}
 		}
+		Reflections reflections = new Reflections("org.pushingpixels.substance.api");
+		Set<Class<? extends SubstanceLookAndFeel>> substanceLookAndFeels = reflections.getSubTypesOf(SubstanceLookAndFeel.class);
+		for (Class<? extends SubstanceLookAndFeel> lookAndFeel : substanceLookAndFeels) {
+			looks.put(lookAndFeel.getSimpleName().replace("Substance", "").replace("LookAndFeel",""), lookAndFeel.getName());
+		}
 
-		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new Enumeration(systemLookAndFeelIndex, looks),
+		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new PairType("DarkNimbus", looks),
 				LanguageResource.getString("LOOKANDFEEL_STR"), new Settings.SettingChangedCallback() {
 					@Override
 					public void onSettingChanged(Setting setting) {
-						Enumeration e = (Enumeration) mMiscSettings.getSettingValue(LOOK_AND_FEEL);
-
-						String selectedLookAndFeelName = e.getAlternatives().get(e.getValue());
-
+						PairType e = setting.pairTypeValue();
+						String selectedLookAndFeelName = e.toString();
+						System.out.printf("Selected look and feel: %s, %s, %s\n", selectedLookAndFeelName, e.getValue(), e.getSelected());
 						if (BoardCAD.getInstance().isGUIBlocked() == false) {
 							JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
 									String.format(LanguageResource.getString("LOOKANDFEELCHANGEDMSG_STR"),
@@ -211,23 +221,34 @@ public class BoardCADSettings extends CategorizedSettings
 					}
 				});
 		mMiscSettings.getPreferences();
-
-		try {
-			Enumeration e = (Enumeration) mMiscSettings.getSettingValue(LOOK_AND_FEEL);
-
-			String selectedLookAndFeelName = e.getAlternatives().get(e.getValue());
-
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-				if (selectedLookAndFeelName.equals(info.getName())) {
-					UIManager.setLookAndFeel(info.getClassName());
-					break;
+		SwingUtilities.invokeLater(() -> {
+			try {
+				PairType e = (PairType)mMiscSettings.getSettingValue(LOOK_AND_FEEL);	
+				String selectedLookAndFeelName = e.toString();
+				if (selectedLookAndFeelName == "DarkNimbus") {
+					UIManager.put("control", new Color(0x37373D) );
+					UIManager.put("info", new Color(0x37373D) );
+					UIManager.put("nimbusBase", new Color( 18, 30, 49) );
+					UIManager.put("nimbusAlertYellow", new Color( 248, 187, 0) );
+					UIManager.put("nimbusDisabledText", new Color( 128, 128, 128) );
+					UIManager.put("nimbusFocus", new Color(115,164,209) );
+					UIManager.put("nimbusGreen", new Color(176,179,50) );
+					UIManager.put("nimbusInfoBlue", new Color( 66, 139, 221) );
+					UIManager.put("nimbusLightBackground", new Color(0x565656) );
+					UIManager.put("nimbusOrange", new Color(191,98,4) );
+					UIManager.put("nimbusRed", new Color(169,46,34) );
+					UIManager.put("nimbusSelectedText", new Color( 255, 255, 255) );
+					UIManager.put("nimbusSelectionBackground", new Color( 104, 93, 156) );
+					UIManager.put("text", new Color( 230, 230, 230) );					
 				}
+				UIManager.setLookAndFeel(e.getSelected());
+			} catch (Exception e) {
+				System.err.println(
+						"Exception when setting look and feel.");
+				System.out.println(e.toString());
+				System.err.println("Using the default look and feel.");
 			}
-		} catch (Exception e) {
-			System.err.println(
-					"Couldn't find class for specified look and feel:" + UIManager.getSystemLookAndFeelClassName());
-			System.err.println("Using the default look and feel.");
-		}
+		});
 
 		mMiscSettings.addBoolean(PRINTGUIDEPOINTS, false, LanguageResource.getString("PRINTGUIDEPOINTS_STR"));
 		mMiscSettings.addBoolean(PRINTFINS, false, LanguageResource.getString("PRINTFINS_STR"));
