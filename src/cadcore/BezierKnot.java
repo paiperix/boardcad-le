@@ -23,8 +23,8 @@ public class BezierKnot extends Object implements Cloneable
 	protected BezierKnot mSlave;
 	protected boolean mContinous = false;
 	private boolean mOther = false;
-	protected double X_mask = 1.0f;
-	protected double Y_mask = 1.0f;
+	protected double mXMask = 1.0f;
+	protected double mYMask = 1.0f;
 	protected int mTangent1Locks = 0;
 	protected int mTangent2Locks = 0;
  
@@ -88,8 +88,8 @@ public class BezierKnot extends Object implements Cloneable
 
 	public void setControlPointLocation(double x, double y)
 	{
-		double x_diff = (x - getPoints()[0].x)*X_mask;
-		double y_diff = (y - getPoints()[0].y)*Y_mask;
+		double x_diff = (x - getPoints()[0].x)*mXMask;
+		double y_diff = (y - getPoints()[0].y)*mYMask;
 
 		getPoints()[0].setLocation(getPoints()[0].x+x_diff, getPoints()[0].y+y_diff);
 		getPoints()[1].setLocation(getPoints()[1].x+x_diff, getPoints()[1].y+y_diff);
@@ -113,7 +113,7 @@ public class BezierKnot extends Object implements Cloneable
 
 	public void setEndPoint(double x, double y)
 	{
-		getPoints()[0].setLocation(x*X_mask, y*Y_mask);
+		getPoints()[0].setLocation(x*mXMask, y*mYMask);
 		onChange();
 	}
 
@@ -183,7 +183,7 @@ public class BezierKnot extends Object implements Cloneable
 		Point2D.Double vec = new Point2D.Double(); 
 		VecMath.subVector(getEndPoint(), getTangentToPrev(), vec);
 		
-		return VecMath.getVecAngle(u, vec);
+		return VecMath.getVectorAngle(u, vec);
 	}
 
 	public void setTangentToPrevAngle(double angle)
@@ -210,7 +210,7 @@ public class BezierKnot extends Object implements Cloneable
 		Point2D.Double vec = new Point2D.Double(); 
 		VecMath.subVector(getEndPoint(), getTangentToNext(), vec);
 
-		return VecMath.getVecAngle(u, vec);
+		return VecMath.getVectorAngle(u, vec);
 	}
 
 	public void setTangentToNextAngle(double angle)
@@ -237,13 +237,13 @@ public class BezierKnot extends Object implements Cloneable
 		VecMath.subVector(getEndPoint(), getTangentToPrev(), vec1);
 		VecMath.subVector(getEndPoint(), getTangentToNext(), vec2);
 
-		return VecMath.getVecAngle(vec1, vec2);
+		return VecMath.getVectorAngle(vec1, vec2);
 	}
 
 	public void setMask(double x, double y)
 	{
-		X_mask = x;
-		Y_mask = y;
+		mXMask = x;
+		mYMask = y;
 	}
 
 	public void setTangentToPrevLocks(int locks)
@@ -369,8 +369,8 @@ public class BezierKnot extends Object implements Cloneable
 
 
 		//Tangent angles
-		double angleDiff = VecMath.getVecAngle(tt1, ot1)*180.0/Math.PI;		//In degrees
-		double angleDiff2 = VecMath.getVecAngle(tt2, ot2)*180.0/Math.PI;	//In degrees
+		double angleDiff = VecMath.getVectorAngle(tt1, ot1)*180.0/Math.PI;		//In degrees
+		double angleDiff2 = VecMath.getVectorAngle(tt2, ot2)*180.0/Math.PI;	//In degrees
 		
 		angleDiff /=5.0f;	//15 degrees equals one meaning less will square to a lower number and larger will square up
 		angleDiff2 /=5.0f;
@@ -445,7 +445,7 @@ public class BezierKnot extends Object implements Cloneable
 
 	public String toString()
 	{		
-		String string = String.format("%f,%f,%f,%f,%f,%f,%s,%s,%d,%d,%d,%d", getPoints()[0].x, getPoints()[0].y, getPoints()[1].x, getPoints()[1].y, getPoints()[2].x, getPoints()[2].y, mContinous?"true":"false", getOther()?"true":"false", X_mask,Y_mask,mTangent1Locks, mTangent2Locks);
+		String string = String.format("%f,%f,%f,%f,%f,%f,%s,%s,%d,%d,%d,%d", getPoints()[0].x, getPoints()[0].y, getPoints()[1].x, getPoints()[1].y, getPoints()[2].x, getPoints()[2].y, mContinous?"true":"false", getOther()?"true":"false", mXMask,mYMask,mTangent1Locks, mTangent2Locks);
 		
 		return string;
 	}
@@ -466,8 +466,8 @@ public class BezierKnot extends Object implements Cloneable
 	
 		setOther(Boolean.valueOf(values[7]));
 	
-		X_mask = Integer.valueOf(values[8]);
-		Y_mask = Integer.valueOf(values[9]);
+		mXMask = Integer.valueOf(values[8]);
+		mYMask = Integer.valueOf(values[9]);
 		mTangent1Locks = Integer.valueOf(values[10]);
 		mTangent2Locks = Integer.valueOf(values[11]);
 		onChange();

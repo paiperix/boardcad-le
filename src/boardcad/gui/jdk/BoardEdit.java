@@ -12,7 +12,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
-import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -435,7 +434,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		double brdVecLen = VecMath.getVecLength(brdVec);
 		double imgVecLen = VecMath.getVecLength(imgVec);
-		double angleBetweenBoardAndImage = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulYSign;
+		double angleBetweenBoardAndImage = VecMath.getVectorAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulYSign;
 		double newScale = (brdVecLen/imgVecLen);
 		double xOffset = (tail.x - pos.x);
 		double yOffset =  (tail.y - pos.y) * mulYSign;
@@ -472,7 +471,7 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 		double brdVecLen = VecMath.getVecLength(brdVec);
 		double imgVecLen = VecMath.getVecLength(imgVec);
 		double newScale = (brdVecLen/imgVecLen);
-		double angleBetweenBoardAndImage = VecMath.getVecAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulYSign;
+		double angleBetweenBoardAndImage = VecMath.getVectorAngle(brdVec, imgVec)*(((brdVec.y > imgVec.y)?1:-1))*mulYSign;
 
 		final AffineTransform tmp = new AffineTransform();
 		tmp.setToRotation(angleBetweenBoardAndImage);
@@ -895,6 +894,8 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	public void onBrdChanged()
 	{
+		System.out.println("BoardEdit onBrdChanged");
+
 		BoardCAD.getInstance().onBrdChanged();
 
 		repaint();

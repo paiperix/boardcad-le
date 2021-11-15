@@ -87,7 +87,7 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	protected int mBottomRailCuts = 0;
 	protected String mSurfer = new String();
 	protected String mComments = new String();
-	protected double[] mFins = new double[9];	//x, y for back of fin, x,y for front of fin, bac of center, front of center, depth of center, depth of sidefin, splay angle
+	protected double[] mFins = new double[9];	//x, y for back of fin, x,y for front of fin, back of center, front of center, depth of center, depth of side fin, splay angle
 	protected String mFinType = new String();
 	protected String  mDescription = new String();
 	protected int mSecurityLevel = 0;
@@ -182,7 +182,6 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		mCurrentCrossSection = 1;
 
 		mFilename = new String();
-
 
 		mVersion = new String("V4.4");
 		mName = new String();
@@ -1585,10 +1584,11 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		mBottomSpline.getControlPoint(0).setMask(0,1.0f);
 		mBottomSpline.getControlPoint(mBottomSpline.getNrOfControlPoints()-1).setMask(0,1.0f);
 
+		boolean ajustCrossSectionThickNess = BoardCADSettings.getInstance().getAdjustCrossectionThickness();
 		for(int i = 0; i < mCrossSections.size(); i++)
 		{
-			mCrossSections.get(i).getBezierSpline().getControlPoint(0).setMask(0,0);
-			mCrossSections.get(i).getBezierSpline().getControlPoint(mCrossSections.get(i).getBezierSpline().getNrOfControlPoints()-1).setMask(0,0);
+			mCrossSections.get(i).getBezierSpline().getControlPoint(0).setMask(0, ajustCrossSectionThickNess ? 1 : 0);
+			mCrossSections.get(i).getBezierSpline().getControlPoint(mCrossSections.get(i).getBezierSpline().getNrOfControlPoints()-1).setMask(0,ajustCrossSectionThickNess ? 1 : 0);
 		}
 
 //		Set slaves

@@ -849,7 +849,7 @@ public class BezierCurve implements Cloneable, BezierKnotChangeListener {
 		Point2D.Double u = new Point2D.Double(0, 1);
 		Point2D.Double v = new Point2D.Double();
 		VecMath.subVector(cp.getEndPoint(), cp.getTangentToNext(), v);
-		double angle = VecMath.getVecAngle(u, v);
+		double angle = VecMath.getVectorAngle(u, v);
 		return angle;
 	}
 

@@ -73,6 +73,7 @@ public class BoardCADSettings extends CategorizedSettings
 	static private final String ROCKERSTICK = "rockerstick";
 	static private final String OFFSETINTERPLOATION = "offsetinterpolation";
 	static private final String NUM3DPROCESSES = "num3Dprocesses";
+	static private final String ADJUSTCROSSECTIONTHICKNESS = "adjustcrossectionthickness";
 
 
 	static private BoardCADSettings mInstance = null;
@@ -263,7 +264,8 @@ public class BoardCADSettings extends CategorizedSettings
 				});
 
 		mMiscSettings.addBoolean(ROCKERSTICK, true, LanguageResource.getString("ROCKERSTICK_STR"));
-
+		mMiscSettings.addBoolean(ADJUSTCROSSECTIONTHICKNESS, true, LanguageResource.getString("ADJUSTCROSSECTIONTHICKNESS_STR"));
+		
 		mMiscSettings.addBoolean(OFFSETINTERPLOATION, true, LanguageResource.getString("OFFSETINTERPLOATION_STR"));
 		mMiscSettings.addInteger(NUM3DPROCESSES, 8, LanguageResource.getString("NUM3DPROCESSES_STR"));
 	}
@@ -581,10 +583,12 @@ public class BoardCADSettings extends CategorizedSettings
 		return mMiscSettings.getInt(NUM3DPROCESSES);
 	}
 
-
-
 	public double getBaseLineThickness() {
 		return mSizeSettings.getDouble(BASELINETHICKNESS);
+	}
+	
+	public boolean getAdjustCrossectionThickness() {
+		return mMiscSettings.getBoolean(ADJUSTCROSSECTIONTHICKNESS);
 	}
 
 };

@@ -247,7 +247,7 @@ public class SupportsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 		double mBoardNosePoint = mBoard.getDeck().getValueAt(nosePickPos);
 		Point2D.Double mBoardVec = new Point2D.Double(nosePickPos-tailPickPos, mBoardNosePoint-mBoardTailPoint);
 
-		mBoardDeckRotation = VecMath.getVecAngle(mBoardVec, blankVec)*((mBoardVec.y > blankVec.y)?1.0:-1.0);
+		mBoardDeckRotation = VecMath.getVectorAngle(mBoardVec, blankVec)*((mBoardVec.y > blankVec.y)?1.0:-1.0);
 
 		double boardTailPointYAfterRot = Math.cos(mBoardDeckRotation)*mBoardTailPoint - Math.sin(mBoardDeckRotation)*tailPickPos;
 

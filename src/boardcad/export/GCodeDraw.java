@@ -582,7 +582,7 @@ public class GCodeDraw extends AbstractDraw {
 
 		//double angle = VecMath.getVecAngle(a, b);
 		//double offsetLength = toolDiam / Math.sin(angle / 2.0);
-		double angle = VecMath.getVecAngle(an, bn);
+		double angle = VecMath.getVectorAngle(an, bn);
 		double offsetLength = toolDiam / Math.cos(angle / 2.0);
 		System.out.printf("angle:%f offsetLength:%f\n", angle/Math.PI*180.0, offsetLength);
 

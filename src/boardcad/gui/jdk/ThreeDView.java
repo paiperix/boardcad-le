@@ -3,7 +3,6 @@ package boardcad.gui.jdk;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GraphicsConfiguration;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -14,7 +13,9 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.event.MouseInputListener;
 
 import org.jogamp.java3d.*;
 import org.jogamp.java3d.utils.universe.*;
@@ -24,14 +25,13 @@ import org.jogamp.java3d.utils.behaviors.vp.OrbitBehavior;
 import board.BezierBoard;
 import boardcad.settings.BoardCADSettings;
 
-class ThreeDView extends Panel {
+class ThreeDView extends JPanel {
 	/**
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
 	BranchGroup mRoot;
-	Switch mBezier3DOnSwitch;
 	Shape3D mBezier3DModel;
 	TransformGroup mScaleTransform;
 
@@ -59,11 +59,30 @@ class ThreeDView extends Panel {
 
 	public ThreeDView() {
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-
-		mViewMenu = new JPopupMenu();
-		add(mViewMenu);
-
+		
 		setLayout(new BorderLayout());
+
+		init3DView();
+		
+		initMenu();
+
+		initBezierModel();
+
+		redraw();		
+	}
+	
+	public void hardReset() {
+		if(mCanvas3D != null) {
+			remove(mCanvas3D);	
+			mCanvas3D = null;
+		}
+		
+		init3DView();
+		initBezierModel();
+		updateBezier3DModel(true);
+	}
+	
+	private void init3DView() {
 		mGfxConfig = SimpleUniverse.getPreferredConfiguration();
 
 		mCanvas3D = new Canvas3D(mGfxConfig);
@@ -106,8 +125,12 @@ class ThreeDView extends Panel {
 		orbit.setSchedulingBounds(bounds);
 		viewingPlatform.setViewPlatformBehavior(orbit);
 
-		mUniverse.addBranchGraph(mScene);
-
+		mUniverse.addBranchGraph(mScene);	
+	}
+	
+	private void initMenu(){
+		mViewMenu = new JPopupMenu();
+		
 		JMenuItem refreshItem = new JMenuItem("Refresh");
 		refreshItem.setMnemonic(KeyEvent.VK_R);
 		refreshItem.addActionListener(new ActionListener() {
@@ -120,7 +143,7 @@ class ThreeDView extends Panel {
 
 		JCheckBoxMenuItem toggleUpLight = new JCheckBoxMenuItem("Toggle up light");
 		toggleUpLight.setMnemonic(KeyEvent.VK_U);
-		toggleUpLight.setSelected(mUpLight.getEnable());
+		//toggleUpLight.setSelected(mUpLight.getEnable());
 		toggleUpLight.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -131,7 +154,7 @@ class ThreeDView extends Panel {
 
 		JCheckBoxMenuItem toggleDownLight = new JCheckBoxMenuItem("Toggle down light");
 		toggleDownLight.setMnemonic(KeyEvent.VK_R);
-		toggleDownLight.setSelected(mDownLight.getEnable());
+		//toggleDownLight.setSelected(mDownLight.getEnable());
 		toggleDownLight.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -142,7 +165,7 @@ class ThreeDView extends Panel {
 
 		JCheckBoxMenuItem toggleLeftLight = new JCheckBoxMenuItem("Toggle left light");
 		toggleLeftLight.setMnemonic(KeyEvent.VK_L);
-		toggleLeftLight.setSelected(mLeftLight.getEnable());
+		//toggleLeftLight.setSelected(mLeftLight.getEnable());
 		toggleLeftLight.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -153,7 +176,7 @@ class ThreeDView extends Panel {
 
 		JCheckBoxMenuItem toggleRightLight = new JCheckBoxMenuItem("Toggle right light");
 		toggleRightLight.setMnemonic(KeyEvent.VK_R);
-		toggleRightLight.setSelected(mRightLight.getEnable());
+		//toggleRightLight.setSelected(mRightLight.getEnable());
 		toggleRightLight.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -164,7 +187,7 @@ class ThreeDView extends Panel {
 
 		JCheckBoxMenuItem toggleHeadLight = new JCheckBoxMenuItem("Toggle head light");
 		toggleHeadLight.setMnemonic(KeyEvent.VK_R);
-		toggleHeadLight.setSelected(mHeadLight.getEnable());
+		//toggleHeadLight.setSelected(mHeadLight.getEnable());
 		toggleHeadLight.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -175,7 +198,7 @@ class ThreeDView extends Panel {
 
 		JCheckBoxMenuItem toggleAmbientLight = new JCheckBoxMenuItem("Toggle ambient light");
 		toggleAmbientLight.setMnemonic(KeyEvent.VK_R);
-		toggleAmbientLight.setSelected(mAmbientLight.getEnable());
+		//toggleAmbientLight.setSelected(mAmbientLight.getEnable());
 		toggleAmbientLight.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -184,9 +207,7 @@ class ThreeDView extends Panel {
 		});
 		mViewMenu.add(toggleAmbientLight);
 
-		initBezierModel();
-
-		redraw();
+		setComponentPopupMenu(mViewMenu);
 	}
 
 
@@ -196,12 +217,22 @@ class ThreeDView extends Panel {
 	}
 
 	public void setShowBezierModel(boolean show) {
-		mBezier3DOnSwitch.setWhichChild(show ? Switch.CHILD_ALL
-				: Switch.CHILD_NONE);
+		if(show) {
+			if(mRoot == null) {
+				updateBezier3DModel(true);
+			}
+		} else {
+			if(mRoot != null) {
+				removeModel(mRoot);
+				mRoot = null;
+				mScaleTransform = null;
+				mBezier3DModel = null;
+			}			
+		}
 	}
 
 	public boolean getShowBezierMode(boolean show) {
-		return (mBezier3DOnSwitch.getWhichChild() == Switch.CHILD_ALL);
+		return (mRoot != null);
 	}
 
 	void initBezierModel() {
@@ -249,11 +280,10 @@ class ThreeDView extends Panel {
 		double scale = 0.008;
 		double offset = -brd.getLength() * scale / 2.0;
 		if (brd != null && (mBezierBoardChangedFor3D || forceRefresh)) {
-			/* TODO: Fails with javax.media.j3d.CapabilityNotSetException: Group: no capability to remove children
 			if(forceRefresh){
-				removeModel(mRoot);
+				if(mRoot != null)removeModel(mRoot);
 				initBezierModel();
-			} */
+			}
 			setBezierScale(scale, offset);
 			mBrd3DModelGenerator.update3DModel(brd, getBezier3DModel(), BoardCADSettings.getInstance().getNumberOf3DProcesses(), forceRefresh);
 			mBezierBoardChangedFor3D = false;
@@ -269,7 +299,7 @@ class ThreeDView extends Panel {
 	}
 
 	public void removeModel(BranchGroup model) {
-		mScene.removeChild(model);
+		model.detach();
 	}
 
 	void toggleUpLight() {
@@ -297,22 +327,31 @@ class ThreeDView extends Panel {
 	}
 
 	class ThreeDMouse extends MouseAdapter {
-		private ThreeDView the_view;
+		private ThreeDView m3DView;
 
-		public ThreeDMouse(ThreeDView v) {
-			the_view = v;
+		public ThreeDMouse(ThreeDView view) {
+			m3DView = view;
 		}
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (e.isMetaDown())
-				mViewMenu.show(the_view, e.getX(), e.getY());
+
+		public void mouseReleased(MouseEvent e) {
+	
+			if (e.isPopupTrigger()) {
+				mViewMenu.show(e.getComponent(), e.getX(), e.getY());
+	        }
+		}
+		public void mousePressed(MouseEvent e) {
+			
+			if (e.isPopupTrigger()) {
+				mViewMenu.show(e.getComponent(), e.getX(), e.getY());
+	        }
 		}
 	}
 
 	private BranchGroup createSceneGraph() {
 		BranchGroup branchRoot = new BranchGroup();
 		branchRoot.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+		branchRoot.setCapability(Group.ALLOW_CHILDREN_WRITE);
 		branchRoot.setCapability(BranchGroup.ALLOW_DETACH);
 
 		// Create a bounds for the background and lights
@@ -373,14 +412,16 @@ class ThreeDView extends Panel {
 	}
 
 	public void setBackgroundColor(Color color) {
-		float[] components = color.getRGBComponents(null);
-		mBackgroundNode.setColor(new Color3f(components[0], components[1],
-				components[2]));
+		if(mBackgroundNode != null) {
+			float[] components = color.getRGBComponents(null);
+			mBackgroundNode.setColor(new Color3f(components[0], components[1],
+					components[2]));
+		}
 	}
 
 	public void refresh() {
 		updateBezier3DModel(true);
 	}
-
+	
 }
 

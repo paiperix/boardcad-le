@@ -21,7 +21,7 @@ import boardcad.FileTools;
 
 public class BoardFileView extends FileView {
 
-	private Font mSpecsFont = new Font("Dialog", Font.PLAIN, 10);
+	//private Font mSpecsFont = new Font("Dialog", Font.PLAIN, 10);
 	private Font mTypeFont = new Font("Ariel", Font.PLAIN, 8);
 
 	@Override
@@ -91,8 +91,8 @@ public class BoardFileView extends FileView {
 		g.clearRect(0, 0, image.getHeight(), image.getWidth());
 
 		double leftMargin = 2.0;
-		double topMargin = 3.0;
-		double bottomMargin = 3.0;
+		// double topMargin = 3.0;
+		// double bottomMargin = 3.0;
 
 		double height = image.getHeight();
 		double width = image.getWidth();
@@ -100,7 +100,7 @@ public class BoardFileView extends FileView {
 		JavaDraw jd = new JavaDraw(g);
 
 		// Draw type text
-		FontMetrics sf = g.getFontMetrics(mSpecsFont);
+		// FontMetrics sf = g.getFontMetrics(mSpecsFont);
 		FontMetrics tf = g.getFontMetrics(mTypeFont);
 
 		double typeStringLength = tf.stringWidth(type);

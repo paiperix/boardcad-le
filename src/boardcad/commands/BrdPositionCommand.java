@@ -105,7 +105,6 @@ public class BrdPositionCommand extends BrdInputCommand
 
 	public boolean onKeyEvent(BoardEdit source, KeyEvent event)
 	{
-
 		if(event.getID() != KeyEvent.KEY_PRESSED)
 			return false;
 

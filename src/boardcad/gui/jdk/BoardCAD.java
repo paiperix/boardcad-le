@@ -114,7 +114,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	private BoardEdit mBottomAndDeckEdit;
 	private BoardEdit mOutlineEdit2;
 
-	DeckOrBottom mEditDeckorBottom = DeckOrBottom.DECK;
+	DeckOrBottom mEditDeckOrBottom = DeckOrBottom.DECK;
 
 	private BoardSpec mBoardSpec;
 
@@ -193,7 +193,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	BoardGuidePointsDialog mGuidePointsDialog;
 
 	private JCheckBoxMenuItem mShowBezier3DModelMenuItem;
-
+	
+	private JCheckBoxMenuItem mAutoUpdate3DModelMenuItem;
+	
 	private BoardCADSettings mSettings;
 
 	BezierBoardCrossSection mCrossSectionCopy;
@@ -423,15 +425,30 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			mRecentBrdFilesMenu.remove(mRecentBrdFilesMenu.getMenuComponentCount() - 1);
 		}
 	}
-
+	
 	public void updateBezier3DModel() {
+		updateBezier3DModel(false);
+	}
+
+	public void updateBezier3DModel(boolean forceUpdate) {
 		if (mTabbedPane.getSelectedComponent() == mRenderedPanel) {
-			mRendered3DView.updateBezier3DModel(false);
+			mRendered3DView.updateBezier3DModel(forceUpdate);
 		} else if (mTabbedPane.getSelectedComponent() == mQuadView) {
-			mQuad3DView.updateBezier3DModel(false);
+			mQuad3DView.updateBezier3DModel(forceUpdate);
+		}
+	}
+	
+	public void resetBezier3DModel() {
+		if (mTabbedPane.getSelectedComponent() == mRenderedPanel) {
+			mRendered3DView.hardReset();
+			mRendered3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
+		} else if (mTabbedPane.getSelectedComponent() == mQuadView) {
+			mQuad3DView.hardReset();
+			mQuad3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
 		}
 	}
 
+	
 	public void setCurrentCommand(final BrdCommand command) {
 		mCurrentCommand = command;
 	}
@@ -701,9 +718,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		mBoardChanged = true;
 		setBoardChangedFor3D();
-
+		
+		boolean selected = mShowBezier3DModelMenuItem.getModel().isSelected();
+		boolean autoUpdate = mAutoUpdate3DModelMenuItem.getModel().isSelected();
+		
+		if (!selected || !autoUpdate) return;
+		
 		if (mBezier3DModelUpdateTimer != null) {
 			mBezier3DModelUpdateTimer.cancel();
+			mBezier3DModelUpdateTimer.purge();
 			mBezier3DModelUpdateTimer = null;
 		}
 
@@ -4269,7 +4292,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				mCrossSectionOutlineEdit.setFlipped(!mCrossSectionOutlineEdit.isFlipped());
 
 				mQuadViewOutlineEdit.setFlipped(!mQuadViewOutlineEdit.isFlipped());
-				mQuadViewRockerEdit.setFlipped(!mQuadViewCrossSectionEdit.isFlipped());
+				mQuadViewRockerEdit.setFlipped(!mQuadViewRockerEdit.isFlipped());
 
 				fitAll();
 
@@ -4403,10 +4426,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		menuBar.add(miscMenu);
 
-		final JMenu menu3D = new JMenu(LanguageResource.getString("3DMODELMENU_STR"));
-		menu3D.setMnemonic(KeyEvent.VK_D);
-
-		menuBar.add(menu3D);
 
 		final JMenu menuRender = new JMenu(LanguageResource.getString("RENDERMENU_STR"));
 		menuRender.setMnemonic(KeyEvent.VK_R);
@@ -4476,7 +4495,43 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		};
 		mShowBezier3DModelMenuItem.addActionListener(showBezier3DListener);
 		menuRender.add(mShowBezier3DModelMenuItem);
+		
+		mAutoUpdate3DModelMenuItem = new JCheckBoxMenuItem(LanguageResource.getString("AUTOUPDATE3DMODEL_STR"));
+		mAutoUpdate3DModelMenuItem.setMnemonic(KeyEvent.VK_A);
+		mAutoUpdate3DModelMenuItem.setSelected(true);
+		menuRender.add(mAutoUpdate3DModelMenuItem);
 
+		final AbstractAction manualRefresh3DModel = new AbstractAction() {
+			static final long serialVersionUID = 1L;
+			{
+				this.putValue(Action.NAME, LanguageResource.getString("MANUALUPDATE3DMODEL_STR"));
+				this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
+			};
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				updateBezier3DModel(true);
+			}
+
+		};
+		menuRender.add(manualRefresh3DModel);
+	
+		final AbstractAction reset3DModel = new AbstractAction() {
+			static final long serialVersionUID = 1L;
+			{
+				this.putValue(Action.NAME, LanguageResource.getString("RESET3DMODEL_STR"));
+			};
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				resetBezier3DModel();
+			}
+
+		};
+		menuRender.add(reset3DModel);
+
+		
+		
 		menuBar.add(menuRender);
 
 		final JMenu helpMenu = new JMenu(LanguageResource.getString("HELPMENU_STR"));
@@ -4675,16 +4730,17 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				toggleBottomAndDeck();
+				toggleEditBottomOrDeck();
 			}
 
 		};
 
 		toggleDeckAndBottom.putValue(Action.NAME, LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
-		toggleDeckAndBottom.putValue(Action.SHORT_DESCRIPTION,
-				LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
-		toggleDeckAndBottom.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("/boardcad/icons/BoardCADtoggle24x35.png")));
+		toggleDeckAndBottom.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
+		toggleDeckAndBottom.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/BoardCADtoggle24x35.png")));
+		toggleDeckAndBottom.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_B, 0));
+		mToolBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "TOGGLE_DECKBOTTOM");
+		mToolBar.getActionMap().put("TOGGLE_DECKBOTTOM", toggleDeckAndBottom);
 		mToolBar.add(toggleDeckAndBottom);
 		popupMenu.add(toggleDeckAndBottom);
 
@@ -4693,18 +4749,15 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		final SetCurrentCommandAction addGuidePoint = new SetCurrentCommandAction(new BrdAddGuidePointCommand());
 		addGuidePoint.putValue(Action.NAME, LanguageResource.getString("ADDGUIDEPOINTBUTTON_STR"));
 		addGuidePoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ADDGUIDEPOINTBUTTON_STR"));
-		addGuidePoint.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("/boardcad/icons/add-guidepoint.png")));
+		addGuidePoint.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/add-guidepoint.png")));
 		mToolBar.add(addGuidePoint);
 		popupMenu.add(addGuidePoint);
 		popupMenu.add(guidePoints);
 
-		final SetCurrentCommandAction addControlPoint = new SetCurrentOneShotCommandAction(
-				new BrdAddControlPointCommand());
+		final SetCurrentCommandAction addControlPoint = new SetCurrentOneShotCommandAction(new BrdAddControlPointCommand());
 		addControlPoint.putValue(Action.NAME, LanguageResource.getString("ADDCONTROLPOINTBUTTON_STR"));
 		addControlPoint.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("ADDCONTROLPOINTBUTTON_STR"));
-		addControlPoint.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("/boardcad/icons/add-controlpoint.png")));
+		addControlPoint.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/add-controlpoint.png")));
 		mToolBar.add(addControlPoint);
 		popupMenu.add(addControlPoint);
 
@@ -5282,11 +5335,14 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public void onBrdChanged() {
+				adjustFoilFromCrossSection(this);
+				
 				getCurrentBrd().onCrossSectionChanged();
+
+				super.onBrdChanged();
 
 				mQuadViewOutlineEdit.repaint();
 				mQuadViewRockerEdit.repaint();
-				super.onBrdChanged();
 			}
 
 			@Override
@@ -5332,7 +5388,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public BezierSpline[] getActiveBezierSplines(final BezierBoard brd) {
-				switch (mEditDeckorBottom) {
+				switch (mEditDeckOrBottom) {
 				case DECK:
 					return new BezierSpline[] { brd.getDeck() };
 				case BOTTOM:
@@ -5345,7 +5401,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public ArrayList<Point2D.Double> getGuidePoints() {
-				switch (mEditDeckorBottom) {
+				switch (mEditDeckOrBottom) {
 				case DECK:
 					return BoardCAD.getInstance().getCurrentBrd().getDeckGuidePoints();
 				case BOTTOM:
@@ -5532,7 +5588,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public BezierSpline[] getActiveBezierSplines(final BezierBoard brd) {
-				switch (mEditDeckorBottom) {
+				switch (mEditDeckOrBottom) {
 				case DECK:
 					return new BezierSpline[] { brd.getDeck() };
 				case BOTTOM:
@@ -5545,7 +5601,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public ArrayList<Point2D.Double> getGuidePoints() {
-				switch (mEditDeckorBottom) {
+				switch (mEditDeckOrBottom) {
 				case DECK:
 					return BoardCAD.getInstance().getCurrentBrd().getDeckGuidePoints();
 				case BOTTOM:
@@ -5615,7 +5671,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * mTabbedPane.add(LanguageResource.getString("OUTLINEPROFILEEDIT_STR"),
 		 * mOutlineAndProfileSplitPane);
 		 */
-
+		
 		mCrossSectionEdit = new BoardEdit() {
 			static final long serialVersionUID = 1L;
 
@@ -5902,6 +5958,8 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public void onBrdChanged() {
+				adjustFoilFromCrossSection(this);
+				
 				getCurrentBrd().onCrossSectionChanged();
 
 				super.onBrdChanged();
@@ -6561,18 +6619,23 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		}
 	}
 
-	public void toggleBottomAndDeck() {
-		switch (mEditDeckorBottom) {
+	public void toggleEditBottomOrDeck() {
+		switch (mEditDeckOrBottom) {
 		case DECK:
-			mEditDeckorBottom = DeckOrBottom.BOTTOM;
+			setEditBottomOrDeck(DeckOrBottom.BOTTOM);
 			break;
 		case BOTTOM:
-			mEditDeckorBottom = DeckOrBottom.BOTH;
+			setEditBottomOrDeck(DeckOrBottom.BOTH);
 			break;
 		case BOTH:
-			mEditDeckorBottom = DeckOrBottom.DECK;
+			setEditBottomOrDeck(DeckOrBottom.DECK);
 			break;
 		}
+	}
+	
+	public void setEditBottomOrDeck(DeckOrBottom editDeckOrBottom) {
+		mEditDeckOrBottom = editDeckOrBottom;
+
 		mBottomAndDeckEdit.repaint();
 
 		mBottomAndDeckEdit.mSelectedControlPoints.clear();
@@ -7096,6 +7159,62 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			container = container.getParent();
 		}
 		return null;
+	}
+	
+	private void adjustFoilFromCrossSection(BoardEdit edit) {
+		if(BoardCADSettings.getInstance().getAdjustCrossectionThickness()) {
+			BezierBoardCrossSection crs = getCurrentBrd().getCurrentCrossSection();
+			BezierSpline spline = crs.getBezierSpline();
+			ArrayList<BezierKnot> selected = edit.getSelectedControlPoints();
+			
+			BezierKnot crsDeckPoint = spline.getControlPoint(spline.getNrOfControlPoints()-1);
+			if(selected.contains(crsDeckPoint)) {
+				BezierSpline deck = getCurrentBrd().getDeck();
+				double pos = crs.getPosition();
+				Point.Double coord = new Point.Double(pos, crsDeckPoint.getEndPoint().y);
+				BezierKnot nearest = deck.findBestMatch(coord);
+				double distance = Math.abs(nearest.getEndPoint().x - pos);
+
+				BezierKnot deckKnot = null;
+				if(distance < 5.0) {
+					deckKnot = nearest;
+				} else {
+					BrdAddControlPointCommand cmd = new BrdAddControlPointCommand();
+					this.setEditBottomOrDeck(DeckOrBottom.DECK);
+					deckKnot = cmd.addControlPoint(mQuadViewRockerEdit, new Point.Double(pos, deck.getValueAt(pos)));
+					deckKnot.setContinous(true);
+				}
+				System.out.printf("Deck knot position: %f, %f\n", deckKnot.getEndPoint().x, deckKnot.getEndPoint().y);
+				System.out.printf("Crossection deck point: %f, %f\n", crsDeckPoint.getEndPoint().x, crsDeckPoint.getEndPoint().y);
+				BezierSpline bottom = getCurrentBrd().getBottom();
+				double y = crsDeckPoint.getEndPoint().y  + bottom.getValueAt(pos);
+				System.out.printf("New bottom knot position: %f, %f\n", pos, y);
+				deckKnot.setControlPointLocation(pos, y);
+			}
+
+			BezierKnot crsBottomPoint = spline.getControlPoint(0);
+			if(selected.contains(crsBottomPoint)) {
+				System.out.println("Found bottom knot\n");
+				BezierSpline bottom = getCurrentBrd().getBottom();
+				double pos = crs.getPosition();
+				Point.Double coord = new Point.Double(pos, crsBottomPoint.getEndPoint().y);
+				BezierKnot nearest = bottom.findBestMatch(coord);
+				double distance = Math.abs(nearest.getEndPoint().x - pos);
+				
+				BezierKnot bottomKnot = null;
+				if(distance < 5.0) {
+					bottomKnot = nearest;
+				} else {
+					BrdAddControlPointCommand cmd = new BrdAddControlPointCommand();
+					this.setEditBottomOrDeck(DeckOrBottom.BOTTOM);
+					bottomKnot = cmd.addControlPoint(mQuadViewRockerEdit, new Point.Double(pos, bottom.getValueAt(pos)));					
+					bottomKnot.setContinous(true);
+				}
+				double y = crsBottomPoint.getEndPoint().y  + bottom.getValueAt(pos);
+				bottomKnot.setControlPointLocation(pos, y);
+			}
+			
+		}
 	}
 }
 

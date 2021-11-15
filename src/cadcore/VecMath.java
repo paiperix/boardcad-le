@@ -50,11 +50,19 @@ public class VecMath {
 		return (p0.x*p1.x + p0.y*p1.y);
 	}
 
-	public static double getVecAngle(Point2D.Double p0, Point2D.Double p1)
+	public static double getVectorAngle(Point2D.Double p0, Point2D.Double p1)
 	{
 		double angle = Math.acos(getVecDot(p0,p1)/(getVecLength(p0)*getVecLength(p1)));
 		
 		return Double.isNaN(angle)?0:angle;
+	}
+	
+	public static void rotateVector(Point2D.Double vec, double rotAngle)
+	{	
+		double x = Math.cos(rotAngle) * vec.x - Math.sin(rotAngle) * vec.y;
+		double y = Math.sin(rotAngle) * vec.x + Math.cos(rotAngle) * vec.y;
+		
+		vec.setLocation(x, y);
 	}
 	
 }

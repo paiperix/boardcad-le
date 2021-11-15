@@ -33,7 +33,7 @@ class BrowserControl {
 			if (windows) {
 				// cmd = 'rundll32 url.dll,FileProtocolHandler http://...'
 				cmd = WIN_PATH + " " + WIN_FLAG + " " + url;
-				final Process p = Runtime.getRuntime().exec(cmd);
+				Runtime.getRuntime().exec(cmd);
 			} else {
 				// Under Unix, Netscape has to be running for the "-remote"
 				// command to work. So, we try sending the command and

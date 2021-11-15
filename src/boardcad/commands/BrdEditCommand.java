@@ -19,9 +19,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 {
 	static double KEY_MOVE_AMOUNT = 1.0f;
 
-//	ArrayList<ControlPoint> mSelectedControlPointsCopy;
 	ArrayList<BezierKnot> mControlPointsBeforeChange;
-//	ArrayList<ControlPoint> mControlPointsAfterChange;
 	Point2D.Double mDragStartPos;
 	Point2D.Double mDragOffset;
 	Point mBoxSelectStartPos;
@@ -45,20 +43,12 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void execute()
 	{
-		/*		mControlPointsAfterChange = new ArrayList<ControlPoint>();
-		for(int i = 0; i < mSelectedControlPointsCopy.size(); i++)
-		{
-			mControlPointsAfterChange.add((ControlPoint)mSelectedControlPointsCopy.get(i).clone());
-		}
-		 */
-		mSource.onBrdChanged();	//adjust rocker to zero and cross sections to width and thickness
+		mSource.onBrdChanged();	//adjusts rocker to zero and cross sections to width and thickness
 		super.execute();
 		mIsDragging = false;
 		mIsKeyEditing = false;
 		mCurrentKeyCode = 0;
-//		mSelectedControlPointsCopy = null;
 		mControlPointsBeforeChange = null;
-//		mControlPointsAfterChange = null;
 		mDragStartPos = null;
 		mDragOffset = null;
 		mSource = null;
@@ -81,19 +71,15 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 //		Save the original points
 		mControlPointsBeforeChange = new ArrayList<BezierKnot>();
-//		mSelectedControlPointsCopy = new ArrayList<ControlPoint>();
 		for(int i = 0; i < selectedControlPoints.size(); i++)
 		{
 			mControlPointsBeforeChange.add((BezierKnot)selectedControlPoints.get(i).clone());
-//			mSelectedControlPointsCopy.add(selectedControlPoints.get(i));
 		}
-//		mControlPointsAfterChange = null;
 		super.saveBeforeChange(source.getCurrentBrd());
 	}
 
-	public void moveControlPoints(double x_diff, double y_diff, int which)
+	public void moveControlPoints(double dx, double dy, int which)
 	{
-
 		ArrayList<BezierKnot> selectedControlPoints = mSource.getSelectedControlPoints();
 		if(selectedControlPoints.size() > 1 || which == 0)
 		{
@@ -101,42 +87,31 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 			{
 				BezierKnot sel = selectedControlPoints.get(i);
 				BezierKnot org = mControlPointsBeforeChange.get(i);
+				Point2D.Double endpoint = org.getEndPoint();
 
-				sel.setControlPointLocation(org.getEndPoint().x+x_diff, org.getEndPoint().y+y_diff);
-
+				sel.setControlPointLocation(endpoint.x + dx, endpoint.y + dy);
 			}
 		}
 		else{
-//			We know we only have a single point, so just use it directly
-			selectedControlPoints.get(0).setLocation(getWhich(), mControlPointsBeforeChange.get(0).getPoints()[getWhich()].x+x_diff, mControlPointsBeforeChange.get(0).getPoints()[getWhich()].y+y_diff);
+			// We know we only have a single point, so just use it directly
+			selectedControlPoints.get(0).setLocation(which, mControlPointsBeforeChange.get(0).getPoints()[which].x + dx, mControlPointsBeforeChange.get(0).getPoints()[which].y + dy);
 
 			if(selectedControlPoints.get(0).isContinous())
 			{
 
-				int other = (which ==1)?2:1;
+				int other = (which == 1) ? 2 : 1;
 
-//				Calculate the length of the other end vector
-				double ox = (double)mControlPointsBeforeChange.get(0).getPoints()[other].x - mControlPointsBeforeChange.get(0).getPoints()[0].x;
-				double oy = (double)mControlPointsBeforeChange.get(0).getPoints()[other].y - mControlPointsBeforeChange.get(0).getPoints()[0].y;
+				Point2D.Double otherVec = getSelectedControlPointVector(mSource, other);
+				double otherVecLength = VecMath.getVecLength(otherVec);
 
-				double ol = Math.sqrt(ox*ox+oy*oy);
-				if(ol == 0)
-					return;	//Avoid multiply by zero
+				Point2D.Double currentVec = getSelectedControlPointVector(mSource, which);
+				
+				Point2D.Double newOtherVec = new Point2D.Double(currentVec.x, currentVec.y);
+				VecMath.normalizeVector(newOtherVec);
+				VecMath.scaleVector(newOtherVec, otherVecLength);
 
-//				Length of current
-				double sx = (double)selectedControlPoints.get(0).getPoints()[which].x - mControlPointsBeforeChange.get(0).getPoints()[0].x;
-				double sy = (double)selectedControlPoints.get(0).getPoints()[which].y - mControlPointsBeforeChange.get(0).getPoints()[0].y;
-
-				double sl = Math.sqrt(sx*sx+sy*sy);
-				if(sl == 0)
-					return; //Avoid division by zero
-
-//				Normalize
-				sx /= sl;
-				sy /= sl;
-
-				selectedControlPoints.get(0).setLocation(other, (double)(-sx*ol) + selectedControlPoints.get(0).getPoints()[0].x,
-						(double)(-sy*ol) + selectedControlPoints.get(0).getPoints()[0].y);
+				Point2D.Double selectedEndPoint = mControlPointsBeforeChange.get(0).getPoints()[0];
+				selectedControlPoints.get(0).setLocation(other, newOtherVec.x + selectedEndPoint.x, newOtherVec.y + selectedEndPoint.y);
 			}
 		}
 		BoardCAD.getInstance().onBrdChanged();
@@ -210,9 +185,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 		}
 
 		BoardCAD.getInstance().onControlPointChanged();
-//		source.repaint();
 		BoardCAD.getInstance().redraw();
-
 	}
 
 
@@ -357,6 +330,23 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 		mPanCommand.onLeftMouseButtonReleased(source, event);
 		mIsPaning = false;
 	}
+	
+	public Point2D.Double getControlPointVector(BoardEdit source, int which){
+		Point2D.Double vec = new Point2D.Double();
+		BezierKnot knot = (mControlPointsBeforeChange == null || mControlPointsBeforeChange.size() == 0) ? source.getSelectedControlPoints().get(0) : mControlPointsBeforeChange.get(0);
+		Point2D.Double[] points = knot.getPoints();
+		VecMath.subVector(points[which], points[0], vec);
+		return vec;
+	}
+	
+	public Point2D.Double getSelectedControlPointVector(BoardEdit source, int which){
+		Point2D.Double vec = new Point2D.Double();
+		BezierKnot knot = source.getSelectedControlPoints().get(0);
+		Point2D.Double[] points = knot.getPoints();
+		VecMath.subVector(points[which], points[0], vec);
+		return vec;
+	}
+
 
 	public boolean onKeyEvent(BoardEdit source, KeyEvent event)
 	{
@@ -371,53 +361,38 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 		double mulX = ((source.mDrawControl&(BezierBoardDrawUtil.FlipX)) != 0)?-1.0f:1.0f;
 		double mulY = ((source.mDrawControl&(BezierBoardDrawUtil.FlipY)) != 0)?-1.0f:1.0f;
+		int which = getWhich();
+
 
 		if(event.getID() == KeyEvent.KEY_PRESSED)
 		{
 			int key = event.getKeyCode();
 
-			double x_diff = 0;
-			double y_diff = 0;
+			if(mIsKeyEditing == false)
+			{
+				saveControlPointsBeforeChange(source);
+
+				mIsKeyEditing = true;
+				mCurrentKeyCode = key;
+
+				mRepeat = 1;
+
+				mSource = source;
+			}
+			
 			double movement = (KEY_MOVE_AMOUNT/source.getScale())*(event.isAltDown()?.1f:1f);
-
-			// Length of current
-			double sx;
-			double sy;
-			int which = getWhich();
-			if(mControlPointsBeforeChange == null || mControlPointsBeforeChange.size() == 0)
-			{
-				sx = (double)selectedControlPoints.get(0).getPoints()[which].x - selectedControlPoints.get(0).getPoints()[0].x;
-				sy = (double)selectedControlPoints.get(0).getPoints()[which].y - selectedControlPoints.get(0).getPoints()[0].y;
-			}
-			else
-			{
-				sx = (double)mControlPointsBeforeChange.get(0).getPoints()[which].x - mControlPointsBeforeChange.get(0).getPoints()[0].x;
-				sy = (double)mControlPointsBeforeChange.get(0).getPoints()[which].y - mControlPointsBeforeChange.get(0).getPoints()[0].y;
-			}
-
-			double sl = Math.sqrt(sx*sx+sy*sy);
-
-//			Normalize
-			double snx = sx/sl;
-			double sny = sy/sl;
-			if(snx != snx || sny != sny){
-				snx = 1.0;
-				sny = 0.0;
-			}
 
 			switch(key)
 			{
 			case KeyEvent.VK_LESS:
 				if(selectedControlPoints.size() > 1 || mIsKeyEditing == true)
 					return false;
-
-				setWhich(getWhich() - 1);
-				if(getWhich() < 0)
-					setWhich(2);
+				
+				setWhich(event.isShiftDown() ? (++which % 3) : (--which < 0 ? 2 : which));
 
 				source.repaint();
 				break;
-
+				
 			case KeyEvent.VK_C:
 				if(selectedControlPoints.size() > 1 || mIsKeyEditing == true)
 					return false;
@@ -442,63 +417,64 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 				}
 				break;
 
+			case KeyEvent.VK_A:
 			case KeyEvent.VK_LEFT:
-				x_diff = -movement*mulX*mRepeat;
+				moveControlPoints(-movement*mulX*mRepeat, 0, which);
 				break;
 
+			case KeyEvent.VK_S:
 			case KeyEvent.VK_RIGHT:
-				x_diff = movement*mulX*mRepeat;
+				moveControlPoints(movement*mulX*mRepeat, 0, which);
 				break;
 
+			case KeyEvent.VK_D:
 			case KeyEvent.VK_UP:
-				y_diff = -movement*mulY*mRepeat;
+				moveControlPoints(0, -movement*mulY*mRepeat, which);
 				break;
 
+			case KeyEvent.VK_F:
 			case KeyEvent.VK_DOWN:
-				y_diff = movement*mulY*mRepeat;
+				moveControlPoints(0, movement*mulY*mRepeat, which);
 				break;
 
 			case KeyEvent.VK_E:
-			case KeyEvent.VK_R:
-				if(getWhich() == 0 || selectedControlPoints.size() > 1)
+				if(selectedControlPoints.size() > 1)
 					return false;
 
-				x_diff = (double)(snx*movement*((key==KeyEvent.VK_R)?-1.0f:1.0f))*mRepeat;
-				y_diff = (double)(sny*movement*((key==KeyEvent.VK_R)?-1.0f:1.0f))*mRepeat;
+				extendControlPoint(source, movement*mRepeat, which);				
+				break;
+				
+			case KeyEvent.VK_R:
+				if(selectedControlPoints.size() > 1)
+					return false;
+
+				extendControlPoint(source, -movement*mRepeat, which);				
 				break;
 
 			case KeyEvent.VK_Q:
-			case KeyEvent.VK_W:
-				if(getWhich() == 0 || selectedControlPoints.size() > 1)
+				if(selectedControlPoints.size() > 1)
 					return false;
 
-				double angle = (((double)Math.PI/180.0f)*mRepeat)*((key==KeyEvent.VK_Q)?-1.0f:1.0f)*(event.isAltDown()?.1f:1f);
-				x_diff = (double)((Math.cos(angle)*sx - Math.sin(angle)*sy) - sx);
-				y_diff = (double)((Math.sin(angle)*sx + Math.cos(angle)*sy) - sy);
+				rotateControlPoint(source, (Math.PI/180.0)*mRepeat*(event.isAltDown() ? .1 : 1), which);
 				break;
+				
+			case KeyEvent.VK_W:
+				if(selectedControlPoints.size() > 1)
+					return false;
+
+				rotateControlPoint(source, -(Math.PI/180.0)*mRepeat*(event.isAltDown() ? .1 : 1), which);
+				break;
+
 
 			default:
 				return false;
 			}
-
-			if(mIsKeyEditing == false)
-			{
-				saveControlPointsBeforeChange(source);
-
-				mIsKeyEditing = true;
-				mCurrentKeyCode = key;
-
-				mRepeat = 1;
-
-				mSource = source;
-			}
-
+			
 			mRepeat++;
-
-			moveControlPoints(x_diff, y_diff, getWhich());
 
 			BoardCAD.getInstance().onControlPointChanged();
 			source.repaint();
+
 			return true;
 		}
 		else if(event.getID() == KeyEvent.KEY_RELEASED)
@@ -530,7 +506,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 		moveControlPoints(0, 0, (getWhich() == 0)?1:getWhich());	//If endpoint selected, select tangent
 
 		execute();
-
 	}
 
 	public void setControlPoint(BoardEdit source, Point2D.Double pos)
@@ -545,36 +520,80 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 		moveControlPoints(dx, dy, getWhich());
 
 		execute();
-
 	}
 
-	public void rotateControlPoint(BoardEdit source, double targetAngle)
-	{
-		mSource = source;
-
-		saveControlPointsBeforeChange(mSource);
-
+	public void extendControlPoint(BoardEdit source, double distance, int which){
 		ArrayList<BezierKnot> selectedControlPoints = source.getSelectedControlPoints();
-		if(getWhich() == 0 || selectedControlPoints.size() > 1)
+		if(selectedControlPoints.size() > 1)
+			return;
+		
+		if(which == 0) {
+			extendControlPoint(source, distance, 1);
+			extendControlPoint(source, distance, 2);
+			return;
+		}
+
+		Point2D.Double pointVec = getControlPointVector(source, which);
+		double length = VecMath.getVecLength(pointVec);
+		
+		double scale = 1 + (distance / length);
+		
+		scaleControlPoint(source, scale,  which);
+	}
+
+	
+	public void scaleControlPoint(BoardEdit source, double scale, int which){
+		ArrayList<BezierKnot> selectedControlPoints = source.getSelectedControlPoints();
+		if(which == 0 || selectedControlPoints.size() > 1)
 			return;
 
-		double sx = (double)selectedControlPoints.get(0).getPoints()[getWhich()].x - selectedControlPoints.get(0).getPoints()[0].x;
-		double sy = (double)selectedControlPoints.get(0).getPoints()[getWhich()].y - selectedControlPoints.get(0).getPoints()[0].y;
+		Point2D.Double pointVec = getControlPointVector(source, which);
+		
+		Point2D.Double scaledVec = new Point2D.Double(pointVec.x, pointVec.y);
+		VecMath.scaleVector(scaledVec, scale);
 
-		Point2D.Double horAxis = new Point2D.Double(1.0,0.0);
-		Point2D.Double pointVec = new Point2D.Double(sx,sy);
-
-		double pointAngle = VecMath.getVecAngle(horAxis, pointVec);
-
-		double rotAngle = targetAngle - pointAngle;
-
-		double x_diff = (double)((Math.cos(rotAngle)*sx - Math.sin(rotAngle)*sy) - sx);
-		double y_diff = (double)((Math.sin(rotAngle)*sx + Math.cos(rotAngle)*sy) - sy);
-
-		moveControlPoints(x_diff, y_diff, getWhich());
+		moveControlPoints(pointVec.x - scaledVec.x, pointVec.y - scaledVec.y, which);
 
 		BoardCAD.getInstance().onControlPointChanged();
-		execute();
+	}
+	
+	public void rotateControlPoint(BoardEdit source, double rotAngle, int which){
+		ArrayList<BezierKnot> selectedControlPoints = source.getSelectedControlPoints();
+		if(selectedControlPoints.size() > 1)
+			return;
+		
+		if(which == 0) {
+			rotateControlPoint(source, rotAngle, 1);
+			if(selectedControlPoints.get(0).isContinous() == false) {
+				rotateControlPoint(source, rotAngle, 2);				
+			}
+		}
+
+		Point2D.Double pointVec = getControlPointVector(source, which);
+		
+		Point2D.Double rotVec = new Point2D.Double(pointVec.x, pointVec.y);
+		VecMath.rotateVector(rotVec, rotAngle);
+
+		moveControlPoints(pointVec.x - rotVec.x, pointVec.y - rotVec.y, which);
+
+		BoardCAD.getInstance().onControlPointChanged();
+	}
+
+	public void rotateControlPointToAngle(BoardEdit source, double targetAngle, int which)
+	{
+		ArrayList<BezierKnot> selectedControlPoints = source.getSelectedControlPoints();
+		if(which == 0 || selectedControlPoints.size() > 1)
+			return;
+
+		Point2D.Double pointVec = getControlPointVector(source, which);
+		
+		Point2D.Double horAxis = new Point2D.Double(1.0, 0.0);
+
+		double pointAngle = VecMath.getVectorAngle(horAxis, pointVec);
+
+		double rotAngle = targetAngle - pointAngle;
+		
+		rotateControlPoint(source, rotAngle, which);
 	}
 
 	public void rotateControlPointToHorizontal(BoardEdit source)
@@ -662,20 +681,12 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void redo()
 	{
-		/*		for(int i = 0; i < mSelectedControlPointsCopy.size(); i++)
-		{
-			mSelectedControlPointsCopy.get(i).set(mControlPointsAfterChange.get(i));
-		}
-		 */		super.redo();
+		super.redo();
 	}
 
 	public void undo()
 	{
-		/*		for(int i = 0; i < mSelectedControlPointsCopy.size(); i++)
-		{
-			mSelectedControlPointsCopy.get(i).set(mControlPointsBeforeChange.get(i));
-		}
-		 */		super.undo();
+		super.undo();
 	}
 
 	public Object clone(){

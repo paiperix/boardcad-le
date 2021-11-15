@@ -26,17 +26,24 @@ public class BrdAddControlPointCommand extends BrdAbstractEditCommand
 
 	public void onLeftMouseButtonPressed(BoardEdit source, MouseEvent event)
 	{
-		super.saveBeforeChange(source.getCurrentBrd());
-
 		Point pos = event.getPoint();
 		Point2D.Double brdPos = source.screenCoordinateToBrdCoordinate(pos);
+
+		addControlPoint(source, brdPos);
+
+		source.onBrdChanged();	
+		source.repaint();
+	}
+	
+	public BezierKnot addControlPoint(BoardEdit source, Point2D.Double pos) {
+		super.saveBeforeChange(source.getCurrentBrd());
 
 		BezierSpline[] splines = source.getActiveBezierSplines(source.getCurrentBrd());
 		mNewControlPoint = new BezierKnot();
 		
 		for(int i = 0; i < splines.length; i++)
 		{
-			mIndex = splines[i].getSplitControlPoint(brdPos, mNewControlPoint);
+			mIndex = splines[i].getSplitControlPoint(pos, mNewControlPoint);
 
 			if(mIndex < 0)
 				continue;
@@ -52,7 +59,7 @@ public class BrdAddControlPointCommand extends BrdAbstractEditCommand
 			
 			BezierCurve tmpCurve = new BezierCurve(prev, next);
 	
-			double t = tmpCurve.getClosestT(brdPos);
+			double t = tmpCurve.getClosestT(pos);
 	
 			VecMath.subVector(prev.getPoints()[0],prev.getPoints()[2],tmp);
 			VecMath.scaleVector(tmp, t);
@@ -62,13 +69,11 @@ public class BrdAddControlPointCommand extends BrdAbstractEditCommand
 			VecMath.scaleVector(tmp, t-1);
 			VecMath.addVector(next.getPoints()[0],tmp,next.getPoints()[1]);
 	
-			source.onBrdChanged();
-	
-			execute();
-	
-			source.repaint();
 		}
 
+		execute();
+				
+		return mNewControlPoint;
 	}
 
 	public void redo()

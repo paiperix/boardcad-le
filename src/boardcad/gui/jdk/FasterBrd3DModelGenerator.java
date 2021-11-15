@@ -12,14 +12,13 @@ import board.BezierBoard;
 
 
 public class FasterBrd3DModelGenerator {
-
 	boolean mCancelExecuting = false;
 	Vector<Thread> mThreads = new Vector<Thread>();
 	boolean mInitialModelRun = true;
 
 	public void update3DModel(BezierBoard brd, Shape3D model, int numTasks, boolean forceRefresh) {
 		mCancelExecuting = true;
-		System.out.println("BezierBoard.update3DModel() cancel execution, waiting for threads");
+		//System.out.println("BezierBoard.update3DModel() cancel execution, waiting for threads");
 		for (Thread thread : mThreads) {
 			try {
 				thread.join();
@@ -29,7 +28,7 @@ public class FasterBrd3DModelGenerator {
 		}
 		mThreads.clear();
 
-		System.out.println("BezierBoard.update3DModel() Done waiting ");
+		//System.out.println("BezierBoard.update3DModel() Done waiting ");
 
 		if(forceRefresh){
 			model.removeAllGeometries();
@@ -40,7 +39,7 @@ public class FasterBrd3DModelGenerator {
 			return;
 
 		if (model.numGeometries() != numTasks) {
-			System.out.printf("BezierBoard.update3DModel() Need initial run geom: %d tasks: %d\n", model.numGeometries(), numTasks);
+			//System.out.printf("BezierBoard.update3DModel() Need initial run geom: %d tasks: %d\n", model.numGeometries(), numTasks);
 
 			model.removeAllGeometries();
 			mInitialModelRun = true;
@@ -362,10 +361,15 @@ public class FasterBrd3DModelGenerator {
 			nrOfQuads += q/4;
 		}
 
-		if (mInitialModelRun) {
-			model.addGeometry(quads);
-		} else {
-			model.setGeometry(quads, index);
+		try {
+			if (mInitialModelRun) {
+				model.addGeometry(quads);
+			} else {
+				model.setGeometry(quads, index);
+			}
+		} catch (Exception e) {
+			System.out.printf("BezierBoard.update3DModel() model.setGeometry() failed, index: %d numGeometries: %d\n", index, model.numGeometries());
+			e.printStackTrace(System.out);
 		}
 
 	}
