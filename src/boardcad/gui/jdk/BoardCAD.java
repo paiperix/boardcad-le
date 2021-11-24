@@ -4986,6 +4986,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				super.onBrdChanged();
 				mQuadViewCrossSectionEdit.repaint();
+				mQuadViewRockerEdit.repaint();
 			}
 
 			@Override
@@ -5498,6 +5499,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				super.mouseMoved(e);
 				mQuadViewCrossSectionEdit.repaint();
+				mQuadViewOutlineEdit.repaint();
 			}
 
 		};
