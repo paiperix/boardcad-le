@@ -1641,8 +1641,8 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 		if (x > mLength - 1.0)
 			x = mLength - 1.0;
 
-		return mBrd.getSurfaceNormal(x, minAngle, maxAngle, currentSplit,
-				totalSplits);
+		return new Vector3d(mBrd.getSurfaceNormal(x, minAngle, maxAngle, currentSplit,
+				totalSplits));
 	}
 
 	protected Vector3d getSurfaceNormal(double x, double minAngle,
@@ -1658,8 +1658,8 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 						x, minAngle, maxAngle, currentSplit, totalSplits,
 						useMinimumAngleOnSharpCorners ? "true" : "false");
 
-		return mBrd.getSurfaceNormal(x, minAngle, maxAngle, currentSplit,
-				totalSplits, useMinimumAngleOnSharpCorners);
+		return new Vector3d(mBrd.getSurfaceNormal(x, minAngle, maxAngle, currentSplit,
+				totalSplits, useMinimumAngleOnSharpCorners));
 	}
 
 	protected Vector3d getSurfaceNormal(double x, double s) {
@@ -1668,7 +1668,7 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 		if (x > mLength - 1.0)
 			x = mLength - 1.0;
 
-		return mBrd.getSurfaceNormal(x, s);
+		return new Vector3d(mBrd.getSurfaceNormal(x, s));
 	}
 
 	/*

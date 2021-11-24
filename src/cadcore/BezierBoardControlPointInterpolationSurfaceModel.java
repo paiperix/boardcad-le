@@ -48,10 +48,8 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 		if (x > brd.getLength() - 0.1)
 			x = brd.getLength() - 0.1;
 
-		BezierBoardCrossSection crossSection = brd
-				.getInterpolatedCrossSection(x);
-		if (crossSection == null)
-			return new Point3d(0.0, 0.0, 0.0);
+		BezierBoardCrossSection crossSection = brd.getInterpolatedCrossSection(x);
+		if (crossSection == null) return new Point3d(0.0, 0.0, 0.0);
 
 		double minS = BezierSpline.ONE;
 		double maxS = BezierSpline.ZERO;
@@ -82,7 +80,7 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 		return point;
 	}
 
-	public Vector3d getNormalAt(final BezierBoard brd, double x, double s,
+	public Vector3f getNormalAt(final BezierBoard brd, double x, double s,
 			double minAngle, double maxAngle,
 			boolean useMinimumAngleOnSharpCorners) {
 		if (x < 0.1)
@@ -105,7 +103,7 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 
 		BezierBoardCrossSection crossSection = brd .getInterpolatedCrossSection(x);
 		if (crossSection == null)
-			return new Vector3d(0.0, 0.0, 0.0);
+			return new Vector3f(0.0f, 0.0f, 0.0f);
 
 		crossSection = (BezierBoardCrossSection)crossSection.clone();
 
@@ -146,32 +144,27 @@ class BezierBoardControlPointInterpolationSurfaceModel extends
 
 		double xo = x + X_OFFSET;
 		BezierBoardCrossSection crossSectionXO = (BezierBoardCrossSection) (brd.getInterpolatedCrossSection(xo).clone());
-		if (crossSectionXO == null)return new Vector3d(0.0, 0.0, 0.0);
+		if (crossSectionXO == null)return new Vector3f(0.0f, 0.0f, 0.0f);
 
-		double rockerX = brd.getBottom().getValueAt(x);
-		double rockerXO = brd.getBottom().getValueAt(xo);
+		float rockerX = (float)brd.getBottom().getValueAt(x);
+		float rockerXO = (float)brd.getBottom().getValueAt(xo);
 
 		Point2D.Double p = crossSection.getPointAtS(currentS);
 		Point2D.Double pso = crossSection.getPointAtS(so);
 		Point2D.Double pxo = crossSectionXO.getPointAtS(currentS);
 
-		Vector3d vc = new Vector3d(0, p.x - pso.x, p.y - pso.y); // Vector
-																	// across
-		vc.normalize();
+		Vector3d vc = new Vector3d(0, p.x - pso.x, p.y - pso.y); // Vector																// across
+		//vc.normalize();
 
-		Vector3d vl = new Vector3d(xo - x, pxo.x - p.x, pxo.y - p.y + rockerXO
-				- rockerX); // Vector lengthwise
-		vl.normalize();
+		Vector3d vl = new Vector3d(xo - x, pxo.x - p.x, pxo.y - p.y + rockerXO - rockerX); // Vector lengthwise
+		//vl.normalize();
 
-		Vector3d normalVec = new Vector3d();
-		normalVec.cross(vl, vc);
+		vc.cross(vl, vc);
+		Vector3f normalVec = new Vector3f(vc);
 		normalVec.normalize();
-
 		if (flipNormal == true) {
-
-			normalVec.scale(-1.0);
+			normalVec.scale(-1.0f);
 		}
-
 		return normalVec;
 	}
 

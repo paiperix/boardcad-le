@@ -991,12 +991,12 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	}
 
 
-	public Vector3d getDeckNormalAt(double x, double y)
+	public Vector3f getDeckNormalAt(double x, double y)
 	{
 		return AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getDeckNormalAt(this,x, y);
 	}
 
-	public Vector3d getBottomNormalAt(double x, double y)
+	public Vector3f getBottomNormalAt(double x, double y)
 	{
 		return AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getBottomNormalAt(this,x, y);
 
@@ -1060,23 +1060,23 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 
 	}
 
-	public Vector3d getSurfaceNormal(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits)
+	public Vector3f getSurfaceNormal(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits)
 	{
 		return 	getSurfaceNormal(x, minAngle, maxAngle, currentSplit, totalSplits, true);
 
 	}
 
-	public Vector3d getSurfaceNormal(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits, boolean useMinimumAngleOnSharpCorners )
+	public Vector3f getSurfaceNormal(double x, double minAngle, double maxAngle, int currentSplit, int totalSplits, boolean useMinimumAngleOnSharpCorners )
 	{
 
-		Vector3d normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getNormalAt(this,x, (double)currentSplit/(double)totalSplits, minAngle, maxAngle, useMinimumAngleOnSharpCorners);
+		Vector3f normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getNormalAt(this,x, (double)currentSplit/(double)totalSplits, minAngle, maxAngle, useMinimumAngleOnSharpCorners);
 		return normal;
 
 	}
 
-	public Vector3d getSurfaceNormal(double x, double s)
+	public Vector3f getSurfaceNormal(double x, double s)
 	{
-		Vector3d normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getNormalAt(this,x, s, -360.0, 360.0, true);
+		Vector3f normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(getInterpolationType()).getNormalAt(this,x, s, -360.0, 360.0, true);
 		return normal;
 	}
 

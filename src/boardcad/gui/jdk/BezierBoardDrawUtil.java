@@ -37,8 +37,8 @@ public class BezierBoardDrawUtil {
 	static public final double TUCK_UNDER_DEFINITION_ANGLE = 175.0;
 	static public final double APEX_DEFINITION_ANGLE = 90;
 
-	static final Vector3d upVector = new Vector3d(0.0, 0.0, 1.0);
-	static final Vector3d downVector = new Vector3d(0.0, 0.0, 1.0);
+	static final Vector3f upVector = new Vector3f(0.0f, 0.0f, 1.0f);
+	static final Vector3f downVector = new Vector3f(0.0f, 0.0f, -1.0f);
 
 	// Shared variables so we don't need to pass them all the time
 	static BezierBoard mBrd;
@@ -1227,7 +1227,7 @@ public class BezierBoardDrawUtil {
 
 			Line2D line = new Line2D.Double();
 			Point3d point;
-			Vector3d normal;
+			Vector3f normal;
 			double steps = 20;
 			for (int i = 1; i <= steps; i++) {
 				point = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(BoardCAD.getInstance().getCrossSectionInterpolationType()).getPointAt(mBrd, pos, i / steps, a0, a1, true);
@@ -1236,9 +1236,9 @@ public class BezierBoardDrawUtil {
 				point.z -= rocker;
 
 				normal = AbstractBezierBoardSurfaceModel.getBezierBoardSurfaceModel(BoardCAD.getInstance().getCrossSectionInterpolationType()).getNormalAt(mBrd, pos, i / steps, a0, a1, true);
-				normal.scale(0.1f * scale);
+				normal.scale(0.1f * (float)scale);
 
-				Point3d otherEnd = new Point3d(point);
+				Point3f otherEnd = new Point3f(point);
 				otherEnd.add(normal);
 
 				line.setLine(new Point2D.Double(point.y, point.z), new Point2D.Double(otherEnd.y, otherEnd.z));
@@ -2406,7 +2406,7 @@ public class BezierBoardDrawUtil {
 			double deck = brd.getDeckAt(x, y);
 
 			if (skinThickness != 0.0) {
-				Vector3d deckNormal = brd.getDeckNormalAt(x, y);
+				Vector3f deckNormal = brd.getDeckNormalAt(x, y);
 
 				double upAngle = upVector.angle(deckNormal);
 
@@ -2436,7 +2436,7 @@ public class BezierBoardDrawUtil {
 			double bottom = brd.getBottomAt(x, y);
 
 			if (skinThickness != 0.0) {
-				Vector3d bottomNormal = brd.getBottomNormalAt(x, y);
+				Vector3f bottomNormal = brd.getBottomNormalAt(x, y);
 
 				double downAngle = downVector.angle(bottomNormal);
 
@@ -2615,7 +2615,7 @@ public class BezierBoardDrawUtil {
 		// Find thickness and rocker at pos
 		double deck = board.getDeckAt(x, y);
 
-		Vector3d deckNormal = board.getDeckNormalAt(x, y);
+		Vector3f deckNormal = board.getDeckNormalAt(x, y);
 
 		double upAngle = upVector.angle(deckNormal);
 
@@ -2631,7 +2631,7 @@ public class BezierBoardDrawUtil {
 		// Find thickness and rocker at pos
 		double bottom = board.getBottomAt(x, y);
 
-		Vector3d bottomNormal = board.getBottomNormalAt(x, y);
+		Vector3f bottomNormal = board.getBottomNormalAt(x, y);
 
 		double normalAngle = downVector.angle(bottomNormal);
 

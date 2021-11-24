@@ -4548,7 +4548,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				BrowserControl.displayURL("http://boardcad.org/index.php/Help:Contents");
+				BrowserControl.displayURL("https://havardnj.github.io/boardcad-le/");
 			}
 
 		};
@@ -4739,8 +4739,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		toggleDeckAndBottom.putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("TOGGLEDECKBOTTOMBUTTON_STR"));
 		toggleDeckAndBottom.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/BoardCADtoggle24x35.png")));
 		toggleDeckAndBottom.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_B, 0));
-		mToolBar.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "TOGGLE_DECKBOTTOM");
-		mToolBar.getActionMap().put("TOGGLE_DECKBOTTOM", toggleDeckAndBottom);
 		mToolBar.add(toggleDeckAndBottom);
 		popupMenu.add(toggleDeckAndBottom);
 
@@ -5420,17 +5418,10 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
 					boolean fill) {
-
 				if (isPaintingBaseLine()) {
 					drawStringer(g, mSettings.getBaseLineColor(),
 							new BasicStroke((float) (mSettings.getBaseLineThickness() / mScale)), brd);
 				}
-				if (isPaintingFlowlines())
-					drawProfileFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
-				if (isPaintingApexline())
-					drawProfileApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
-				if (isPaintingTuckUnderLine())
-					drawProfileTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
 						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawProfileFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
@@ -5447,6 +5438,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						new BezierSpline[] { brd.getBottom(), brd.getDeck() }, mDrawControl, fill);
 
 				super.drawPart(g, color, stroke, brd, false);
+
+				if (isPaintingFlowlines())
+					drawProfileFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
+				if (isPaintingApexline())
+					drawProfileApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
+				if (isPaintingTuckUnderLine())
+					drawProfileTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 			}
 
 			@Override
@@ -5504,6 +5502,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		};
 		mQuadViewRockerEdit.add(popupMenu);
+		mQuadViewRockerEdit.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "TOGGLE_DECKBOTTOM");
+		mQuadViewRockerEdit.getActionMap().put("TOGGLE_DECKBOTTOM", toggleDeckAndBottom);
+
 
 		mRendered3DView = new ThreeDView();
 		mQuad3DView = new ThreeDView();
@@ -5620,12 +5621,6 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 			@Override
 			public void drawPart(final Graphics2D g, final Color color, final Stroke stroke, final BezierBoard brd,
 					boolean fill) {
-				if (isPaintingFlowlines())
-					drawProfileFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
-				if (isPaintingApexline())
-					drawProfileApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
-				if (isPaintingTuckUnderLine())
-					drawProfileTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 				if (isPaintingFootMarks() && (brd == getCurrentBrd() || (brd == getGhostBrd() && isGhostMode())
 						|| (brd == getOriginalBrd() && isOrgFocus())))
 					drawProfileFootMarks(this, g, new BasicStroke(2.0f / (float) this.mScale), brd);
@@ -5642,6 +5637,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						new BezierSpline[] { brd.getBottom(), brd.getDeck() }, mDrawControl, fill);
 
 				super.drawPart(g, color, stroke, brd, false);
+
+				if (isPaintingFlowlines())
+					drawProfileFlowlines(this, g, mSettings.getFlowLinesColor(), stroke, brd);
+				if (isPaintingApexline())
+					drawProfileApexline(this, g, mSettings.getApexLineColor(), stroke, brd);
+				if (isPaintingTuckUnderLine())
+					drawProfileTuckUnderLine(this, g, mSettings.getTuckUnderLineColor(), stroke, brd);
 			}
 
 			@Override
@@ -5659,6 +5661,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 		};
 		mBottomAndDeckEdit.add(popupMenu);
+		mBottomAndDeckEdit.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "TOGGLE_DECKBOTTOM");
+		mBottomAndDeckEdit.getActionMap().put("TOGGLE_DECKBOTTOM", toggleDeckAndBottom);
+
 
 		mTabbedPane.add(LanguageResource.getString("BOTTOMANDDECKEDIT_STR"), mBottomAndDeckEdit);
 
@@ -7184,17 +7189,13 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 					deckKnot = cmd.addControlPoint(mQuadViewRockerEdit, new Point.Double(pos, deck.getValueAt(pos)));
 					deckKnot.setContinous(true);
 				}
-				System.out.printf("Deck knot position: %f, %f\n", deckKnot.getEndPoint().x, deckKnot.getEndPoint().y);
-				System.out.printf("Crossection deck point: %f, %f\n", crsDeckPoint.getEndPoint().x, crsDeckPoint.getEndPoint().y);
 				BezierSpline bottom = getCurrentBrd().getBottom();
 				double y = crsDeckPoint.getEndPoint().y  + bottom.getValueAt(pos);
-				System.out.printf("New bottom knot position: %f, %f\n", pos, y);
 				deckKnot.setControlPointLocation(pos, y);
 			}
 
 			BezierKnot crsBottomPoint = spline.getControlPoint(0);
 			if(selected.contains(crsBottomPoint)) {
-				System.out.println("Found bottom knot\n");
 				BezierSpline bottom = getCurrentBrd().getBottom();
 				double pos = crs.getPosition();
 				Point.Double coord = new Point.Double(pos, crsBottomPoint.getEndPoint().y);
