@@ -107,7 +107,7 @@ public class WidthSplitsToolpathGenerator extends AbstractToolpathGenerator {
 			y = (mBoard.getWidthAt(x)/2.0)*((double)(i%nrOfWidthSplits)/(double)nrOfWidthSplits)*((i>nrOfWidthSplits)?-1.0:1.0);
 			z = mBoard.getDeckAt(x,y);
 
-			mNormalVec = mBoard.getDeckNormalAt(x, y);
+			mNormalVec = new Vector3d(mBoard.getDeckNormalAt(x, y));
 
 			if(++j >= nrOfLengthSplits)
 			{
@@ -160,7 +160,7 @@ public class WidthSplitsToolpathGenerator extends AbstractToolpathGenerator {
 			y = (mBoard.getWidthAt(x)/2.0)*((double)(i%nrOfWidthSplits)/(double)nrOfWidthSplits)*((i>nrOfWidthSplits)?-1.0:1.0);
 			z = mBoard.getBottomAt(x,y);
 
-			mNormalVec = mBoard.getBottomNormalAt(x, y);
+			mNormalVec = new Vector3d(mBoard.getBottomNormalAt(x, y));
 
 			if(++j >= nrOfLengthSplits)
 			{

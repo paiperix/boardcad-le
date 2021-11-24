@@ -254,7 +254,7 @@ public class BezierBoardCrossSection implements Cloneable, Comparable {
 						for (int j = 1; j < otherBezier.getNrOfControlPoints() - 1; j++) {
 							// Scaleing crosssection points by moving so cross
 							// sections have same size to better make use of the
-							// distance bewtween points
+							// distance between points
 							// Note that the tangents stay the same, scaleing
 							// them would change the angle which may introduce
 							// poor matching

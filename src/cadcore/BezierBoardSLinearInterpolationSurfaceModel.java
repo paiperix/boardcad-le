@@ -125,7 +125,7 @@ class BezierBoardSLinearInterpolationSurfaceModel extends
 		return point;
 	}
 
-	public Vector3d getNormalAt(final BezierBoard brd, double x, double s,
+	public Vector3f getNormalAt(final BezierBoard brd, double x, double s,
 			double minAngle, double maxAngle,
 			boolean useMinimumAngleOnSharpCorners) {
 		if (x < 0.1)
@@ -254,20 +254,15 @@ class BezierBoardSLinearInterpolationSurfaceModel extends
 		// x, pointXO.x, pointXO.y, pointXO.z);
 
 		// Calculate normal
-		Vector3d vc = new Vector3d(0, pointS.y - pointSO.y, pointS.z
-				- pointSO.z); // Vector across
-		// vc.normalize();
+		Vector3d vc = new Vector3d(0f, pointS.y - pointSO.y, pointS.z - pointSO.z); // Vector across
+		Vector3d vl = new Vector3d(xo - x, pointXO.y - pointS.y, pointXO.z - pointS.z); // Vector lengthwise
 
-		Vector3d vl = new Vector3d(xo - x, pointXO.y - pointS.y, pointXO.z
-				- pointS.z); // Vector lengthwise
-		// vl.normalize();
-
-		Vector3d normalVec = new Vector3d();
-		normalVec.cross(vl, vc);
+		vc.cross(vl, vc);
+		Vector3f normalVec = new Vector3f(vc);
 		normalVec.normalize();
 
 		if (flipNormal == true) {
-			normalVec.scale(-1.0);
+			normalVec.scale(-1.0f);
 		}
 
 		// System.out.printf("BezierBoardSLinearInterpolationSurfaceModel.getNormalAt() third point x:%f, result: %f, %f, %f\n",

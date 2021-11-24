@@ -116,13 +116,13 @@ public class HotwireToolpathGenerator extends AbstractToolpathGenerator {
 			{
 				z = mBoard.getDeckAt(x,y);
 
-				mNormalVec = mBoard.getDeckNormalAt(x, y);
+				mNormalVec = new Vector3d(mBoard.getDeckNormalAt(x, y));
 			}
 			else if (i == 1)
 			{
 				z = mBoard.getBottomAt(x,y);
 
-				mNormalVec = mBoard.getBottomNormalAt(x, y);
+				mNormalVec = new Vector3d(mBoard.getBottomNormalAt(x, y));
 			}
 
 		}
@@ -130,7 +130,7 @@ public class HotwireToolpathGenerator extends AbstractToolpathGenerator {
 		{
 			z = (mBoard.getWidthAt(x)/2.0)*((i==0)?1.0:-1.0);
 
-			mNormalVec = mBoard.getDeckNormalAt(x, z);
+			mNormalVec = new Vector3d(mBoard.getDeckNormalAt(x, z));
 		}
 
 		if(++j > nrOfLengthSplits)

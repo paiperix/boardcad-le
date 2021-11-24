@@ -32,6 +32,7 @@ class ThreeDView extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	BranchGroup mRoot;
+	BranchGroup mBezier3DModelGroup;
 	Shape3D mBezier3DModel;
 	TransformGroup mScaleTransform;
 
@@ -239,11 +240,23 @@ class ThreeDView extends JPanel {
 
 		mRoot = new BranchGroup();
 		mRoot.setCapability(BranchGroup.ALLOW_DETACH);
+		mRoot.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+		mRoot.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+		mRoot.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
 
 		mScaleTransform = new TransformGroup();
 		mScaleTransform.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		mScaleTransform.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+		mScaleTransform.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+		mScaleTransform.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
 		mRoot.addChild(mScaleTransform);
 
+		mBezier3DModelGroup = new BranchGroup();
+		mBezier3DModelGroup.setCapability(BranchGroup.ALLOW_DETACH);
+		mBezier3DModelGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+		mBezier3DModelGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+		mBezier3DModelGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+				
 		mBezier3DModel = new Shape3D();
 		mBezier3DModel.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
 		mBezier3DModel.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
@@ -258,13 +271,23 @@ class ThreeDView extends JPanel {
 		// Set up the material properties
 		a.setMaterial(new Material(ambient, emissive, diffuse, specular, 115.0f));
 		mBezier3DModel.setAppearance(a);
-		mScaleTransform.addChild(mBezier3DModel);
+		
+		mBezier3DModelGroup.addChild(mBezier3DModel);
+		mScaleTransform.addChild(mBezier3DModelGroup);
 
 		addModel(mRoot);
 	}
 
 	public Shape3D getBezier3DModel() {
 		return mBezier3DModel;
+	}
+
+	public BranchGroup getBezier3DModelGroup() {
+		return mBezier3DModelGroup;
+	}
+	
+	public TransformGroup getBezier3DModelTransform() {
+		return mScaleTransform;
 	}
 
 	public void setBezierScale(double scale, double offset) {
