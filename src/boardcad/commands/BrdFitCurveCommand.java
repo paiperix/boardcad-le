@@ -71,8 +71,8 @@ public class BrdFitCurveCommand extends BrdAbstractEditCommand {
 				if (currentGuidePoints.isEmpty()) // No points
 					continue;
 
-				currentGuidePoints.add(0, curve.getStartKnot().getEndPoint());
-				currentGuidePoints.add(0, curve.getStartKnot().getEndPoint());
+				currentGuidePoints.add(curve.getStartKnot().getEndPoint());
+				currentGuidePoints.add(curve.getStartKnot().getEndPoint());
 				currentGuidePoints.add(curve.getEndKnot().getEndPoint());
 				currentGuidePoints.add(curve.getEndKnot().getEndPoint());
 
@@ -85,19 +85,28 @@ public class BrdFitCurveCommand extends BrdAbstractEditCommand {
 				// Pass to bezierFit
 				BezierFit fitter = new BezierFit();
 				Point2D[] ctrlPoints = fitter.bestFit(currentGuidePoints);
+				
+				System.out.printf("before: start endpoint: %f, %f\n", curve.getStartKnot().getEndPoint().getX(), curve.getStartKnot().getEndPoint().getY());
+				System.out.printf("before: start tangent to next: %f, %f\n", curve.getStartKnot().getTangentToNext().getX(),curve.getStartKnot().getTangentToNext().getY());
+				System.out.printf("before: endknot tangent to prev: %f, %f\n", curve.getEndKnot().getTangentToPrev().getX(),curve.getEndKnot().getTangentToPrev().getY());
+				System.out.printf("before: endknot endpoint: %f, %f\n", curve.getEndKnot().getEndPoint().getX(),curve.getEndKnot().getEndPoint().getY());
+				System.out.printf("ctrlPoints[0]: %f, %f\n", ctrlPoints[0].getX(),ctrlPoints[0].getY());
+				System.out.printf("ctrlPoints[1]: %f, %f\n", ctrlPoints[1].getX(),ctrlPoints[1].getY());
+				System.out.printf("ctrlPoints[2]: %f, %f\n", ctrlPoints[2].getX(),ctrlPoints[2].getY());
+				System.out.printf("ctrlPoints[3]: %f, %f\n", ctrlPoints[3].getX(),ctrlPoints[3].getY());
 
 				// Update bezier curve
-				curve.getStartKnot().setEndPoint(ctrlPoints[0].getX(),
-						ctrlPoints[0].getY());
-				curve.getStartKnot().setTangentToNext(ctrlPoints[1].getX(),
-						ctrlPoints[1].getY());
 				curve.getStartKnot().setContinous(false);
-				curve.getEndKnot().setTangentToPrev(ctrlPoints[2].getX(),
-						ctrlPoints[2].getY());
-				curve.getEndKnot().setEndPoint(ctrlPoints[3].getX(),
-						ctrlPoints[3].getY());
+				curve.getStartKnot().setControlPointLocation(ctrlPoints[0].getX(), ctrlPoints[0].getY());
+				curve.getStartKnot().setTangentToNext(ctrlPoints[1].getX(), ctrlPoints[1].getY());
 				curve.getEndKnot().setContinous(false);
+				curve.getEndKnot().setControlPointLocation(ctrlPoints[3].getX(), ctrlPoints[3].getY());
+				curve.getEndKnot().setTangentToPrev(ctrlPoints[2].getX(), ctrlPoints[2].getY());
 
+				System.out.printf("After: start endpoint: %f, %f\n", curve.getStartKnot().getEndPoint().getX(), curve.getStartKnot().getEndPoint().getY());
+				System.out.printf("After: start tangent to next: %f, %f\n", curve.getStartKnot().getTangentToNext().getX(),curve.getStartKnot().getTangentToNext().getY());
+				System.out.printf("After: endknot tangent to prev: %f, %f\n", curve.getEndKnot().getTangentToPrev().getX(),curve.getEndKnot().getTangentToPrev().getY());
+				System.out.printf("After: endknot endpoint: %f, %f\n", curve.getEndKnot().getEndPoint().getX(),curve.getEndKnot().getEndPoint().getY());
 			}
 		}
 

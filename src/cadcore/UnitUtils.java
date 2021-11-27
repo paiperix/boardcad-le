@@ -28,7 +28,8 @@ public class UnitUtils {
 	public static final double CUBICCENTIMETER_PR_LITRE = 1000;
 	public static final double CUBICCENTIMETER_PR_US_PINT = 473;
 
-	static public final double FEET_PR_METER = CENTIMETER_PR_METER/(INCH*INCHES_PR_FOOT);
+	static public final double CENTIMETER_PR_FOOT = INCH*INCHES_PR_FOOT;
+	static public final double FEET_PR_METER = CENTIMETER_PR_METER/CENTIMETER_PR_FOOT;
 
 	public static final double POUNDS_PR_KG = 2.20462262;
 
@@ -289,7 +290,7 @@ public class UnitUtils {
 		//to remove the first blanks
 		string=string.replaceAll("^\\s+", "");
 
-		//Remove all nonnumerical characters at end of string
+		//Remove all non-numerical characters at end of string
 		int n = string.length();
 		while(n > 0 && !Character.isDigit(string.charAt(n-1)) )
 		{

@@ -4781,8 +4781,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 						LanguageResource.getString("DELETECONTROLPOINTSTITLE_STR"), JOptionPane.WARNING_MESSAGE,
 						JOptionPane.YES_NO_OPTION);
 
-				if (selection == JOptionPane.NO_OPTION) {
-
+				if (selection != JOptionPane.YES_OPTION) {
 					return;
 
 				}
@@ -4817,8 +4816,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		deleteControlPoint.putValue(Action.NAME, LanguageResource.getString("DELETECONTROLPOINTSBUTTON_STR"));
 		deleteControlPoint.putValue(Action.SHORT_DESCRIPTION,
 				LanguageResource.getString("DELETECONTROLPOINTSBUTTON_STR"));
-		deleteControlPoint.putValue(Action.SMALL_ICON,
-				new ImageIcon(getClass().getResource("/boardcad/icons/remove-controlpoint.png")));
+		deleteControlPoint.putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/boardcad/icons/remove-controlpoint.png")));
+		//deleteControlPoint.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+
 		mToolBar.add(deleteControlPoint);
 		popupMenu.add(deleteControlPoint);
 
@@ -6358,6 +6358,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		 * getSelectedEdit().loadBackgroundImage("F:\\Gfx\\Misc\\Surfboards\\ horan 6'8
 		 * keelboard outline.jpg");
 		 */
+		
+		//Delete hotkey for control points
+		mQuadViewRockerEdit.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "DELETE_CONTROLPOINT");
+		mQuadViewRockerEdit.getActionMap().put("DELETE_CONTROLPOINT", deleteControlPoint);
+		mOutlineEdit.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "DELETE_CONTROLPOINT");
+		mOutlineEdit.getActionMap().put("DELETE_CONTROLPOINT", deleteControlPoint);
+		mCrossSectionEdit.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "DELETE_CONTROLPOINT");
+		mCrossSectionEdit.getActionMap().put("DELETE_CONTROLPOINT", deleteControlPoint);
+		mBottomAndDeckEdit.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "DELETE_CONTROLPOINT");
+		mBottomAndDeckEdit.getActionMap().put("DELETE_CONTROLPOINT", deleteControlPoint);
 
 		getPreferences();
 

@@ -191,6 +191,9 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void onMouseDragged(BoardEdit source, MouseEvent event)
 	{
+	    if((event.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK) == MouseEvent.BUTTON2_DOWN_MASK)
+	    	return;
+		
 		//Dragging points
 		if(mIsKeyEditing)
 			return;
@@ -207,9 +210,13 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 			return;
 		}
+		
 
 		ArrayList<BezierKnot> selectedControlPoints = source.getSelectedControlPoints();
 		if(selectedControlPoints.size() == 0)
+			return;
+
+		if(mDragStartPos == null)
 			return;
 
 		Point pos = event.getPoint();
@@ -467,6 +474,7 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 
 			default:
+				mIsKeyEditing = false;
 				return false;
 			}
 			

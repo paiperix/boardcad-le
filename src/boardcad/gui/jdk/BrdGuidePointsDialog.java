@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
@@ -14,6 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
 
 import cadcore.UnitUtils;
@@ -159,7 +161,7 @@ public class BrdGuidePointsDialog extends JDialog {
 				static final long serialVersionUID=1L;
 				{
 					this.putValue(Action.NAME, LanguageResource.getString("GUIDEPOINTREMOVE_STR"));
-//					this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+					this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 				};
 
 				@Override

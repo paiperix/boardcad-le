@@ -33,7 +33,7 @@ public class BrdDeleteControlPointCommand extends BrdAbstractEditCommand
 
 		ArrayList<Point2D> points = new ArrayList<Point2D>();
 				
-		int steps = 10;
+		int steps = 1000;
 		
 		BezierCurve prevCurve = mControlPoints.getCurve(mIndex-1);
 		for(int i = 0; i <= steps; i++)
@@ -42,10 +42,10 @@ public class BrdDeleteControlPointCommand extends BrdAbstractEditCommand
 			points.add(new Point2D.Double(prevCurve.getXValue(t),prevCurve.getYValue(t)) );
 		}
 		BezierCurve nextCurve = mControlPoints.getCurve(mIndex);
-		for(int i = 0; i < steps; i++)
+		for(int i = 0; i <= steps; i++)
 		{
 			double t = (double)i/(double)steps;
-			points.add(new Point2D.Double(nextCurve.getXValue(t),nextCurve.getYValue(t)) );
+			points.add(new Point2D.Double(nextCurve.getXValue(t), nextCurve.getYValue(t)) );
 		}
 		
 		BezierKnot prev =  mControlPoints.getControlPoint(mIndex-1);
@@ -60,14 +60,23 @@ public class BrdDeleteControlPointCommand extends BrdAbstractEditCommand
 		//Pass to bezierFit
 		BezierFit fitter = new BezierFit();
 		Point2D[] ctrlPoints = fitter.bestFit(points);
-			
+		
+		System.out.printf("prev endpoint: %f, %f\n", prev.getEndPoint().getX(),prev.getEndPoint().getY());
+		System.out.printf("prev tangent to next: %f, %f\n", prev.getTangentToNext().getX(),prev.getTangentToNext().getY());
+		System.out.printf("next tangent to prev: %f, %f\n", next.getTangentToPrev().getX(),next.getTangentToPrev().getY());
+		System.out.printf("next endpoint: %f, %f\n", next.getEndPoint().getX(),next.getEndPoint().getY());
+		System.out.printf("ctrlPoints[0]: %f, %f\n", ctrlPoints[0].getX(),ctrlPoints[0].getY());
+		System.out.printf("ctrlPoints[1]: %f, %f\n", ctrlPoints[1].getX(),ctrlPoints[1].getY());
+		System.out.printf("ctrlPoints[2]: %f, %f\n", ctrlPoints[2].getX(),ctrlPoints[2].getY());
+		System.out.printf("ctrlPoints[3]: %f, %f\n", ctrlPoints[3].getX(),ctrlPoints[3].getY());
+	
 		//Update bezier curve 
 		prev.setContinous(false);
-		prev.setEndPoint(ctrlPoints[0].getX(),ctrlPoints[0].getY());
+		prev.setControlPointLocation(ctrlPoints[0].getX(),ctrlPoints[0].getY());
 		prev.setTangentToNext(ctrlPoints[1].getX(),ctrlPoints[1].getY());
-		next.setTangentToPrev(ctrlPoints[2].getX(),ctrlPoints[2].getY());
-		next.setEndPoint(ctrlPoints[3].getX(),ctrlPoints[3].getY());
 		next.setContinous(false);	
+		next.setControlPointLocation(ctrlPoints[3].getX(),ctrlPoints[3].getY());
+		next.setTangentToPrev(ctrlPoints[2].getX(),ctrlPoints[2].getY());
 
 		super.saveChanges();
 	}

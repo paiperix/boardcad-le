@@ -894,8 +894,6 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 	public void onBrdChanged()
 	{
-		System.out.println("BoardEdit onBrdChanged");
-
 		BoardCAD.getInstance().onBrdChanged();
 
 		repaint();

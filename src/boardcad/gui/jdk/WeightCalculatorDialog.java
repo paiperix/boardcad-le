@@ -30,12 +30,12 @@ public class WeightCalculatorDialog extends JDialog {
 	private JLabel mFoamDensityLabel = null;
 	private JLabel mDeckGlassLabel = null;
 	private JLabel mBottomGlassLabel = null;
-	private JLabel jLabel = null;
+	private JLabel mDeckLapWidthLabel = null;
 	private JLabel mBottomLapWidtLabel = null;
-	private JLabel jLabel1 = null;
-	private JLabel jLabel2 = null;
+	private JLabel mResinRatioLabel = null;
+	private JLabel mHotcoatWeightLabel = null;
 	private JLabel mPlugsAndFinsLabel = null;
-	private JLabel jLabel3 = null;
+	private JLabel mTotalWeightLabel = null;
 	private JTextField mStringerWidthEdit = null;
 	private JTextField mStringerDensityEdit = null;
 	private JPanel jPanel = null;
@@ -62,6 +62,8 @@ public class WeightCalculatorDialog extends JDialog {
 	private JTextField mDeckLapAreaEdit = null;
 	private JTextField mBottomLapAreaEdit = null;
 	private JTextField mGlassWeightEdit = null;
+	private JTextField mBoardLengthEdit = null;
+	private JTextField mHotcoatWeightPerFootEdit = null;
 
 	double mStringerWidth=0.3;
 	double mStringerVolume = 0.0;
@@ -85,7 +87,8 @@ public class WeightCalculatorDialog extends JDialog {
 	double mTotalGlassWeight = 0.0;
 	double mResinRatio = 1.5;
 	double mResinWeight;
-	double mHotcoatWeight = 0.5;
+	double mHotcoatWeightPerFoot = 0.0444;
+	double mHotcoatWeight;
 	double mPlugsAndFinsWeight = 0.2;
 	double mTotalBoardWeight = 0;
 
@@ -106,26 +109,26 @@ public class WeightCalculatorDialog extends JDialog {
 	void setDefaults()
 	{
 		final BezierBoard brd = BoardCAD.getInstance().getCurrentBrd();
-
 		if(brd.getLength() > UnitUtils.FOOT*9.0)
 		{
 			mStringerWidth=0.8;
 			mDeckGlassUnitWeight = 0.400;
 			mBottomGlassUnitWeight = 0.200;
+			mHotcoatWeightPerFoot = 0.0591;
 		}
-		if(brd.getLength() > UnitUtils.FOOT*7.0)
+		else if(brd.getLength() > UnitUtils.FOOT*7.0)
 		{
 			mStringerWidth=0.5;
 			mDeckGlassUnitWeight = 0.400;
 			mBottomGlassUnitWeight = 0.200;
+			mHotcoatWeightPerFoot = 0.0444;
 		}
 		else{
 			mStringerWidth=0.3;
 			mDeckGlassUnitWeight = 0.270;
 			mBottomGlassUnitWeight = 0.135;
-
+			mHotcoatWeightPerFoot = 0.0444;
 		}
-		mHotcoatWeight = 0.03*(brd.getLength()/UnitUtils.FOOT);
 
 	}
 
@@ -139,7 +142,7 @@ public class WeightCalculatorDialog extends JDialog {
 		mBottomGlassEdit.setText(UnitUtils.convertWeightToCurrentUnit(mBottomGlassUnitWeight, true));
 		mBottomLapWidthEdit.setText(UnitUtils.convertLengthToCurrentUnit(mBottomLapWidth, false));
 		mResinRatioEdit.setText(Double.toString(mResinRatio));
-		mHotcoatWeightEdit.setText(UnitUtils.convertWeightToCurrentUnit(mHotcoatWeight, true));
+		mHotcoatWeightPerFootEdit.setText(UnitUtils.convertWeightToCurrentUnit(mHotcoatWeightPerFoot, true));
 		mPlugsAndFinsWeightEdit.setText(UnitUtils.convertWeightToCurrentUnit(mPlugsAndFinsWeight, true));
 
 		updateStringerVolume();
@@ -156,6 +159,8 @@ public class WeightCalculatorDialog extends JDialog {
 		updateBottomLapWeight();
 		updateTotalGlassWeight();
 		updateResinWeight();
+		updateBoardLength();
+		updateHotcoatWeight();
 
 		updateTotalWeight();
 	}
@@ -180,24 +185,24 @@ public class WeightCalculatorDialog extends JDialog {
 	 */
 	private JPanel getJContentPane() {
 		if (jContentPane == null) {
-			jLabel3 = new JLabel();
-			jLabel3.setText(LanguageResource.getString("WeightCalculatorDialog.1")); //$NON-NLS-1$
-			jLabel3.setBounds(new Rectangle(30, 330, 123, 16));
+			mTotalWeightLabel = new JLabel();
+			mTotalWeightLabel.setText(LanguageResource.getString("WeightCalculatorDialog.1")); //$NON-NLS-1$
+			mTotalWeightLabel.setBounds(new Rectangle(30, 330, 123, 16));
 			mPlugsAndFinsLabel = new JLabel();
 			mPlugsAndFinsLabel.setText(LanguageResource.getString("WeightCalculatorDialog.2")); //$NON-NLS-1$
 			mPlugsAndFinsLabel.setBounds(new Rectangle(30, 285, 148, 16));
-			jLabel2 = new JLabel();
-			jLabel2.setText(LanguageResource.getString("WeightCalculatorDialog.3")); //$NON-NLS-1$
-			jLabel2.setBounds(new Rectangle(30, 255, 108, 16));
-			jLabel1 = new JLabel();
-			jLabel1.setText(LanguageResource.getString("WeightCalculatorDialog.4")); //$NON-NLS-1$
-			jLabel1.setBounds(new Rectangle(30, 225, 136, 16));
+			mHotcoatWeightLabel = new JLabel();
+			mHotcoatWeightLabel.setText(LanguageResource.getString("WeightCalculatorDialog.3")); //$NON-NLS-1$
+			mHotcoatWeightLabel.setBounds(new Rectangle(30, 255, 108, 16));			
+			mResinRatioLabel = new JLabel();
+			mResinRatioLabel.setText(LanguageResource.getString("WeightCalculatorDialog.4")); //$NON-NLS-1$
+			mResinRatioLabel.setBounds(new Rectangle(30, 225, 136, 16));
 			mBottomLapWidtLabel = new JLabel();
 			mBottomLapWidtLabel.setText(LanguageResource.getString("WeightCalculatorDialog.5")); //$NON-NLS-1$
 			mBottomLapWidtLabel.setBounds(new Rectangle(30, 195, 108, 16));
-			jLabel = new JLabel();
-			jLabel.setText(LanguageResource.getString("WeightCalculatorDialog.6")); //$NON-NLS-1$
-			jLabel.setBounds(new Rectangle(30, 135, 89, 16));
+			mDeckLapWidthLabel = new JLabel();
+			mDeckLapWidthLabel.setText(LanguageResource.getString("WeightCalculatorDialog.6")); //$NON-NLS-1$
+			mDeckLapWidthLabel.setBounds(new Rectangle(30, 135, 89, 16));
 			mBottomGlassLabel = new JLabel();
 			mBottomGlassLabel.setText(LanguageResource.getString("WeightCalculatorDialog.7")); //$NON-NLS-1$
 			mBottomGlassLabel.setBounds(new Rectangle(30, 165, 86, 16));
@@ -221,38 +226,40 @@ public class WeightCalculatorDialog extends JDialog {
 			jContentPane.add(mFoamDensityLabel, null);
 			jContentPane.add(mDeckGlassLabel, null);
 			jContentPane.add(mBottomGlassLabel, null);
-			jContentPane.add(jLabel, null);
+			jContentPane.add(mDeckLapWidthLabel, null);
 			jContentPane.add(mBottomLapWidtLabel, null);
-			jContentPane.add(jLabel1, null);
-			jContentPane.add(jLabel2, null);
+			jContentPane.add(mResinRatioLabel, null);
+			jContentPane.add(mHotcoatWeightLabel, null);
 			jContentPane.add(mPlugsAndFinsLabel, null);
-			jContentPane.add(jLabel3, null);
-			jContentPane.add(getMStringerWidthEdit(), null);
-			jContentPane.add(getMStringerDensity(), null);
+			jContentPane.add(mTotalWeightLabel, null);
+			jContentPane.add(getStringerWidthEdit(), null);
+			jContentPane.add(getStringerDensity(), null);
 			jContentPane.add(getJPanel(), null);
-			jContentPane.add(getMFoamDensityEdit(), null);
-			jContentPane.add(getMDeckGlassEdit(), null);
-			jContentPane.add(getMDeckLapWidthEdit(), null);
-			jContentPane.add(getMBottomGlassEdit(), null);
-			jContentPane.add(getMBottomLapWidth(), null);
-			jContentPane.add(getMResinRatioEdit(), null);
-			jContentPane.add(getMHotcoatWeightEdit(), null);
-			jContentPane.add(getMPlugsAndFinsWeightEdit(), null);
-			jContentPane.add(getMTotalBoardWeightEdit(), null);
-			jContentPane.add(getMFoamVolumeEdit(), null);
-			jContentPane.add(getMStringerVolumeEdit(), null);
-			jContentPane.add(getMResinWeightEdit(), null);
-			jContentPane.add(getMBottomLapWeight(), null);
-			jContentPane.add(getMBottomGlassWeightEdit(), null);
-			jContentPane.add(getMDeckLapWeightEdit(), null);
-			jContentPane.add(getMDeckGlassWeightEdit(), null);
-			jContentPane.add(getMFoamWeightEdit(), null);
-			jContentPane.add(getMStringerWeightEdit(), null);
-			jContentPane.add(getMDeckAreaEdit(), null);
-			jContentPane.add(getMBottomAreaEdit(), null);
-			jContentPane.add(getMDeckLapAreaEdit(), null);
-			jContentPane.add(getMBottomLapAreaEdit(), null);
-			jContentPane.add(getMGlassWeight(), null);
+			jContentPane.add(getFoamDensityEdit(), null);
+			jContentPane.add(getDeckGlassEdit(), null);
+			jContentPane.add(getDeckLapWidthEdit(), null);
+			jContentPane.add(getBottomGlassEdit(), null);
+			jContentPane.add(getBottomLapWidth(), null);
+			jContentPane.add(getResinRatioEdit(), null);	
+			jContentPane.add(getHotcoatWeightPerFootEdit(), null);
+			jContentPane.add(getHotcoatWeightEdit(), null);
+			jContentPane.add(getPlugsAndFinsWeightEdit(), null);
+			jContentPane.add(getTotalBoardWeightEdit(), null);
+			jContentPane.add(getFoamVolumeEdit(), null);
+			jContentPane.add(getStringerVolumeEdit(), null);
+			jContentPane.add(getResinWeightEdit(), null);
+			jContentPane.add(getBottomLapWeight(), null);
+			jContentPane.add(getBottomGlassWeightEdit(), null);
+			jContentPane.add(getDeckLapWeightEdit(), null);
+			jContentPane.add(getDeckGlassWeightEdit(), null);
+			jContentPane.add(getFoamWeightEdit(), null);
+			jContentPane.add(getStringerWeightEdit(), null);
+			jContentPane.add(getDeckAreaEdit(), null);
+			jContentPane.add(getBottomAreaEdit(), null);
+			jContentPane.add(getDeckLapAreaEdit(), null);
+			jContentPane.add(getBottomLapAreaEdit(), null);
+			jContentPane.add(getGlassWeightEdit(), null);
+			jContentPane.add(getBoardLengthEdit(), null);
 		}
 		return jContentPane;
 	}
@@ -262,7 +269,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMStringerWidthEdit() {
+	private JTextField getStringerWidthEdit() {
 		if (mStringerWidthEdit == null) {
 			mStringerWidthEdit = new JTextField();
 			mStringerWidthEdit.setBounds(new Rectangle(165, 15, 76, 20));
@@ -290,7 +297,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMStringerDensity() {
+	private JTextField getStringerDensity() {
 		if (mStringerDensityEdit == null) {
 			mStringerDensityEdit = new JTextField();
 			mStringerDensityEdit.setBounds(new Rectangle(255, 45, 76, 20));
@@ -330,7 +337,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMFoamDensityEdit() {
+	private JTextField getFoamDensityEdit() {
 		if (mFoamDensityEdit == null) {
 			mFoamDensityEdit = new JTextField();
 			mFoamDensityEdit.setBounds(new Rectangle(255, 75, 76, 20));
@@ -353,7 +360,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMDeckGlassEdit() {
+	private JTextField getDeckGlassEdit() {
 		if (mDeckGlassEdit == null) {
 			mDeckGlassEdit = new JTextField();
 			mDeckGlassEdit.setBounds(new Rectangle(255, 105, 76, 20));
@@ -378,7 +385,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMDeckLapWidthEdit() {
+	private JTextField getDeckLapWidthEdit() {
 		if (mDeckLapWidthEdit == null) {
 			mDeckLapWidthEdit = new JTextField();
 			mDeckLapWidthEdit.setBounds(new Rectangle(255, 135, 76, 20));
@@ -404,7 +411,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMBottomGlassEdit() {
+	private JTextField getBottomGlassEdit() {
 		if (mBottomGlassEdit == null) {
 			mBottomGlassEdit = new JTextField();
 			mBottomGlassEdit.setBounds(new Rectangle(255, 165, 76, 20));
@@ -429,7 +436,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMBottomLapWidth() {
+	private JTextField getBottomLapWidth() {
 		if (mBottomLapWidthEdit == null) {
 			mBottomLapWidthEdit = new JTextField();
 			mBottomLapWidthEdit.setBounds(new Rectangle(255, 195, 76, 20));
@@ -455,7 +462,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMResinRatioEdit() {
+	private JTextField getResinRatioEdit() {
 		if (mResinRatioEdit == null) {
 			mResinRatioEdit = new JTextField();
 			mResinRatioEdit.setBounds(new Rectangle(255, 225, 76, 20));
@@ -472,17 +479,43 @@ public class WeightCalculatorDialog extends JDialog {
 		}
 		return mResinRatioEdit;
 	}
+	
+	/**
+	 * This method initializes mResinRatioEdit
+	 *
+	 * @return javax.swing.JTextField
+	 */
+	private JTextField getHotcoatWeightPerFootEdit() {
+		if (mHotcoatWeightPerFootEdit == null) {
+			mHotcoatWeightPerFootEdit = new JTextField();
+			mHotcoatWeightPerFootEdit.setBounds(new Rectangle(255, 255, 76, 20));
+			java.awt.event.FocusAdapter adapt = new java.awt.event.FocusAdapter() {
+				@Override
+				public void focusLost(java.awt.event.FocusEvent e) {
+					mHotcoatWeightPerFoot = UnitUtils.convertInputStringToInternalWeightUnit(mHotcoatWeightPerFootEdit.getText());
+					mHotcoatWeightPerFootEdit.setText(UnitUtils.convertWeightToCurrentUnit(mHotcoatWeightPerFoot, true));
+					updateHotcoatWeight();
+				}
+			};
+			mHotcoatWeightPerFootEdit.addFocusListener(adapt);
+			mHotcoatWeightPerFootEdit.addActionListener((e) -> {adapt.focusLost(null);});
+		}
+		return mHotcoatWeightPerFootEdit;
+	}
+	
 
 	/**
 	 * This method initializes mHotcoatWeightEdit
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMHotcoatWeightEdit() {
+	private JTextField getHotcoatWeightEdit() {
 		if (mHotcoatWeightEdit == null) {
 			mHotcoatWeightEdit = new JTextField();
 			mHotcoatWeightEdit.setBounds(new Rectangle(345, 255, 76, 20));
 			mHotcoatWeightEdit.setToolTipText(LanguageResource.getString("WeightCalculatorDialog.15")); //$NON-NLS-1$
+			mHotcoatWeightEdit.setEditable(false);;
+
 			java.awt.event.FocusAdapter adapt = new java.awt.event.FocusAdapter() {
 				@Override
 				public void focusLost(java.awt.event.FocusEvent e) {
@@ -503,7 +536,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMPlugsAndFinsWeightEdit() {
+	private JTextField getPlugsAndFinsWeightEdit() {
 		if (mPlugsAndFinsWeightEdit == null) {
 			mPlugsAndFinsWeightEdit = new JTextField();
 			mPlugsAndFinsWeightEdit.setBounds(new Rectangle(345, 285, 76, 20));
@@ -528,7 +561,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMTotalBoardWeightEdit() {
+	private JTextField getTotalBoardWeightEdit() {
 		if (mTotalBoardWeightEdit == null) {
 			mTotalBoardWeightEdit = new JTextField();
 			mTotalBoardWeightEdit.setBounds(new Rectangle(345, 330, 76, 20));
@@ -543,7 +576,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMFoamVolumeEdit() {
+	private JTextField getFoamVolumeEdit() {
 		if (mFoamVolumeEdit == null) {
 			mFoamVolumeEdit = new JTextField();
 			mFoamVolumeEdit.setBounds(new Rectangle(165, 75, 76, 20));
@@ -557,7 +590,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMStringerVolumeEdit() {
+	private JTextField getStringerVolumeEdit() {
 		if (mStringerVolumeEdit == null) {
 			mStringerVolumeEdit = new JTextField();
 			mStringerVolumeEdit.setBounds(new Rectangle(165, 45, 76, 20));
@@ -572,7 +605,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMResinWeightEdit() {
+	private JTextField getResinWeightEdit() {
 		if (mResinWeightEdit == null) {
 			mResinWeightEdit = new JTextField();
 			mResinWeightEdit.setBounds(new Rectangle(345, 225, 76, 20));
@@ -587,7 +620,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMBottomLapWeight() {
+	private JTextField getBottomLapWeight() {
 		if (mBottomLapWeightEdit == null) {
 			mBottomLapWeightEdit = new JTextField();
 			mBottomLapWeightEdit.setBounds(new Rectangle(345, 195, 76, 20));
@@ -602,7 +635,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMBottomGlassWeightEdit() {
+	private JTextField getBottomGlassWeightEdit() {
 		if (mBottomGlassWeightEdit == null) {
 			mBottomGlassWeightEdit = new JTextField();
 			mBottomGlassWeightEdit.setBounds(new Rectangle(345, 165, 76, 20));
@@ -617,7 +650,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMDeckLapWeightEdit() {
+	private JTextField getDeckLapWeightEdit() {
 		if (mDeckLapWeightEdit == null) {
 			mDeckLapWeightEdit = new JTextField();
 			mDeckLapWeightEdit.setBounds(new Rectangle(345, 135, 76, 20));
@@ -632,7 +665,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMDeckGlassWeightEdit() {
+	private JTextField getDeckGlassWeightEdit() {
 		if (mDeckGlassWeightEdit == null) {
 			mDeckGlassWeightEdit = new JTextField();
 			mDeckGlassWeightEdit.setBounds(new Rectangle(345, 105, 76, 20));
@@ -647,7 +680,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMFoamWeightEdit() {
+	private JTextField getFoamWeightEdit() {
 		if (mFoamWeightEdit == null) {
 			mFoamWeightEdit = new JTextField();
 			mFoamWeightEdit.setBounds(new Rectangle(345, 75, 76, 20));
@@ -662,7 +695,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMStringerWeightEdit() {
+	private JTextField getStringerWeightEdit() {
 		if (mStringerWeightEdit == null) {
 			mStringerWeightEdit = new JTextField();
 			mStringerWeightEdit.setBounds(new Rectangle(345, 45, 76, 20));
@@ -677,7 +710,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMDeckAreaEdit() {
+	private JTextField getDeckAreaEdit() {
 		if (mDeckAreaEdit == null) {
 			mDeckAreaEdit = new JTextField();
 			mDeckAreaEdit.setBounds(new Rectangle(165, 105, 76, 20));
@@ -691,7 +724,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMBottomAreaEdit() {
+	private JTextField getBottomAreaEdit() {
 		if (mBottomAreaEdit == null) {
 			mBottomAreaEdit = new JTextField();
 			mBottomAreaEdit.setBounds(new Rectangle(165, 165, 76, 20));
@@ -705,7 +738,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMDeckLapAreaEdit() {
+	private JTextField getDeckLapAreaEdit() {
 		if (mDeckLapAreaEdit == null) {
 			mDeckLapAreaEdit = new JTextField();
 			mDeckLapAreaEdit.setBounds(new Rectangle(165, 135, 76, 20));
@@ -719,7 +752,7 @@ public class WeightCalculatorDialog extends JDialog {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMBottomLapAreaEdit() {
+	private JTextField getBottomLapAreaEdit() {
 		if (mBottomLapAreaEdit == null) {
 			mBottomLapAreaEdit = new JTextField();
 			mBottomLapAreaEdit.setBounds(new Rectangle(165, 195, 76, 20));
@@ -729,17 +762,26 @@ public class WeightCalculatorDialog extends JDialog {
 	}
 
 	/**
-	 * This method initializes mGlassWeight
+	 * This method initializes mGlassWeightEdit
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getMGlassWeight() {
+	private JTextField getGlassWeightEdit() {
 		if (mGlassWeightEdit == null) {
 			mGlassWeightEdit = new JTextField();
 			mGlassWeightEdit.setBounds(new Rectangle(165, 225, 76, 20));
 			mGlassWeightEdit.setEditable(false);
 		}
 		return mGlassWeightEdit;
+	}
+	
+	private JTextField getBoardLengthEdit() {
+		if (mBoardLengthEdit == null) {
+			mBoardLengthEdit = new JTextField();
+			mBoardLengthEdit.setBounds(new Rectangle(165, 255, 76, 20));
+			mBoardLengthEdit.setEditable(false);
+		}
+		return mBoardLengthEdit;
 	}
 
 	void calcStringerVolume()
@@ -877,10 +919,21 @@ public class WeightCalculatorDialog extends JDialog {
 	{
 		mResinWeight = mTotalGlassWeight*mResinRatio;
 	}
+	
+	void calcHotcoatWeight()
+	{
+		mHotcoatWeight = BoardCAD.getInstance().getCurrentBrd().getLength()/UnitUtils.CENTIMETER_PR_FOOT*mHotcoatWeightPerFoot*2;
+	}
+	
 
 	void calcTotalWeight()
 	{
 		mTotalBoardWeight = mStringerWeight + mFoamWeight + mTotalGlassWeight + mResinWeight + mHotcoatWeight + mPlugsAndFinsWeight;
+	}
+	
+	void updateBoardLength()
+	{
+		mBoardLengthEdit.setText(UnitUtils.convertLengthToUnit(BoardCAD.getInstance().getCurrentBrd().getLength(), true, UnitUtils.INCHES));
 	}
 
 	void updateStringerVolume()
@@ -1004,6 +1057,15 @@ public class WeightCalculatorDialog extends JDialog {
 		calcResinWeight();
 
 		mResinWeightEdit.setText(UnitUtils.convertWeightToCurrentUnit(mResinWeight,false));
+
+		updateTotalWeight();
+	}
+	
+	void updateHotcoatWeight()
+	{
+		calcHotcoatWeight();
+
+		mHotcoatWeightEdit.setText(UnitUtils.convertWeightToCurrentUnit(mHotcoatWeight,false));
 
 		updateTotalWeight();
 	}
