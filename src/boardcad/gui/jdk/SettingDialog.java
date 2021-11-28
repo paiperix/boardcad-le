@@ -24,7 +24,7 @@ public class SettingDialog extends JDialog {
 		this.setTitle(LanguageResource.getString("SETTINGSTITLE_STR"));
 		this.setSize(new Dimension(352, 221));
 		this.setLayout(new BorderLayout());
-				
+		this.setResizable(false);
 				
 		JButton okButton = new JButton();
 		okButton.setText(LanguageResource.getString("OKBUTTON_STR"));

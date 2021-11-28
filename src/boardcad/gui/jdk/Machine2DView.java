@@ -249,12 +249,6 @@ public class Machine2DView extends BoardEdit {
 		at.setToRotation(blankAngle);
 		g2d.transform(at);
 
-		double blankX = (mBrdCoord.x / Math.cos(blankAngle)) - blankOffset.x;
-		double blankDeckY = -blank.getDeckAtPos(blankX);
-		double blankBottomY = -blank.getRockerAtPos(blankX);
-		line.setLine(blankX, blankDeckY * (mShowDeck ? 1 : -1), blankX, blankBottomY * (mShowDeck ? 1 : -1));
-		g2d.draw(line);
-
 		g2d.setTransform(savedTransform);
 
 		// Draw cross section of brd
@@ -263,9 +257,17 @@ public class Machine2DView extends BoardEdit {
 		double crsY = getHeight() / 6 + (-boardOffset.z + bottomY + brdX * Math.sin(boardAngle)) * crsScale;
 		BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g2d), getWidth() / 2, crsY, crsScale, 0.0, Color.RED, crsStroke, false, mShowDeck, brdX, brd);
 
-		// Draw cross section blank
-		double blankCrsY = getHeight() / 6 + (-blankOffset.z + blankBottomY + blankX * Math.sin(blankAngle)) * crsScale;
-		BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g2d), getWidth() / 2, blankCrsY, crsScale, 0.0, Color.BLUE, crsStroke, false, mShowDeck, blankX, blank);
+		if (blank != null && !blank.isEmpty()) {
+			double blankX = (mBrdCoord.x / Math.cos(blankAngle)) - blankOffset.x;
+			double blankDeckY = -blank.getDeckAtPos(blankX);
+			double blankBottomY = -blank.getRockerAtPos(blankX);
+			line.setLine(blankX, blankDeckY * (mShowDeck ? 1 : -1), blankX, blankBottomY * (mShowDeck ? 1 : -1));
+			g2d.draw(line);
+
+			// Draw cross section blank
+			double blankCrsY = getHeight() / 6 + (-blankOffset.z + blankBottomY + blankX * Math.sin(blankAngle)) * crsScale;
+			BezierBoardDrawUtil.paintSlidingCrossSection(new JavaDraw(g2d), getWidth() / 2, blankCrsY, crsScale, 0.0, Color.BLUE, crsStroke, false, mShowDeck, blankX, blank);
+		}
 
 	}
 

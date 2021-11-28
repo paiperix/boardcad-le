@@ -191,8 +191,9 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 
 	public void onMouseDragged(BoardEdit source, MouseEvent event)
 	{
-	    if((event.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK) == MouseEvent.BUTTON2_DOWN_MASK)
-	    	return;
+	    if((event.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK) {
+	    	return;	    	
+	    }
 		
 		//Dragging points
 		if(mIsKeyEditing)

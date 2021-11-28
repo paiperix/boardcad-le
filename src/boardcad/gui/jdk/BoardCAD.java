@@ -4211,6 +4211,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				BoardInfo dialog = new BoardInfo(getCurrentBrd());
 				dialog.setModal(true);
+				dialog.setResizable(false);
 				// dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 				dialog.setVisible(true);
 				dialog.dispose();
@@ -5518,8 +5519,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 		mQuadViewOutlineEdit.setParentContainer(mQuadView);
 		mQuadViewCrossSectionEdit.setParentContainer(mQuadView);
 		mQuadViewRockerEdit.setParentContainer(mQuadView);
-
-		mQuadViewOutlineEdit.setParentContainer(mQuadView);
+		
 		mQuadView.add(mQuadViewOutlineEdit);
 		mQuadView.add(mQuadViewCrossSectionEdit);
 		mQuadView.add(mQuadViewRockerEdit);

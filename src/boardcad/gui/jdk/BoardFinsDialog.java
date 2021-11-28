@@ -63,7 +63,7 @@ public class BoardFinsDialog extends JDialog {
 	 *
 	 */
 	private void initialize() {
-        this.setSize(new Dimension(422, 289));
+        this.setSize(new Dimension(422, 310));
         this.setDefaultCloseOperation(1);
         this.setLocationRelativeTo(null);
         this.setResizable(false);

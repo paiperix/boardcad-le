@@ -74,6 +74,7 @@ public class BoardCADSettings extends CategorizedSettings
 	static private final String OFFSETINTERPLOATION = "offsetinterpolation";
 	static private final String NUM3DPROCESSES = "num3Dprocesses";
 	static private final String ADJUSTCROSSECTIONTHICKNESS = "adjustcrossectionthickness";
+	static private final String USEBEZIERFITONDELETE = "usebezierfitondelete";
 
 
 	static private BoardCADSettings mInstance = null;
@@ -205,7 +206,7 @@ public class BoardCADSettings extends CategorizedSettings
 			looks.put(lookAndFeel.getSimpleName().replace("Substance", "").replace("LookAndFeel",""), lookAndFeel.getName());
 		}
 
-		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new PairType("DarkNimbus", looks),
+		mMiscSettings.addObject(LOOK_AND_FEEL, mMiscSettings.new PairType("Windows", looks),
 				LanguageResource.getString("LOOKANDFEEL_STR"), new Settings.SettingChangedCallback() {
 					@Override
 					public void onSettingChanged(Setting setting) {
@@ -268,6 +269,8 @@ public class BoardCADSettings extends CategorizedSettings
 		
 		mMiscSettings.addBoolean(OFFSETINTERPLOATION, true, LanguageResource.getString("OFFSETINTERPLOATION_STR"));
 		mMiscSettings.addInteger(NUM3DPROCESSES, 8, LanguageResource.getString("NUM3DPROCESSES_STR"));
+		mMiscSettings.addBoolean(USEBEZIERFITONDELETE, false, LanguageResource.getString("USEBEZIERFITONDELETE_STR"));
+
 	}
 
 	public void setDefaultTheme() {
@@ -589,6 +592,10 @@ public class BoardCADSettings extends CategorizedSettings
 	
 	public boolean getAdjustCrossectionThickness() {
 		return mMiscSettings.getBoolean(ADJUSTCROSSECTIONTHICKNESS);
+	}
+	
+	public boolean isUsingBezierFitOnDelete() {
+		return mMiscSettings.getBoolean(USEBEZIERFITONDELETE);
 	}
 
 };

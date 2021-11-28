@@ -65,7 +65,7 @@ public class ScaleBoardInputDialog extends JDialog {
 	 * @return void
 	 */
 	private void initialize() {
-		this.setSize(308, 388);		//this.setSize(349, 236);
+		this.setSize(308, 402);
 		this.setResizable(false);
 		this.setContentPane(getmContentPane ());
 		this.setLocationRelativeTo(null);

@@ -45,14 +45,14 @@ public class BoardInfo extends JDialog {
 	 * 
 	 */
 	private void initialize() {
-        this.setSize(new Dimension(464, 400));
+        this.setSize(new Dimension(464, 410));
         this.setContentPane(getJContentPane());
         this.setTitle(LanguageResource.getString("BOARDINFORTITLE_STR"));
         this.setLocationRelativeTo(null);     
-        getMDesignerTextField().setText(mBrd.getDesigner());
-        getMSurferTextField().setText(mBrd.getSurfer());
-        getMModelTextField().setText(mBrd.getModel());
-        getMCommentsTextField().setText(mBrd.getComments());
+        getDesignerTextField().setText(mBrd.getDesigner());
+        getSurferTextField().setText(mBrd.getSurfer());
+        getModelTextField().setText(mBrd.getModel());
+        getCommentsTextField().setText(mBrd.getComments());
 
 	}
 
@@ -88,10 +88,10 @@ public class BoardInfo extends JDialog {
 			jContentPane.add(jLabel1, null);
 			jContentPane.add(jLabel2, null);
 			jContentPane.add(jLabel3, null);
-			jContentPane.add(getMDesignerTextField(), null);
-			jContentPane.add(getMSurferTextField(), null);
-			jContentPane.add(getMModelTextField(), null);
-			jContentPane.add(getMCommentsTextField(), null);
+			jContentPane.add(getDesignerTextField(), null);
+			jContentPane.add(getSurferTextField(), null);
+			jContentPane.add(getModelTextField(), null);
+			jContentPane.add(getCommentsTextField(), null);
 			jContentPane.add(getOkButton(), null);
 			jContentPane.add(getCancelButton(), null);
 		}
@@ -103,7 +103,7 @@ public class BoardInfo extends JDialog {
 	 * 	
 	 * @return javax.swing.JTextField	
 	 */
-	private JTextField getMDesignerTextField() {
+	private JTextField getDesignerTextField() {
 		if (mDesignerTextField == null) {
 			mDesignerTextField = new JTextField();
 			mDesignerTextField.setBounds(new Rectangle(88, 16, 351, 20));
@@ -116,7 +116,7 @@ public class BoardInfo extends JDialog {
 	 * 	
 	 * @return javax.swing.JTextField	
 	 */
-	private JTextField getMSurferTextField() {
+	private JTextField getSurferTextField() {
 		if (mSurferTextField == null) {
 			mSurferTextField = new JTextField();
 			mSurferTextField.setBounds(new Rectangle(88, 47, 351, 20));
@@ -129,7 +129,7 @@ public class BoardInfo extends JDialog {
 	 * 	
 	 * @return javax.swing.JTextField	
 	 */
-	private JTextField getMModelTextField() {
+	private JTextField getModelTextField() {
 		if (mModelTextField == null) {
 			mModelTextField = new JTextField();
 			mModelTextField.setBounds(new Rectangle(88, 78, 351, 20));
@@ -142,10 +142,10 @@ public class BoardInfo extends JDialog {
 	 * 	
 	 * @return javax.swing.JTextArea	
 	 */
-	private JTextArea getMCommentsTextField() {
+	private JTextArea getCommentsTextField() {
 		if (mCommentsTextField == null) {
 			mCommentsTextField = new JTextArea();
-			mCommentsTextField.setBounds(new Rectangle(23, 127, 407, 198));
+			mCommentsTextField.setBounds(new Rectangle(23, 127, 416, 198));
 			mCommentsTextField.setLineWrap(true);
 		}
 		return mCommentsTextField;
@@ -159,14 +159,14 @@ public class BoardInfo extends JDialog {
 	private JButton getOkButton() {
 		if (OkButton == null) {
 			OkButton = new JButton();
-			OkButton.setBounds(new Rectangle(190, 339, 110, 26));
+			OkButton.setBounds(new Rectangle(199, 339, 110, 26));
 			OkButton.setText(LanguageResource.getString("OKBUTTON_STR"));
 			OkButton.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					mBrd.setDesigner(getMDesignerTextField().getText());
-					mBrd.setSurfer(getMSurferTextField().getText());
-					mBrd.setModel(getMModelTextField().getText());
-					mBrd.setComments(getMCommentsTextField().getText());
+					mBrd.setDesigner(getDesignerTextField().getText());
+					mBrd.setSurfer(getSurferTextField().getText());
+					mBrd.setModel(getModelTextField().getText());
+					mBrd.setComments(getCommentsTextField().getText());
 					setVisible(false);
 				}
 			});
@@ -182,7 +182,7 @@ public class BoardInfo extends JDialog {
 	private JButton getCancelButton() {
 		if (CancelButton == null) {
 			CancelButton = new JButton();
-			CancelButton.setBounds(new Rectangle(320, 339, 110, 26));
+			CancelButton.setBounds(new Rectangle(329, 339, 110, 26));
 			CancelButton.setText(LanguageResource.getString("CANCELBUTTON_STR"));
 			CancelButton.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
