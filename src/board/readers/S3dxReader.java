@@ -47,6 +47,11 @@ public class S3dxReader {
 
 			Element shape3Dnode = (Element) document.getElementsByTagName("Shape3d_design").item(0);
 			Element boardNode = (Element) shape3Dnode.getElementsByTagName("Board").item(0);
+			Element protection = (Element) boardNode.getElementsByTagName("Protection").item(0);
+			if(Integer.parseInt(protection.getTextContent()) > 0 ){
+				brd.setProtected(true);
+				return 0;
+			}
 
 			Element bottom = (Element) boardNode.getElementsByTagName("curveDefSide0").item(0);
 			Element deck = (Element) boardNode.getElementsByTagName("curveDefSide4").item(0);

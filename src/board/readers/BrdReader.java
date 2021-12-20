@@ -47,7 +47,8 @@ public class BrdReader {
 				brd.setFilename(aFilename);
 			}
 		} catch (Exception e) {
-			setErrorStr("exception occured during load: " + e.toString());
+			setErrorStr("Exception occured during load: " + e.toString());
+			System.out.print(mErrorStr);
 			retVal = -1;
 		}
 		return retVal;
@@ -68,6 +69,7 @@ public class BrdReader {
 
 		} catch (Exception e) {
 			setErrorStr("exception occured during load %s" + e.toString());
+			System.out.print(mErrorStr);
 			return -1;
 		}
 
@@ -102,6 +104,7 @@ public class BrdReader {
 
 		} catch (Exception e) {
 			setErrorStr("exception occured during load: " + e.toString());
+			System.out.print(mErrorStr);
 			return -1;
 		}
 

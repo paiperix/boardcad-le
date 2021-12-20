@@ -69,7 +69,7 @@ import board.writers.*;
 public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEventDispatcher {
 
 	protected static BoardCAD mInstance = null;
-	private static final String appname = "BoardCAD v3.2 Limited Edition";
+	private static final String appname = "BoardCAD v3.2 Limited Edition - Beta";
 	public static String defaultDirectory = "";
 
 	enum DeckOrBottom {
@@ -1707,7 +1707,7 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 
 				Graphics2D g2d = (Graphics2D) g.create();
 
-				// Turn on antialiasing, so painting is smooth.
+				// Turn on anti-aliasing, so painting is smooth.
 
 				g2d.setRenderingHint(
 
@@ -7180,20 +7180,20 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 	
 	private void adjustFoilFromCrossSection(BoardEdit edit) {
 		if(BoardCADSettings.getInstance().getAdjustCrossectionThickness()) {
-			BezierBoardCrossSection crs = getCurrentBrd().getCurrentCrossSection();
-			BezierSpline spline = crs.getBezierSpline();
+			BezierBoardCrossSection crossSection = getCurrentBrd().getCurrentCrossSection();
+			BezierSpline crossSectionSpline = crossSection.getBezierSpline();
 			ArrayList<BezierKnot> selected = edit.getSelectedControlPoints();
 			
-			BezierKnot crsDeckPoint = spline.getControlPoint(spline.getNrOfControlPoints()-1);
+			BezierKnot crsDeckPoint = crossSectionSpline.getControlPoint(crossSectionSpline.getNrOfControlPoints()-1);
 			if(selected.contains(crsDeckPoint)) {
 				BezierSpline deck = getCurrentBrd().getDeck();
-				double pos = crs.getPosition();
+				double pos = crossSection.getPosition();
 				Point.Double coord = new Point.Double(pos, crsDeckPoint.getEndPoint().y);
 				BezierKnot nearest = deck.findBestMatch(coord);
 				double distance = Math.abs(nearest.getEndPoint().x - pos);
 
 				BezierKnot deckKnot = null;
-				if(distance < 5.0) {
+				if(distance < 1.0) {
 					deckKnot = nearest;
 				} else {
 					BrdAddControlPointCommand cmd = new BrdAddControlPointCommand();
@@ -7206,16 +7206,16 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				deckKnot.setControlPointLocation(pos, y);
 			}
 
-			BezierKnot crsBottomPoint = spline.getControlPoint(0);
+			BezierKnot crsBottomPoint = crossSectionSpline.getControlPoint(0);
 			if(selected.contains(crsBottomPoint)) {
 				BezierSpline bottom = getCurrentBrd().getBottom();
-				double pos = crs.getPosition();
+				double pos = crossSection.getPosition();
 				Point.Double coord = new Point.Double(pos, crsBottomPoint.getEndPoint().y);
 				BezierKnot nearest = bottom.findBestMatch(coord);
 				double distance = Math.abs(nearest.getEndPoint().x - pos);
 				
 				BezierKnot bottomKnot = null;
-				if(distance < 5.0) {
+				if(distance < 1.0) {
 					bottomKnot = nearest;
 				} else {
 					BrdAddControlPointCommand cmd = new BrdAddControlPointCommand();
@@ -7225,6 +7225,9 @@ public class BoardCAD implements Runnable, ActionListener, ItemListener, KeyEven
 				}
 				double y = crsBottomPoint.getEndPoint().y  + bottom.getValueAt(pos);
 				bottomKnot.setControlPointLocation(pos, y);
+				
+				double offset = coord.y;
+				crossSectionSpline.translate(0, -offset);
 			}
 			
 		}

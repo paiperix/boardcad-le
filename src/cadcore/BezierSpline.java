@@ -885,6 +885,19 @@ public class BezierSpline implements Cloneable {
 			}
 		}
 	}
+	
+	public void translate(double translateX, double translateY) {
+		for (int i = 0; i < mCurves.size(); i++) {
+			if (i == 0) {
+				BezierKnot startKnot = mCurves.get(i).getStartKnot();
+				startKnot.translate(translateX, translateY);
+			}
+			BezierKnot endKnot = mCurves.get(i).getEndKnot();
+			if (endKnot != null) {
+				endKnot.translate(translateX, translateY);
+			}
+		}
+	}
 
 	public int getSplitControlPoint(Point2D.Double nearPoint,
 			BezierKnot returned) {

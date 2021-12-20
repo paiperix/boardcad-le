@@ -63,12 +63,12 @@ public class SupportsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 			}
 		};
 
-		supportsSettings.addObject(TAILSTOP_POS,  new Double(1000), LanguageResource.getString("TAILSTOPPOS_STR"), cb);
-		supportsSettings.addObject(SUPPORT_1_POS, new Double(600), LanguageResource.getString("SUPPORT1FROMTAILSTOP_STR"), cb);
-		supportsSettings.addObject(SUPPORT_2_POS, new Double(2600), LanguageResource.getString("SUPPORT2FROMTAILSTOP_STR"), cb);
+		supportsSettings.addObject(TAILSTOP_POS,  new Double(0), LanguageResource.getString("TAILSTOPPOS_STR"), cb);
+		supportsSettings.addObject(SUPPORT_1_POS, new Double(500), LanguageResource.getString("SUPPORT1FROMTAILSTOP_STR"), cb);
+		supportsSettings.addObject(SUPPORT_2_POS, new Double(1500), LanguageResource.getString("SUPPORT2FROMTAILSTOP_STR"), cb);
 
-		supportsSettings.addObject(SUPPORT_1_HEIGHT, new Double(260), LanguageResource.getString("SUPPORT1HEIGHT_STR"), cb);
-		supportsSettings.addObject(SUPPORT_2_HEIGHT, new Double(300), LanguageResource.getString("SUPPORT2HEIGHT_STR_STR"), cb);
+		supportsSettings.addObject(SUPPORT_1_HEIGHT, new Double(250), LanguageResource.getString("SUPPORT1HEIGHT_STR"), cb);
+		supportsSettings.addObject(SUPPORT_2_HEIGHT, new Double(250), LanguageResource.getString("SUPPORT2HEIGHT_STR_STR"), cb);
 
 		init3DModel();
 	}

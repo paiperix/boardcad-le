@@ -7,7 +7,9 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.awt.Image;
 import java.io.File;
+import java.net.URL;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -109,23 +111,34 @@ public class BoardFileView extends FileView {
 		g.setFont(mTypeFont);
 		g.drawString(type, (int) (width - typeStringLength - leftMargin),
 				(tf.getHeight()));
-
-		// Horizontal
-		double scale = (width - leftMargin * 2.0) / brd.getLength();
-		BasicStroke stroke = new BasicStroke(1.0f / (float) scale);
-		double outlinePos = height / 2 - (brd.getThickness() + 10.0) * scale
-				/ 2;
-		BezierBoardDrawUtil.paintBezierSplines(jd, leftMargin, outlinePos,
-				scale, 0.0, Color.BLACK, stroke,
-				new BezierSpline[] { brd.getOutline() },
-				BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorY, true);
-
-		BezierBoardDrawUtil.paintBezierSplines(jd, leftMargin,
-				outlinePos
-						+ (brd.getMaxWidth() / 2.0 + brd.getThickness() + 10.0)
-						* scale, scale, 0.0, Color.BLACK, stroke,
-				new BezierSpline[] { brd.getDeck(), brd.getBottom() },
-				BezierBoardDrawUtil.FlipY, true);
+		
+		if(brd.isProtected()) {
+			URL padlockUrl = getClass().getResource("/boardcad/icons/padlock.png");
+			Image padlockImage = new ImageIcon(padlockUrl).getImage();
+			int padLockWidth = (int)width / 2;
+			int padLockHeight = (int)height / 2;
+			int posX = ((int)width - padLockWidth) / 2;
+			int posY = ((int)height - padLockHeight) / 2;
+			g.drawImage(padlockImage, posX, posY, padLockWidth, padLockHeight, null);
+		} else {
+	
+			// Horizontal
+			double scale = (width - leftMargin * 2.0) / brd.getLength();
+			BasicStroke stroke = new BasicStroke(1.0f / (float) scale);
+			double outlinePos = height / 2 - (brd.getThickness() + 10.0) * scale
+					/ 2;
+			BezierBoardDrawUtil.paintBezierSplines(jd, leftMargin, outlinePos,
+					scale, 0.0, Color.BLACK, stroke,
+					new BezierSpline[] { brd.getOutline() },
+					BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorY, true);
+	
+			BezierBoardDrawUtil.paintBezierSplines(jd, leftMargin,
+					outlinePos
+							+ (brd.getMaxWidth() / 2.0 + brd.getThickness() + 10.0)
+							* scale, scale, 0.0, Color.BLACK, stroke,
+					new BezierSpline[] { brd.getDeck(), brd.getBottom() },
+					BezierBoardDrawUtil.FlipY, true);
+		}
 
 		return new ImageIcon(image);
 	}

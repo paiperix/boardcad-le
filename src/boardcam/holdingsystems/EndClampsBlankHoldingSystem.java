@@ -75,18 +75,18 @@ public class EndClampsBlankHoldingSystem extends AbstractBlankHoldingSystem {
 			}
 		};
 
-		supportsSettings.addMeasurement(CLAMP_LENGTH, 80,
+		supportsSettings.addMeasurement(CLAMP_LENGTH, 8,
 				LanguageResource.getString("CLAMPLENGTH_STR"), cb);
-		supportsSettings.addMeasurement(CLAMP_HEIGHT, 20,
+		supportsSettings.addMeasurement(CLAMP_HEIGHT, 2,
 				LanguageResource.getString("CLAMPHEIGHT_STR"), cb);
-		supportsSettings.addMeasurement(CLAMP_WIDTH, 20,
+		supportsSettings.addMeasurement(CLAMP_WIDTH, 2,
 				LanguageResource.getString("CLAMPWIDTH_STR"), cb);
-		supportsSettings.addMeasurement(CLAMP_SAFEZONE, 5,
+		supportsSettings.addMeasurement(CLAMP_SAFEZONE, 1,
 				LanguageResource.getString("CLAMPSAFEZONE_STR"), cb);
 
-		supportsSettings.addMeasurement(CLAMP_OVERLAP, 8,
+		supportsSettings.addMeasurement(CLAMP_OVERLAP, 0.8,
 				LanguageResource.getString("CLAMPOVERLAP_STR"), cb);
-		supportsSettings.addMeasurement(BLANK_VERTICAL_OFFSET, 10,
+		supportsSettings.addMeasurement(BLANK_VERTICAL_OFFSET, 1,
 				LanguageResource.getString("BLANKVERTICALOFFSET_STR"), cb);
 
 		SettingChangedCallback blankChange = new Settings.SettingChangedCallback() {

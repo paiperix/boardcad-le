@@ -21,7 +21,7 @@ public class BezierKnot extends Object implements Cloneable
 	
 	private Point2D.Double mPoints[];
 	protected BezierKnot mSlave;
-	protected boolean mContinous = false;
+	protected boolean mContinous = true;
 	private boolean mOther = false;
 	protected double mXMask = 1.0f;
 	protected double mYMask = 1.0f;
@@ -153,6 +153,15 @@ public class BezierKnot extends Object implements Cloneable
 		for(int i = 0; i < 3; i++)
 		{
 			getPoints()[i].setLocation(getPoints()[i].x*scaleX, getPoints()[i].y*scaleY);
+		}
+		onChange();
+	}
+	
+	public void translate(double translateX, double translateY)
+	{
+		for(int i = 0; i < 3; i++)
+		{
+			getPoints()[i].setLocation(getPoints()[i].x + translateX, getPoints()[i].y + translateY);
 		}
 		onChange();
 	}

@@ -1,9 +1,12 @@
 package boardcad.settings;
 
 import java.awt.Color;
+import java.awt.Frame;
+
 import java.util.LinkedHashMap;
 import java.util.Set;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -213,12 +216,14 @@ public class BoardCADSettings extends CategorizedSettings
 						PairType e = setting.pairTypeValue();
 						String selectedLookAndFeelName = e.toString();
 						System.out.printf("Selected look and feel: %s, %s, %s\n", selectedLookAndFeelName, e.getValue(), e.getSelected());
-						if (BoardCAD.getInstance().isGUIBlocked() == false) {
-							JOptionPane.showMessageDialog(BoardCAD.getInstance().getFrame(),
-									String.format(LanguageResource.getString("LOOKANDFEELCHANGEDMSG_STR"),
-											selectedLookAndFeelName),
-									LanguageResource.getString("LOOKANDFEELCHANGEDTITLE_STR"),
-									JOptionPane.INFORMATION_MESSAGE);
+						try {
+							UIManager.setLookAndFeel(e.getSelected());
+							JFrame frame = BoardCAD.getInstance().getFrame();
+							SwingUtilities.updateComponentTreeUI(frame);
+							frame.pack();
+						} catch (Exception ex) {
+							System.err.println("Exception when setting look and feel.");
+							System.out.println(ex.toString());
 						}
 					}
 				});
@@ -244,10 +249,10 @@ public class BoardCADSettings extends CategorizedSettings
 					UIManager.put("text", new Color( 230, 230, 230) );					
 				}
 				UIManager.setLookAndFeel(e.getSelected());
-			} catch (Exception e) {
+			} catch (Exception ex) {
 				System.err.println(
 						"Exception when setting look and feel.");
-				System.out.println(e.toString());
+				System.out.println(ex.toString());
 				System.err.println("Using the default look and feel.");
 			}
 		});

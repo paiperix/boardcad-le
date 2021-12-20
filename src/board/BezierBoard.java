@@ -117,6 +117,8 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 	private double mCenterOfMass = 0;
 
 	private AbstractBezierBoardSurfaceModel.ModelType mInterpolationType = AbstractBezierBoardSurfaceModel.ModelType.ControlPointInterpolation;
+	
+	private boolean mProtected = false;
 
 	public BezierBoard()
 	{
@@ -231,6 +233,8 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		mAux3 = new String();
 
 		mCenterOfMass = 0;
+		
+		mProtected = false;
 	}
 
 
@@ -397,8 +401,8 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		return mBlankFile;
 	}
 
-	public void setBlankFile(String mBlankFile) {
-		this.mBlankFile = mBlankFile;
+	public void setBlankFile(String blankFile) {
+		this.mBlankFile = blankFile;
 	}
 
 	public int getTopCuts() {
@@ -413,201 +417,209 @@ public class BezierBoard extends AbstractBoard implements Cloneable {
 		return mBottomCuts;
 	}
 
-	public void setBottomCuts(int mBottomCuts) {
-		this.mBottomCuts = mBottomCuts;
+	public void setBottomCuts(int bottomCuts) {
+		this.mBottomCuts = bottomCuts;
 	}
 
 	public double getCutterDiam() {
 		return mCutterDiam;
 	}
 
-	public void setCutterDiam(double mCutterDiam) {
-		this.mCutterDiam = mCutterDiam;
+	public void setCutterDiam(double cutterDiam) {
+		this.mCutterDiam = cutterDiam;
 	}
 
 	public double getBlankPivot() {
 		return mBlankPivot;
 	}
 
-	public void setBlankPivot(double mBlankPivot) {
-		this.mBlankPivot = mBlankPivot;
+	public void setBlankPivot(double blankPivot) {
+		this.mBlankPivot = blankPivot;
 	}
 
 	public double getBoardPivot() {
 		return mBoardPivot;
 	}
 
-	public void setBoardPivot(double mBoardPivot) {
-		this.mBoardPivot = mBoardPivot;
+	public void setBoardPivot(double boardPivot) {
+		this.mBoardPivot = boardPivot;
 	}
 
 	public double getDeltaXNose() {
 		return mDeltaXNose;
 	}
 
-	public void setDeltaXNose(double mDeltaXNose) {
-		this.mDeltaXNose = mDeltaXNose;
+	public void setDeltaXNose(double deltaXNose) {
+		this.mDeltaXNose = deltaXNose;
 	}
 
 	public double getDeltaXTail() {
 		return mDeltaXTail;
 	}
 
-	public void setDeltaXTail(double mDeltaXTail) {
-		this.mDeltaXTail = mDeltaXTail;
+	public void setDeltaXTail(double deltaXTail) {
+		this.mDeltaXTail = deltaXTail;
 	}
 
 	public double getDeltaXMiddle() {
 		return mDeltaXMiddle;
 	}
 
-	public void setDeltaXMiddle(double mDeltaXMiddle) {
-		this.mDeltaXMiddle = mDeltaXMiddle;
+	public void setDeltaXMiddle(double deltaXMiddle) {
+		this.mDeltaXMiddle = deltaXMiddle;
 	}
 
 	public int getToTailSpeed() {
 		return mToTailSpeed;
 	}
 
-	public void setToTailSpeed(int mToTailSpeed) {
-		this.mToTailSpeed = mToTailSpeed;
+	public void setToTailSpeed(int toTailSpeed) {
+		this.mToTailSpeed = toTailSpeed;
 	}
 
 	public double[] getStrut1() {
 		return mStrut1;
 	}
 
-	public void setStrut1(double[] mStrut1) {
-		this.mStrut1 = mStrut1;
+	public void setStrut1(double[] strut1) {
+		this.mStrut1 = strut1;
 	}
 
 	public double[] getStrut2() {
 		return mStrut2;
 	}
 
-	public void setStrut2(double[] mStrut2) {
-		this.mStrut2 = mStrut2;
+	public void setStrut2(double[] strut2) {
+		this.mStrut2 = strut2;
 	}
 
 	public double[] getCutterStartPos() {
 		return mCutterStartPos;
 	}
 
-	public void setCutterStartPos(double[] mCutterStartPos) {
-		this.mCutterStartPos = mCutterStartPos;
+	public void setCutterStartPos(double[] cutterStartPos) {
+		this.mCutterStartPos = cutterStartPos;
 	}
 
 	public double[] getBlankTailPos() {
 		return mBlankTailPos;
 	}
 
-	public void setBlankTailPos(double[] mBlankTailPos) {
-		this.mBlankTailPos = mBlankTailPos;
+	public void setBlankTailPos(double[] blankTailPos) {
+		this.mBlankTailPos = blankTailPos;
 	}
 
 	public double[] getBoardStartPos() {
 		return mBoardStartPos;
 	}
 
-	public void setBoardStartPos(double[] mBoardStartPos) {
-		this.mBoardStartPos = mBoardStartPos;
+	public void setBoardStartPos(double[] boardStartPos) {
+		this.mBoardStartPos = boardStartPos;
 	}
 
 	public String getMachineFolder() {
 		return mMachineFolder;
 	}
 
-	public void setMachineFolder(String mMachineFolder) {
-		this.mMachineFolder = mMachineFolder;
+	public void setMachineFolder(String machineFolder) {
+		this.mMachineFolder = machineFolder;
 	}
 
 	public double getTopShoulderAngle() {
 		return mTopShoulderAngle;
 	}
 
-	public void setTopShoulderAngle(double mTopShoulderAngle) {
-		this.mTopShoulderAngle = mTopShoulderAngle;
+	public void setTopShoulderAngle(double topShoulderAngle) {
+		this.mTopShoulderAngle = topShoulderAngle;
 	}
 
 	public int getTopShoulderCuts() {
 		return mTopShoulderCuts;
 	}
 
-	public void setTopShoulderCuts(int mTopShoulderCuts) {
-		this.mTopShoulderCuts = mTopShoulderCuts;
+	public void setTopShoulderCuts(int topShoulderCuts) {
+		this.mTopShoulderCuts = topShoulderCuts;
 	}
 
 	public int getBottomRailCuts() {
 		return mBottomRailCuts;
 	}
 
-	public void setBottomRailCuts(int mBottomRailCuts) {
-		this.mBottomRailCuts = mBottomRailCuts;
+	public void setBottomRailCuts(int bottomRailCuts) {
+		this.mBottomRailCuts = bottomRailCuts;
 	}
 
 	public String getComments() {
 		return mComments;
 	}
 
-	public void setComments(String mComments) {
-		this.mComments = mComments;
+	public void setComments(String comments) {
+		this.mComments = comments;
 	}
 
 	public String getFinType() {
 		return mFinType;
 	}
 
-	public void setFinType(String mFinType) {
-		this.mFinType = mFinType;
+	public void setFinType(String finType) {
+		this.mFinType = finType;
 	}
 
 	public String getDescription() {
 		return mDescription;
 	}
 
-	public void setDescription(String mDescription) {
-		this.mDescription = mDescription;
+	public void setDescription(String description) {
+		this.mDescription = description;
 	}
 
 	public String getAux1() {
 		return mAux1;
 	}
 
-	public void setAux1(String mAux1) {
-		this.mAux1 = mAux1;
+	public void setAux1(String aux1) {
+		this.mAux1 = aux1;
 	}
 
 	public String getAux2() {
 		return mAux2;
 	}
 
-	public void setAux2(String mAux2) {
-		this.mAux2 = mAux2;
+	public void setAux2(String aux2) {
+		this.mAux2 = aux2;
 	}
 
 	public String getAux3() {
 		return mAux3;
 	}
 
-	public void setAux3(String mAux3) {
-		this.mAux3 = mAux3;
+	public void setAux3(String aux3) {
+		this.mAux3 = aux3;
 	}
 
-	public void setDeckGuidePoints(ArrayList<Point2D.Double> mDeckGuidePoints) {
-		this.mDeckGuidePoints = mDeckGuidePoints;
+	public void setDeckGuidePoints(ArrayList<Point2D.Double> deckGuidePoints) {
+		this.mDeckGuidePoints = deckGuidePoints;
 	}
 
 
-	public void setCenterOfMass(double mCenterOfMass) {
-		this.mCenterOfMass = mCenterOfMass;
+	public void setCenterOfMass(double centerOfMass) {
+		this.mCenterOfMass = centerOfMass;
 	}
 
 	public String getName() {
 		return mName;
 	}
 
-	public void setName(String mName) {
-		this.mName = mName;
+	public void setName(String name) {
+		this.mName = name;
+	}
+
+	public void setProtected(boolean protect) {
+		this.mProtected = protect;
+	}
+
+	public boolean isProtected() {
+		return mProtected;
 	}
 
 

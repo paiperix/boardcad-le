@@ -7,11 +7,14 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.net.URL;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 
@@ -126,37 +129,47 @@ public final class BoardPreview extends JComponent implements PropertyChangeList
 
             if (mBrd != null)
             {
-            	double scale = (upperFrameHeight-topMargin-bottomMargin)/mBrd.getLength();
-
-            	JavaDraw jd = new JavaDraw(g);
-
-        		//Vertical
-        		BasicStroke stroke = new BasicStroke(1.0f/(float)scale);
-
-        		double outlineDrawPos = width/2 - (mBrd.getThickness()*scale + 5.0*scale)/2;
-
-        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos, upperFrameHeight-bottomMargin, scale, 0.0, Color.BLACK, stroke, new BezierSpline[]{mBrd.getOutline()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorX, true);
-        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos +  mBrd.getMaxWidth()*scale/2+ mBrd.getThickness()*scale + 5.0*scale, 0.0, upperFrameHeight-bottomMargin, scale , Color.BLACK, stroke, new BezierSpline[]{mBrd.getDeck(), mBrd.getBottom()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipX | BezierBoardDrawUtil.FlipY, true);
-
-            	//Text
-        		double strLength = fontMetrics.stringWidth(mFile.getName());
+            	double strLength;
+        		if(mBrd.isProtected()) {
+        			URL padlockUrl = getClass().getResource("/boardcad/icons/padlock.png");
+        			Image padlockImage = new ImageIcon(padlockUrl).getImage();
+        			int padLockWidth = Math.min((int)width / 2, (int)height / 2);
+        			int padLockHeight = padLockWidth;
+        			int posX = ((int)width - padLockWidth) / 2;
+        			int posY = ((int)height - padLockHeight) / 2;
+        			g.drawImage(padlockImage, posX, posY, padLockWidth, padLockHeight, null);
+        		} else {
+	            	double scale = (upperFrameHeight-topMargin-bottomMargin)/mBrd.getLength();
+	
+	            	JavaDraw jd = new JavaDraw(g);
+	
+	        		//Vertical
+	        		BasicStroke stroke = new BasicStroke(1.0f/(float)scale);
+	
+	        		double outlineDrawPos = width/2 - (mBrd.getThickness()*scale + 5.0*scale)/2;
+	
+	        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos, upperFrameHeight-bottomMargin, scale, 0.0, Color.BLACK, stroke, new BezierSpline[]{mBrd.getOutline()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipY | BezierBoardDrawUtil.MirrorX, true);
+	        		BezierBoardDrawUtil.paintBezierSplines(jd, outlineDrawPos +  mBrd.getMaxWidth()*scale/2+ mBrd.getThickness()*scale + 5.0*scale, 0.0, upperFrameHeight-bottomMargin, scale , Color.BLACK, stroke, new BezierSpline[]{mBrd.getDeck(), mBrd.getBottom()}, BezierBoardDrawUtil.Vertical | BezierBoardDrawUtil.FlipX | BezierBoardDrawUtil.FlipY, true);
+	
+	            	//Text
+	        		String modelStr = ((!mBrd.getModel().isEmpty())?(LanguageResource.getString("MODEL_STR") + mBrd.getModel()):"");
+	        		strLength = fontMetrics.stringWidth(modelStr);
+	        		g.drawString(modelStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*2)));
+	
+	        		String dimStr = UnitUtils.convertLengthToCurrentUnit(mBrd.getLength(), true) + "(" + UnitUtils.convertLengthToCurrentUnit(mBrd.getLengthOverCurve(), true) + ") x " + UnitUtils.convertLengthToCurrentUnit(mBrd.getMaxWidth(), false) + " x " + UnitUtils.convertLengthToCurrentUnit(mBrd.getThickness(), false);
+	        		strLength = fontMetrics.stringWidth(dimStr);
+	        		g.drawString(dimStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*3)));
+	
+	        		String volumeStr = LanguageResource.getString("VOLUME_STR") + UnitUtils.convertVolumeToCurrentUnit(mBrd.getVolume());
+	        		strLength = fontMetrics.stringWidth(volumeStr);
+	        		g.drawString(volumeStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*4)));
+	
+	        		String shaperAndSurferStr = ((!mBrd.getDesigner().isEmpty())?(LanguageResource.getString("DESIGNED_BY_STR") + mBrd.getDesigner() + " "):"") + ((!mBrd.getSurfer().isEmpty())?(LanguageResource.getString("FOR_STR") + mBrd.getSurfer()):"");
+	        		strLength = fontMetrics.stringWidth(shaperAndSurferStr);
+	        		g.drawString(shaperAndSurferStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*5)));
+        		}
+        		strLength = fontMetrics.stringWidth(mFile.getName());
         		g.drawString(mFile.getName(), (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight())));
-
-        		String modelStr = ((!mBrd.getModel().isEmpty())?(LanguageResource.getString("MODEL_STR") + mBrd.getModel()):"");
-        		strLength = fontMetrics.stringWidth(modelStr);
-        		g.drawString(modelStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*2)));
-
-        		String dimStr = UnitUtils.convertLengthToCurrentUnit(mBrd.getLength(), true) + "(" + UnitUtils.convertLengthToCurrentUnit(mBrd.getLengthOverCurve(), true) + ") x " + UnitUtils.convertLengthToCurrentUnit(mBrd.getMaxWidth(), false) + " x " + UnitUtils.convertLengthToCurrentUnit(mBrd.getThickness(), false);
-        		strLength = fontMetrics.stringWidth(dimStr);
-        		g.drawString(dimStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*3)));
-
-        		String volumeStr = LanguageResource.getString("VOLUME_STR") + UnitUtils.convertVolumeToCurrentUnit(mBrd.getVolume());
-        		strLength = fontMetrics.stringWidth(volumeStr);
-        		g.drawString(volumeStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*4)));
-
-        		String shaperAndSurferStr = ((!mBrd.getDesigner().isEmpty())?(LanguageResource.getString("DESIGNED_BY_STR") + mBrd.getDesigner() + " "):"") + ((!mBrd.getSurfer().isEmpty())?(LanguageResource.getString("FOR_STR") + mBrd.getSurfer()):"");
-        		strLength = fontMetrics.stringWidth(shaperAndSurferStr);
-        		g.drawString(shaperAndSurferStr, (int)(width-strLength)/2, (int)((upperFrameHeight + topMargin + fontMetrics.getHeight()*5)));
             }
         }
 
