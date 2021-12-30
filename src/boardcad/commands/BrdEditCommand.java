@@ -393,16 +393,15 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 			switch(key)
 			{
 			case KeyEvent.VK_LESS:
-				if(selectedControlPoints.size() > 1 || mIsKeyEditing == true)
+				if(selectedControlPoints.size() > 1)
 					return false;
 				
 				setWhich(event.isShiftDown() ? (++which % 3) : (--which < 0 ? 2 : which));
-
-				source.repaint();
+				
 				break;
 				
 			case KeyEvent.VK_C:
-				if(selectedControlPoints.size() > 1 || mIsKeyEditing == true)
+				if(selectedControlPoints.size() > 1)
 					return false;
 
 				BezierSpline[] splines = source.getActiveBezierSplines(BoardCAD.getInstance().getCurrentBrd());
@@ -420,8 +419,6 @@ public class BrdEditCommand extends BrdAbstractEditCommand
 					selectedControlPoints.clear();
 
 					selectedControlPoints.add(splines[i].getControlPoint(newIndex));
-
-					source.repaint();
 				}
 				break;
 

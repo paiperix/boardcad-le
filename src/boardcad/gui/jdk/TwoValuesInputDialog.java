@@ -161,44 +161,44 @@ public class TwoValuesInputDialog extends JDialog {
 		return Value2TextField;
 	}
 
-	void setMessageText(String text)
+	public void setMessageText(String text)
 	{
 		MessageText.setText(text);
 	}
 
-	void setValue1LabelText(String text)
+	public void setValue1LabelText(String text)
 	{
 		Value1Label.setText(text);
 	}
 
-	void setValue2LabelText(String text)
+	public void setValue2LabelText(String text)
 	{
 		Value2Label.setText(text);
 	}
 
-	void setValue1(double value)
+	public void setValue1(double value)
 	{
 		Value1TextField.setText(UnitUtils.convertLengthToCurrentUnit(value, true));
 	}
 
-	void setValue2(double value)
+	public void setValue2(double value)
 	{
 		Value2TextField.setText(UnitUtils.convertLengthToCurrentUnit(value, true));
 	}
 
-	void setValue1(int value)
+	public void setValue1(int value)
 	{
 		mType = INTEGER;
 		Value1TextField.setText(Integer.toString(value));
 	}
 
-	void setValue2(int value)
+	public void setValue2(int value)
 	{
 		mType = INTEGER;
 		Value2TextField.setText(Integer.toString(value));
 	}
 
-	double getValue1()
+	public double getValue1()
 	{
 		String val = Value1TextField.getText();
 
@@ -214,7 +214,7 @@ public class TwoValuesInputDialog extends JDialog {
 		}
 	}
 
-	double getValue2()
+	public double getValue2()
 	{
 		String val = Value2TextField.getText();
 
@@ -230,7 +230,7 @@ public class TwoValuesInputDialog extends JDialog {
 		}
 	}
 
-	boolean wasCancelled()
+	public boolean wasCancelled()
 	{
 		return mWasCancelled;
 

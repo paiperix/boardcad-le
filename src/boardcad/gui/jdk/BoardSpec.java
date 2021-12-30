@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Dimension;
 import java.util.TimerTask;
 
 import javax.swing.ButtonGroup;
@@ -65,6 +66,8 @@ public class BoardSpec extends JPanel {
 	 * @return void
 	 */
 	private void initialize() {
+		
+		setMinimumSize(new Dimension(400, 200));
 
 		Font table = new Font("Arial",Font.PLAIN,13);
 		Font header = new Font("Arial",Font.BOLD,14);
@@ -78,7 +81,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints18.ipady = 0;
 		gridBagConstraints18.gridwidth = 1;
 		gridBagConstraints18.gridheight = 1;
-		//gridBagConstraints18.weightx = 1;
 		gridBagConstraints18.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints18.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints18.insets = new Insets(2, 30, 0, 0);
@@ -94,7 +96,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints42.ipady = 0;
 		gridBagConstraints42.gridwidth = 1;
 		gridBagConstraints42.gridheight = 1;
-		//gridBagConstraints42.weightx = 1;
 		gridBagConstraints42.anchor = GridBagConstraints.PAGE_START;
 		gridBagConstraints42.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints42.insets = new Insets(15, 0, 5, 20);
@@ -110,7 +111,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints32.ipady = 0;
 		gridBagConstraints32.gridwidth = 1;
 		gridBagConstraints32.gridheight = 1;
-		//gridBagConstraints32.weightx = 1;
 		gridBagConstraints32.anchor = GridBagConstraints.PAGE_START;
 		gridBagConstraints32.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints32.insets = new Insets(15, 0, 5, 0);
@@ -126,7 +126,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints41.ipady = 0;
 		gridBagConstraints41.gridwidth = 1;
 		gridBagConstraints41.gridheight = 1;
-		//gridBagConstraints41.weightx = 1;
 		gridBagConstraints41.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints41.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints41.insets = new Insets(2, 5, 0, 0);
@@ -142,7 +141,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints31.ipady = 0;
 		gridBagConstraints31.gridwidth = 1;
 		gridBagConstraints31.gridheight = 1;
-		//gridBagConstraints31.weightx = 1;
 		gridBagConstraints31.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints31.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints31.insets = new Insets(2, 5, 0, 0);
@@ -158,7 +156,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints21.ipady = 0;
 		gridBagConstraints21.gridwidth = 1;
 		gridBagConstraints21.gridheight = 1;
-		//gridBagConstraints21.weightx = 1;
 		gridBagConstraints21.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints21.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints21.insets = new Insets(2, 0, 0, 0);
@@ -174,7 +171,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints16.ipady = 0;
 		gridBagConstraints16.gridwidth = 1;
 		gridBagConstraints16.gridheight = 1;
-		//gridBagConstraints16.weightx = 1;
 		gridBagConstraints16.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints16.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints16.insets = new Insets(2, 30, 2, 0);
@@ -190,7 +186,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints15.ipady = 0;
 		gridBagConstraints15.gridwidth = 1;
 		gridBagConstraints15.gridheight = 1;
-		//gridBagConstraints15.weightx = 1;
 		gridBagConstraints15.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints15.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints15.insets = new Insets(0, 0, 0, 0);
@@ -206,7 +201,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints14.ipady = 0;
 		gridBagConstraints14.gridwidth = 1;
 		gridBagConstraints14.gridheight = 1;
-		//gridBagConstraints14.weightx = 1;
 		gridBagConstraints14.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints14.anchor = GridBagConstraints.WEST;
 		gridBagConstraints14.insets = new Insets(2, 5, 2, 20);
@@ -222,7 +216,6 @@ public class BoardSpec extends JPanel {
 		gridBagConstraints13.ipady = 0;
 		gridBagConstraints13.gridwidth = 1;
 		gridBagConstraints13.gridheight = 1;
-		//gridBagConstraints13.weightx = 1;
 		gridBagConstraints13.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints13.anchor = GridBagConstraints.LINE_START;
 		gridBagConstraints13.insets = new Insets(2, 5, 2, 35);
@@ -262,7 +255,7 @@ public class BoardSpec extends JPanel {
 		WidthAtNose.setFont(table);
 		WidthAtNose.setText(LanguageResource.getString("NOSEWIDTH_STR"));
 
-		// Length Straigh Line measurement
+		// Length Straight Line measurement
 		GridBagConstraints gridBagConstraints10 = new GridBagConstraints();
 		gridBagConstraints10.gridx = 1;
 		gridBagConstraints10.gridy = 2;

@@ -49,7 +49,7 @@ public class BrdZoomCommand extends BrdInputCommand
 		source.disableDrawZoomRectangle();
 		source.repaint();
 
-		BoardCAD.getInstance().mLifeSizeButton.getModel().setSelected(false);
+		BoardCAD.getInstance().getToolBar().setLifeSize(false);
 
 		execute();
 	}

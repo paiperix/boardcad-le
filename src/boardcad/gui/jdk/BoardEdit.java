@@ -855,7 +855,8 @@ public class BoardEdit extends JComponent implements AbstractEditor, MouseInputL
 
 		g.drawString(mBrdCoordString, 90, hgt);
 
-		mBrdCoordString = getCurrentCommand().getCommandString() + " " + LanguageResource.getString("MODE_STR");
+		BrdCommand cmd = getCurrentCommand();
+		mBrdCoordString = cmd != null ? getCurrentCommand().getCommandString() + " " + LanguageResource.getString("MODE_STR") : "";
 
 		g.drawString(mBrdCoordString, 10, hgt*2);
 	}

@@ -525,7 +525,6 @@ class PairTypeEditor extends AbstractCellEditor implements TableCellEditor {
 	@Override
 	public Object getCellEditorValue() {
 		String selected = String.valueOf(comboBox.getSelectedItem());
-		System.out.printf("Selected look and feel: %s\n", selected);
 		return new Settings().new PairType(selected, p.getAlternatives());
 	}
 

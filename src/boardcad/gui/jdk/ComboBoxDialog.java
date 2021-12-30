@@ -138,12 +138,12 @@ public class ComboBoxDialog extends JDialog {
 		return CancelButton;
 	}
 
-	void setMessageText(String text)
+	public void setMessageText(String text)
 	{
 		MessageText.setText(text);
 	}
 
-	void setItems(String[] items)
+	public void setItems(String[] items)
 	{
 		for(int i = 0; i < items.length; i++)
 		{
@@ -151,19 +151,19 @@ public class ComboBoxDialog extends JDialog {
 		}
 	}
 
-	void setSelectedItem(String item)
+	public void setSelectedItem(String item)
 	{
 		mComboBox.setSelectedItem(item);
 	}
 
 
-	String getSelectedItem()
+	public String getSelectedItem()
 	{
 		return (String)mComboBox.getSelectedItem();
 	}
 
 
-	boolean wasCancelled()
+	public boolean wasCancelled()
 	{
 		return mWasCancelled;
 

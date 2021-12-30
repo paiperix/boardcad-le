@@ -1,16 +1,22 @@
-package boardcad.gui.jdk;
+package boardcad.gui.jdk.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 
 import board.BezierBoard;
 import boardcad.FileTools;
+import boardcad.gui.jdk.BoardCAD;
+import boardcad.gui.jdk.BoardFileView;
+import boardcad.gui.jdk.BoardPreview;
 import boardcad.i18n.LanguageResource;
 import board.readers.*;
 
@@ -19,30 +25,30 @@ public class BoardLoadAction extends AbstractAction {
 
 	BezierBoard mBrd = null;
 	BezierBoard mCloneBrd = null;
-	JFrame mFrame = null;
 
 	BoardLoadAction()
 	{
-
+		init();
 	};
 
 	public BoardLoadAction(BezierBoard brd)
 	{
-		mFrame = BoardCAD.getInstance().getFrame();
 		mBrd = brd;
+		init();
 	}
 
 	public BoardLoadAction(BezierBoard brd, BezierBoard cloneBrd)
 	{
-		mFrame = BoardCAD.getInstance().getFrame();
 		mBrd = brd;
 		mCloneBrd = cloneBrd;
+		
+		init();
 	}
-
-	public BoardLoadAction(JFrame frame, BezierBoard brd)
-	{
-		mFrame = frame;
-		mBrd = brd;
+	
+	private void init() {
+		putValue(Action.NAME, LanguageResource.getString("BOARDOPEN_STR"));
+		putValue(Action.SHORT_DESCRIPTION, LanguageResource.getString("BOARDOPEN_STR"));
+		putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
 	}
 
 
@@ -105,8 +111,14 @@ public class BoardLoadAction extends AbstractAction {
 			}
 
 
-
 		};
+		
+		BoardCAD boardCAD = BoardCAD.getInstance();
+
+		int r = boardCAD.saveChangedBoard();
+		if (r == -1 || r == 2) // closed dialog or cancel button pressed
+			return;
+
 
 		final JFileChooser fc = new JFileChooser();
 		fc.setFileView(new BoardFileView());
@@ -118,7 +130,7 @@ public class BoardLoadAction extends AbstractAction {
 
 		fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
 
-		int returnVal = fc.showOpenDialog(mFrame);
+		int returnVal = fc.showOpenDialog(boardCAD.getFrame());
 		if (returnVal != JFileChooser.APPROVE_OPTION)
 			return;
 
@@ -130,6 +142,16 @@ public class BoardLoadAction extends AbstractAction {
 
 		load(filename);
 
+		boardCAD.getMenuBar().addRecentBoardFile(filename);
+
+		boardCAD.fitAll();
+		boardCAD.onBrdChanged();
+		boardCAD.onControlPointChanged();
+		boardCAD.setBoardChanged(false);
+		boardCAD.updateBezier3DModel();
+		boardCAD.redraw();
+
+		
 	}
 
 	public void load(String filename)

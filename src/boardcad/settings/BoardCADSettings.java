@@ -216,15 +216,17 @@ public class BoardCADSettings extends CategorizedSettings
 						PairType e = setting.pairTypeValue();
 						String selectedLookAndFeelName = e.toString();
 						System.out.printf("Selected look and feel: %s, %s, %s\n", selectedLookAndFeelName, e.getValue(), e.getSelected());
-						try {
-							UIManager.setLookAndFeel(e.getSelected());
-							JFrame frame = BoardCAD.getInstance().getFrame();
-							SwingUtilities.updateComponentTreeUI(frame);
-							frame.pack();
-						} catch (Exception ex) {
-							System.err.println("Exception when setting look and feel.");
-							System.out.println(ex.toString());
-						}
+						SwingUtilities.invokeLater(() -> {
+							try {
+								UIManager.setLookAndFeel(e.getSelected());
+								JFrame frame = BoardCAD.getInstance().getFrame();
+								SwingUtilities.updateComponentTreeUI(frame);
+								frame.pack();
+							} catch (Exception ex) {
+								System.err.println("Exception when setting look and feel.");
+								System.out.println(ex.toString());
+							}
+						});
 					}
 				});
 		mMiscSettings.getPreferences();
@@ -250,8 +252,7 @@ public class BoardCADSettings extends CategorizedSettings
 				}
 				UIManager.setLookAndFeel(e.getSelected());
 			} catch (Exception ex) {
-				System.err.println(
-						"Exception when setting look and feel.");
+				System.err.println("Exception when setting look and feel.");
 				System.out.println(ex.toString());
 				System.err.println("Using the default look and feel.");
 			}

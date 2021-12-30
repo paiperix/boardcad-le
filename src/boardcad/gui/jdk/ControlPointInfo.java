@@ -8,6 +8,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -46,6 +48,7 @@ public class ControlPointInfo extends JPanel {
 	private BezierKnot mControlPoint = null;
 	private JButton setControlPointVerticalButton = null;
 	private JButton setControlPointHorizontalButton = null;
+	
 	/**
 	 * This is the default constructor
 	 */
@@ -184,6 +187,15 @@ public class ControlPointInfo extends JPanel {
 		getTangent2Y().setBackground(settings.getSelectedTangent2ControlPointColor());
 
 	}
+	
+	void selectWhich(int which) {
+    	BrdEditCommand cmd = (BrdEditCommand)BoardCAD.getInstance().getCurrentCommand();
+        if(cmd != null) {
+        	cmd.setWhich(0);
+			setWhich(cmd.getWhich());
+			BoardCAD.getInstance().getFrame().repaint();
+        }
+	}
 
 	/**
 	 * This method initializes mEndPointX
@@ -193,11 +205,17 @@ public class ControlPointInfo extends JPanel {
 	private JTextField getEndPointX() {
 		if (mEndPointX == null) {
 			mEndPointX = new JTextField();
+			mEndPointX.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseClicked(MouseEvent e){
+	            	selectWhich(0);
+	            }
+	        });
 		}
 		return mEndPointX;
 	}
 
-	/**
+	/**<
 	 * This method initializes mEndPointY
 	 *
 	 * @return javax.swing.JTextField
@@ -205,6 +223,12 @@ public class ControlPointInfo extends JPanel {
 	private JTextField getEndPointY() {
 		if (mEndPointY == null) {
 			mEndPointY = new JTextField();
+			mEndPointY.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseClicked(MouseEvent e){
+	            	selectWhich(0);
+	            }
+	        });
 		}
 		return mEndPointY;
 	}
@@ -217,6 +241,12 @@ public class ControlPointInfo extends JPanel {
 	private JTextField getTangent1X() {
 		if (mTangent1X == null) {
 			mTangent1X = new JTextField();
+			mTangent1X.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseClicked(MouseEvent e){
+	            	selectWhich(1);
+	            }
+	        });
 		}
 		return mTangent1X;
 	}
@@ -229,6 +259,12 @@ public class ControlPointInfo extends JPanel {
 	private JTextField getTangent1Y() {
 		if (mTangent1Y == null) {
 			mTangent1Y = new JTextField();
+			mTangent1Y.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseClicked(MouseEvent e){
+	            	selectWhich(1);
+	            }
+	        });		
 		}
 		return mTangent1Y;
 	}
@@ -241,6 +277,12 @@ public class ControlPointInfo extends JPanel {
 	private JTextField getTangent2X() {
 		if (mTangent2X == null) {
 			mTangent2X = new JTextField();
+			mTangent2X.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseClicked(MouseEvent e){
+	            	selectWhich(2);
+	            }
+	        });	
 		}
 		return mTangent2X;
 	}
@@ -253,6 +295,12 @@ public class ControlPointInfo extends JPanel {
 	private JTextField getTangent2Y() {
 		if (mTangent2Y == null) {
 			mTangent2Y = new JTextField();
+			mTangent2Y.addMouseListener(new MouseAdapter(){
+	            @Override
+	            public void mouseClicked(MouseEvent e){
+	            	selectWhich(2);
+	            }
+	        });	
 		}
 		return mTangent2Y;
 	}

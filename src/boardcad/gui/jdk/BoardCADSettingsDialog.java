@@ -17,8 +17,9 @@ class BoardCADSettingsDialog extends JDialog
 	 */
 	private static final long serialVersionUID = 813932272331942542L;
 
-	BoardCADSettingsDialog(final BoardCADSettings settings)
+	BoardCADSettingsDialog()
 	{
+		final BoardCADSettings settings = BoardCADSettings.getInstance();
 		this.setTitle(LanguageResource.getString("BOARDCADSETTINGSTITLE_STR"));
 		this.setSize(new Dimension(500, 500));
 		Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/boardcad/icons/BoardCAD icon 32x32.png"));
