@@ -220,10 +220,13 @@ public class BoardCADSettings extends CategorizedSettings
 							try {
 								UIManager.setLookAndFeel(e.getSelected());
 								JFrame frame = BoardCAD.getInstance().getFrame();
-								SwingUtilities.updateComponentTreeUI(frame);
-								frame.pack();
+								if(frame != null) {
+									SwingUtilities.updateComponentTreeUI(frame);
+									frame.pack();
+								}
 							} catch (Exception ex) {
 								System.err.println("Exception when setting look and feel.");
+								ex.printStackTrace(System.out);
 								System.out.println(ex.toString());
 							}
 						});

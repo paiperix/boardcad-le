@@ -105,7 +105,7 @@ public class BoardCAD implements Runnable, KeyEventDispatcher {
 
 	private BoardSpec mBoardSpec;
 
-	private JPanel panel;
+	private JPanel mBoardSpecPanel;
 
 	private ControlPointInfo mControlPointInfo;
 
@@ -2064,32 +2064,28 @@ public class BoardCAD implements Runnable, KeyEventDispatcher {
 			mMenuBar.add(pluginMenu);
 		}
 
-		mTabbedPane2 = new JTabbedPane(SwingConstants.BOTTOM);
-
-		panel = new JPanel();
-
-		panel.setLayout(new BorderLayout());
-
-		panel.add(mStatusPanel, BorderLayout.NORTH);
+		mBoardSpecPanel = new JPanel();
+		mBoardSpecPanel.setLayout(new BorderLayout());
+		mBoardSpecPanel.add(mStatusPanel, BorderLayout.NORTH);
 
 		mControlPointInfo = new ControlPointInfo();
-		panel.add(mControlPointInfo, BorderLayout.EAST);
+		mBoardSpecPanel.add(mControlPointInfo, BorderLayout.EAST);
 
 		mBoardSpec = new BoardSpec();
-		panel.add(mBoardSpec, BorderLayout.WEST);
+		mBoardSpecPanel.add(mBoardSpec, BorderLayout.WEST);
 
-		mTabbedPane2 = new JTabbedPane(SwingConstants.BOTTOM);
-		mTabbedPane2.addTab("Board specification", panel);
+		mTabbedPane2 = new JTabbedPane(SwingConstants.BOTTOM){
+			public Dimension getPreferredSize() {
+                return new Dimension(600, 230);
+            }
+		};
+		mTabbedPane2.addTab("Board specification", mBoardSpecPanel);
 
-		mSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mTabbedPane, mTabbedPane2);
+		mSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, mTabbedPane, mTabbedPane2);
 		mSplitPane.setResizeWeight(1.0);
 		mSplitPane.setOneTouchExpandable(true);
+		mSplitPane.setDividerLocation(0.7);
 		mFrame.getContentPane().add(mSplitPane, BorderLayout.CENTER);
-		Dimension mindim = new Dimension(0, 0);
-		mTabbedPane.setMinimumSize(mindim);
-		mTabbedPane2.setMinimumSize(mindim);
-		mTabbedPane.setPreferredSize(new Dimension(600, 230));
-		mTabbedPane2.setPreferredSize(new Dimension(600, 230));
 
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
 

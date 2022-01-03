@@ -31,14 +31,14 @@ import boardcad.settings.BoardCADSettings;
 public class ControlPointInfo extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	private JLabel jLabel = null;
-	private JLabel jLabel1 = null;
-	private JTextField mEndPointX = null;
-	private JTextField mEndPointY = null;
-	private JTextField mTangent1X = null;
-	private JTextField mTangent1Y = null;
-	private JTextField mTangent2X = null;
-	private JTextField mTangent2Y = null;
+	private JLabel mXLabel = null;
+	private JLabel mYLabel = null;
+	private JTextField mEndPointXEdit = null;
+	private JTextField mEndPointYEdit = null;
+	private JTextField mTangent1XEdit = null;
+	private JTextField mTangent1YEdit = null;
+	private JTextField mTangent2XEdit = null;
+	private JTextField mTangent2YEdit = null;
 	private JCheckBox mContinous = null;
 	private JButton SetButton = null;
 	private boolean mBlockActions = false;
@@ -147,27 +147,27 @@ public class ControlPointInfo extends JPanel {
 		gridBagConstraints1.insets = new Insets(0, 0, 0, 0);
 		gridBagConstraints1.ipadx = 0;
 		gridBagConstraints1.gridy = 0;
-		jLabel1 = new JLabel();
-		jLabel1.setText("Y");
+		mYLabel = new JLabel();
+		mYLabel.setText("Y");
 		GridBagConstraints gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.gridx = 1;
 		gridBagConstraints.ipadx = 0;
 		gridBagConstraints.insets = new Insets(0, 0, 0, 0);
 		gridBagConstraints.gridy = 0;
-		jLabel = new JLabel();
-		jLabel.setText("X");
+		mXLabel = new JLabel();
+		mXLabel.setText("X");
 		this.setSize(269, 148);
 		this.setLayout(new GridBagLayout());
 		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), LanguageResource.getString("CONTROLPOINTINFOTITLE_STR"), TitledBorder.LEFT, TitledBorder.DEFAULT_POSITION, new Font("Arial", Font.BOLD, 10), new Color(51, 51, 51)));
 		this.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-		this.add(jLabel, gridBagConstraints);
-		this.add(jLabel1, gridBagConstraints1);
-		this.add(getEndPointX(), gridBagConstraints2);
-		this.add(getEndPointY(), gridBagConstraints3);
-		this.add(getTangent1X(), gridBagConstraints4);
-		this.add(getTangent1Y(), gridBagConstraints5);
-		this.add(getTangent2X(), gridBagConstraints6);
-		this.add(getTangent2Y(), gridBagConstraints7);
+		this.add(mXLabel, gridBagConstraints);
+		this.add(mYLabel, gridBagConstraints1);
+		this.add(getEndPointXEdit(), gridBagConstraints2);
+		this.add(getEndPointYEdit(), gridBagConstraints3);
+		this.add(getTangent1XEdit(), gridBagConstraints4);
+		this.add(getTangent1YEdit(), gridBagConstraints5);
+		this.add(getTangent2XEdit(), gridBagConstraints6);
+		this.add(getTangent2YEdit(), gridBagConstraints7);
 		this.add(getContinous(), gridBagConstraints8);
 		this.add(getSetButton(), gridBagConstraints9);
 		this.add(getSetControlPointVerticalButton(), gridBagConstraints11);
@@ -177,21 +177,20 @@ public class ControlPointInfo extends JPanel {
 
 	void setColors()
 	{
-
 		BoardCADSettings settings = BoardCADSettings.getInstance();
-		getEndPointX().setBackground(settings.getSelectedCenterControlPointColor());
-		getEndPointY().setBackground(settings.getSelectedCenterControlPointColor());
-		getTangent1X().setBackground(settings.getSelectedTangent1ControlPointColor());
-		getTangent1Y().setBackground(settings.getSelectedTangent1ControlPointColor());
-		getTangent2X().setBackground(settings.getSelectedTangent2ControlPointColor());
-		getTangent2Y().setBackground(settings.getSelectedTangent2ControlPointColor());
+		getEndPointXEdit().setBackground(settings.getSelectedCenterControlPointColor());
+		getEndPointYEdit().setBackground(settings.getSelectedCenterControlPointColor());
+		getTangent1XEdit().setBackground(settings.getSelectedTangent1ControlPointColor());
+		getTangent1YEdit().setBackground(settings.getSelectedTangent1ControlPointColor());
+		getTangent2XEdit().setBackground(settings.getSelectedTangent2ControlPointColor());
+		getTangent2YEdit().setBackground(settings.getSelectedTangent2ControlPointColor());
 
 	}
 	
 	void selectWhich(int which) {
     	BrdEditCommand cmd = (BrdEditCommand)BoardCAD.getInstance().getCurrentCommand();
         if(cmd != null) {
-        	cmd.setWhich(0);
+        	cmd.setWhich(which);
 			setWhich(cmd.getWhich());
 			BoardCAD.getInstance().getFrame().repaint();
         }
@@ -202,17 +201,17 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getEndPointX() {
-		if (mEndPointX == null) {
-			mEndPointX = new JTextField();
-			mEndPointX.addMouseListener(new MouseAdapter(){
+	private JTextField getEndPointXEdit() {
+		if (mEndPointXEdit == null) {
+			mEndPointXEdit = new JTextField();
+			mEndPointXEdit.addMouseListener(new MouseAdapter(){
 	            @Override
 	            public void mouseClicked(MouseEvent e){
 	            	selectWhich(0);
 	            }
 	        });
 		}
-		return mEndPointX;
+		return mEndPointXEdit;
 	}
 
 	/**<
@@ -220,17 +219,17 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getEndPointY() {
-		if (mEndPointY == null) {
-			mEndPointY = new JTextField();
-			mEndPointY.addMouseListener(new MouseAdapter(){
+	private JTextField getEndPointYEdit() {
+		if (mEndPointYEdit == null) {
+			mEndPointYEdit = new JTextField();
+			mEndPointYEdit.addMouseListener(new MouseAdapter(){
 	            @Override
 	            public void mouseClicked(MouseEvent e){
 	            	selectWhich(0);
 	            }
 	        });
 		}
-		return mEndPointY;
+		return mEndPointYEdit;
 	}
 
 	/**
@@ -238,17 +237,17 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getTangent1X() {
-		if (mTangent1X == null) {
-			mTangent1X = new JTextField();
-			mTangent1X.addMouseListener(new MouseAdapter(){
+	private JTextField getTangent1XEdit() {
+		if (mTangent1XEdit == null) {
+			mTangent1XEdit = new JTextField();
+			mTangent1XEdit.addMouseListener(new MouseAdapter(){
 	            @Override
 	            public void mouseClicked(MouseEvent e){
 	            	selectWhich(1);
 	            }
 	        });
 		}
-		return mTangent1X;
+		return mTangent1XEdit;
 	}
 
 	/**
@@ -256,17 +255,18 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getTangent1Y() {
-		if (mTangent1Y == null) {
-			mTangent1Y = new JTextField();
-			mTangent1Y.addMouseListener(new MouseAdapter(){
+	private JTextField getTangent1YEdit() {
+		if (mTangent1YEdit == null) {
+			mTangent1YEdit = new JTextField();
+			mTangent1YEdit.setForeground(Color.WHITE);
+			mTangent1YEdit.addMouseListener(new MouseAdapter(){
 	            @Override
 	            public void mouseClicked(MouseEvent e){
 	            	selectWhich(1);
 	            }
 	        });		
 		}
-		return mTangent1Y;
+		return mTangent1YEdit;
 	}
 
 	/**
@@ -274,17 +274,18 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getTangent2X() {
-		if (mTangent2X == null) {
-			mTangent2X = new JTextField();
-			mTangent2X.addMouseListener(new MouseAdapter(){
+	private JTextField getTangent2XEdit() {
+		if (mTangent2XEdit == null) {
+			mTangent2XEdit = new JTextField();
+			mTangent2XEdit.setForeground(Color.WHITE);
+			mTangent2XEdit.addMouseListener(new MouseAdapter(){
 	            @Override
 	            public void mouseClicked(MouseEvent e){
 	            	selectWhich(2);
 	            }
 	        });	
 		}
-		return mTangent2X;
+		return mTangent2XEdit;
 	}
 
 	/**
@@ -292,17 +293,18 @@ public class ControlPointInfo extends JPanel {
 	 *
 	 * @return javax.swing.JTextField
 	 */
-	private JTextField getTangent2Y() {
-		if (mTangent2Y == null) {
-			mTangent2Y = new JTextField();
-			mTangent2Y.addMouseListener(new MouseAdapter(){
+	private JTextField getTangent2YEdit() {
+		if (mTangent2YEdit == null) {
+			mTangent2YEdit = new JTextField();
+			mTangent2YEdit.setForeground(Color.WHITE);
+			mTangent2YEdit.addMouseListener(new MouseAdapter(){
 	            @Override
 	            public void mouseClicked(MouseEvent e){
 	            	selectWhich(2);
 	            }
 	        });	
 		}
-		return mTangent2Y;
+		return mTangent2YEdit;
 	}
 
 	/**
@@ -356,26 +358,26 @@ public class ControlPointInfo extends JPanel {
 	public void setEnabled(boolean enabled)
 	{
 		super.setEnabled(enabled);
-		jLabel.setEnabled(enabled);
-		jLabel1.setEnabled(enabled);
-		getEndPointX().setEnabled(enabled);
-		getEndPointY().setEnabled(enabled);
-		getTangent1X().setEnabled(enabled);
-		getTangent1Y().setEnabled(enabled);
-		getTangent2X().setEnabled(enabled);
-		getTangent2Y().setEnabled(enabled);
+		mXLabel.setEnabled(enabled);
+		mYLabel.setEnabled(enabled);
+		getEndPointXEdit().setEnabled(enabled);
+		getEndPointYEdit().setEnabled(enabled);
+		getTangent1XEdit().setEnabled(enabled);
+		getTangent1YEdit().setEnabled(enabled);
+		getTangent2XEdit().setEnabled(enabled);
+		getTangent2YEdit().setEnabled(enabled);
 		getContinous().setEnabled(enabled);
 		getSetButton().setEnabled(enabled);
 	}
 
 	public void setWhich(int which)
 	{
-		getEndPointX().setEnabled((which==0)?true:false);
-		getEndPointY().setEnabled((which==0)?true:false);
-		getTangent1X().setEnabled((which==1)?true:false);
-		getTangent1Y().setEnabled((which==1)?true:false);
-		getTangent2X().setEnabled((which==2)?true:false);
-		getTangent2Y().setEnabled((which==2)?true:false);
+		getEndPointXEdit().setEnabled((which==0)?true:false);
+		getEndPointYEdit().setEnabled((which==0)?true:false);
+		getTangent1XEdit().setEnabled((which==1)?true:false);
+		getTangent1YEdit().setEnabled((which==1)?true:false);
+		getTangent2XEdit().setEnabled((which==2)?true:false);
+		getTangent2YEdit().setEnabled((which==2)?true:false);
 	}
 
 	public void setControlPoint(BezierKnot ControlPoint)
@@ -383,12 +385,12 @@ public class ControlPointInfo extends JPanel {
 		mBlockActions = true;
 		mControlPoint = ControlPoint;
 
-		getEndPointX().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().x, false));
-		getEndPointY().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().y, false));
-		getTangent1X().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().x, false));
-		getTangent1Y().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().y, false));
-		getTangent2X().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().x, false));
-		getTangent2Y().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().y, false));
+		getEndPointXEdit().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().x, false));
+		getEndPointYEdit().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getEndPoint().y, false));
+		getTangent1XEdit().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().x, false));
+		getTangent1YEdit().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToPrev().y, false));
+		getTangent2XEdit().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().x, false));
+		getTangent2YEdit().setText(UnitUtils.convertLengthToCurrentUnit(mControlPoint.getTangentToNext().y, false));
 		getContinous().setSelected(mControlPoint.isContinous());
 		mBlockActions = false;
 	}
@@ -399,20 +401,20 @@ public class ControlPointInfo extends JPanel {
 
 		String svx, svy;
 
-		if(getEndPointX().isEnabled())
+		if(getEndPointXEdit().isEnabled())
 		{
-			svx = getEndPointX().getText();
-			svy = getEndPointY().getText();
+			svx = getEndPointXEdit().getText();
+			svy = getEndPointYEdit().getText();
 		}
-		else if(getTangent1X().isEnabled())
+		else if(getTangent1XEdit().isEnabled())
 		{
-			svx = getTangent1X().getText();
-			svy = getTangent1Y().getText();
+			svx = getTangent1XEdit().getText();
+			svy = getTangent1YEdit().getText();
 		}
 		else //if(getTangent2X().isEnabled())
 		{
-			svx = getTangent2X().getText();
-			svy = getTangent2Y().getText();
+			svx = getTangent2XEdit().getText();
+			svy = getTangent2YEdit().getText();
 		}
 
 		point.setLocation(UnitUtils.convertInputStringToInternalLengthUnit(svx), UnitUtils.convertInputStringToInternalLengthUnit(svy));
@@ -422,12 +424,12 @@ public class ControlPointInfo extends JPanel {
 
 	boolean isEditing()
 	{
-		return (getEndPointX().hasFocus() ||
-				getEndPointY().hasFocus() ||
-				getTangent1X().hasFocus() ||
-				getTangent1Y().hasFocus() ||
-				getTangent2X().hasFocus() ||
-				getTangent2Y().hasFocus() );
+		return (getEndPointXEdit().hasFocus() ||
+				getEndPointYEdit().hasFocus() ||
+				getTangent1XEdit().hasFocus() ||
+				getTangent1YEdit().hasFocus() ||
+				getTangent2XEdit().hasFocus() ||
+				getTangent2YEdit().hasFocus() );
 	}
 
 	/**

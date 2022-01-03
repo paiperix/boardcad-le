@@ -87,6 +87,9 @@ class SettingsComponent extends JComponent
 					}
 
 					Class c =  getValueAt(row, column).getClass();
+					if(c == null) {
+						return super.getDefaultEditor(c);
+					}
 					String className = c.getName();
 
 					if(className.compareTo(Color.class.getName()) == 0)
