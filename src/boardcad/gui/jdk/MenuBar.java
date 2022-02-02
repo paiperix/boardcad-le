@@ -2547,44 +2547,6 @@ public class MenuBar extends JMenuBar implements ActionListener {
 
 		fileMenu.addSeparator();
 
-		final AbstractAction loadscript = new AbstractAction() {
-			static final long serialVersionUID = 1L;
-			{
-				this.putValue(Action.NAME, "Load script");
-				// this.putValue(Action.ACCELERATOR_KEY,
-				// KeyStroke.getKeyStroke(KeyEvent.VK_I,
-				// KeyEvent.CTRL_DOWN_MASK));
-			};
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-				final JFileChooser fc = new JFileChooser();
-				fc.setCurrentDirectory(new File(BoardCAD.defaultDirectory));
-
-				int returnVal = fc.showOpenDialog(BoardCAD.getInstance().getFrame());
-				if (returnVal != JFileChooser.APPROVE_OPTION)
-					return;
-
-				File file = fc.getSelectedFile();
-
-				String filename = file.getPath(); // Load and display
-				// selection
-				if (filename == null)
-					return;
-
-				// ScriptLoader sl=new ScriptLoader();
-				// sl.loadScript(filename);
-
-				BoardCAD.defaultDirectory = file.getPath();
-
-			}
-
-		};
-		fileMenu.add(loadscript);
-
-		fileMenu.addSeparator();
-
 		final AbstractAction test = new AbstractAction() {
 			static final long serialVersionUID = 1L;
 			{
