@@ -104,7 +104,7 @@ public class Machine3DView extends JComponent {
 	double mBrdBottomRotation;
 
 	public Machine3DView() {
-		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+		//JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		final JPopupMenu menu = new JPopupMenu();
 
 		final AbstractAction toggleDeckBottom = new AbstractAction() {
@@ -201,7 +201,8 @@ public class Machine3DView extends JComponent {
 		canvas.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.isMetaDown())
+				if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0) 
+					System.out.println("SHOW");
 					menu.show(canvas, e.getX(), e.getY());
 			}
 
@@ -787,7 +788,7 @@ public class Machine3DView extends JComponent {
 				mCutterTransformGroup.addChild(mCutter);
 			}
 		} catch (Exception e) {
-			System.out.println("Exception in Machine3Dview::setCutterModel(): " + e.toString());
+			System.err.println("Exception in Machine3Dview::setCutterModel(): " + e.toString());
 		}
 		// System.out.println("setCutterModel()\n");
 	}
@@ -803,7 +804,7 @@ public class Machine3DView extends JComponent {
 				mModelTransformGroup.addChild(mBlankHoldingSystemModel);
 			}
 		} catch (Exception e) {
-			System.out.println("Exception in Machine3DView::setBlankHoldingSystemModel(): " + e.toString());
+			System.err.println("Exception in Machine3DView::setBlankHoldingSystemModel(): " + e.toString());
 		}
 		// System.out.println("setBlankHoldingSystemModel()\n");
 
