@@ -608,6 +608,13 @@ public class BoardCAD implements Runnable, KeyEventDispatcher {
 			if (mQuad3DView != null)
 				mQuad3DView.setBackgroundColor(mSettings.getRenderBackgroundColor());
 		}
+		
+		if(setting.key().startsWith("3d")) {
+			if (mRendered3DView != null)
+				mRendered3DView.updateAppearance();
+			if (mQuad3DView != null)
+				mQuad3DView.updateAppearance();			
+		}
 	}
 
 	public void saveAs(String filename) {

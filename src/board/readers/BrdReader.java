@@ -37,8 +37,10 @@ public class BrdReader {
 
 			String strLine = cFile.readLine();
 			if (strLine.startsWith("%BRD-1.02")) {
+				System.out.println("1.02");
 				retVal = loadEncryptedFile(brd, aFilename, "deltaXTaildeltaXMiddle");
 			} else if (strLine.startsWith("%BRD-1.01")) {
+				System.out.println("1.0");
 				retVal = loadEncryptedFile(brd, aFilename, "deltaXTail");
 			} else {
 				cFile.reset();

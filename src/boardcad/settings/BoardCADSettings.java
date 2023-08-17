@@ -12,6 +12,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import org.jogamp.vecmath.Color3f;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 
 import org.reflections.*;
@@ -23,7 +24,6 @@ import cadcore.UnitUtils;
 
 public class BoardCADSettings extends CategorizedSettings
 {
-	static public final String RENDERBACKGROUNDCOLOR = "renderbackgroundcolor";
 
 	static private final String TEXTCOLOR = "textcolor";
 	static private final String BACKGROUNDCOLOR = "backgroundcolor";
@@ -79,12 +79,19 @@ public class BoardCADSettings extends CategorizedSettings
 	static private final String ADJUSTCROSSECTIONTHICKNESS = "adjustcrossectionthickness";
 	static private final String USEBEZIERFITONDELETE = "usebezierfitondelete";
 
+	static private final String THREEDBOARDAMBIENTCOLOR = "3dboardambientcolor";
+	static private final String THREEDBOARDEMISSIVECOLOR = "3dboardemissivecolor";
+	static private final String THREEDBOARDDIFFUSECOLOR = "3dboarddiffusecolor";
+	static private final String THREEDBOARDSPECULARCOLOR = "3dboardspecularcolor";
+	static private final String THREEDBOARDSHININESS = "3dboardshininesscolor";
+	static public final String RENDERBACKGROUNDCOLOR = "renderbackgroundcolor";
 
 	static private BoardCADSettings mInstance = null;
 
 	private Settings mColorSettings;
 	private Settings mSizeSettings;
 	private Settings mMiscSettings;
+	private Settings m3DSettings;
 
 	public static BoardCADSettings getInstance()
 	{
@@ -92,6 +99,14 @@ public class BoardCADSettings extends CategorizedSettings
 			mInstance = new BoardCADSettings();
 		}
 		return mInstance;
+	}
+
+	public static Color3f convertColor(Color color)
+	{
+		float[] rgb = color.getRGBColorComponents(null);
+		System.out.println("convertColor: " + rgb[0] + " " + rgb[1] + " " + rgb[2]);
+		
+		return new Color3f(rgb[0], rgb[1], rgb[2]);
 	}
 
 	protected BoardCADSettings()
@@ -279,7 +294,13 @@ public class BoardCADSettings extends CategorizedSettings
 		mMiscSettings.addBoolean(OFFSETINTERPLOATION, true, LanguageResource.getString("OFFSETINTERPLOATION_STR"));
 		mMiscSettings.addInteger(NUM3DPROCESSES, 8, LanguageResource.getString("NUM3DPROCESSES_STR"));
 		mMiscSettings.addBoolean(USEBEZIERFITONDELETE, false, LanguageResource.getString("USEBEZIERFITONDELETE_STR"));
-
+		
+		m3DSettings = this.addCategory(LanguageResource.getString("3D_SETTINGS_STR"));
+		m3DSettings.addColor(THREEDBOARDAMBIENTCOLOR, new Color(40, 40, 40), LanguageResource.getString("3DBOARDAMBIENTCOLOR_STR"));
+		m3DSettings.addColor(THREEDBOARDEMISSIVECOLOR, new Color(0, 0, 0), LanguageResource.getString("3DBOARDEMMISIVECOLOR_STR"));
+		m3DSettings.addColor(THREEDBOARDDIFFUSECOLOR, new Color(240, 240, 240), LanguageResource.getString("3DBOARDDIFFUSECOLOR_STR"));
+		m3DSettings.addColor(THREEDBOARDSPECULARCOLOR, new Color(255, 255, 255), LanguageResource.getString("3DBOARDSPECULARCOLOR_STR"));
+		m3DSettings.addInteger(THREEDBOARDSHININESS, 128, LanguageResource.getString("3DBOARDSHININESS_STR"));
 	}
 
 	public void setDefaultTheme() {
@@ -606,5 +627,26 @@ public class BoardCADSettings extends CategorizedSettings
 	public boolean isUsingBezierFitOnDelete() {
 		return mMiscSettings.getBoolean(USEBEZIERFITONDELETE);
 	}
+	
+	public Color3f getBoardAmbientColor() {
+		return convertColor(m3DSettings.getColor(THREEDBOARDAMBIENTCOLOR));
+	}
+
+	public Color3f getBoardEmmisiveColor() {
+		return convertColor(m3DSettings.getColor(THREEDBOARDEMISSIVECOLOR));
+	}
+
+	public Color3f getBoardDiffuseColor() {
+		return convertColor(m3DSettings.getColor(THREEDBOARDDIFFUSECOLOR));
+	}
+
+	public Color3f getBoardSpecularColor() {
+		return convertColor(m3DSettings.getColor(THREEDBOARDSPECULARCOLOR));
+	}
+
+	public int getBoardShininess() {
+		return m3DSettings.getInt(THREEDBOARDSHININESS);
+	}
+
 
 };

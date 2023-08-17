@@ -260,22 +260,29 @@ class ThreeDView extends JPanel {
 		mBezier3DModel = new Shape3D();
 		mBezier3DModel.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
 		mBezier3DModel.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
-
-		// Create an Appearance.
-		Appearance a = new Appearance();
-		Color3f ambient = new Color3f(0.4f, 0.4f, 0.4f);
-		Color3f emissive = new Color3f(0.0f, 0.0f, 0.0f);
-		Color3f diffuse = new Color3f(0.8f, 0.8f, 0.8f);
-		Color3f specular = new Color3f(1.0f, 1.0f, 1.0f);
-
-		// Set up the material properties
-		a.setMaterial(new Material(ambient, emissive, diffuse, specular, 115.0f));
-		mBezier3DModel.setAppearance(a);
+		
+		updateAppearance();
 		
 		mBezier3DModelGroup.addChild(mBezier3DModel);
 		mScaleTransform.addChild(mBezier3DModelGroup);
 
 		addModel(mRoot);
+	}
+	
+	public void updateAppearance() {
+		// Create an Appearance.
+		Appearance a = new Appearance();
+		BoardCADSettings settings = BoardCADSettings.getInstance();
+		
+		Color3f ambient = settings.getBoardAmbientColor();
+		Color3f emissive = settings.getBoardEmmisiveColor();
+		Color3f diffuse = settings.getBoardDiffuseColor();
+		Color3f specular = settings.getBoardSpecularColor();
+		int shininess = settings.getBoardShininess();
+
+		// Set up the material properties
+		a.setMaterial(new Material(ambient, emissive, diffuse, specular, shininess));
+		mBezier3DModel.setAppearance(a);		
 	}
 
 	public Shape3D getBezier3DModel() {
