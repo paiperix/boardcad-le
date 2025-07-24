@@ -177,7 +177,7 @@ public class SimpleBullnoseCutter extends AbstractCutter{
 			ret = new double[]{offsetPoint.x, offsetPoint.y, offsetPoint.z};
 		}
 
-		if(mStayAwayFromStringer)
+		if (mStayAwayFromStringer)
 		{
 			if(Math.abs(ret[1]) - (mDiameter*10.0/2.0) < mStringerWidth*10.0)
 			{
@@ -186,7 +186,7 @@ public class SimpleBullnoseCutter extends AbstractCutter{
 			}
 		}
 
-		return ret;
+  		return ret;
 	}
 
 	public boolean checkStringerCollision(Point3d pos)

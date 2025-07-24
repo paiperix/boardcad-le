@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import javax.swing.ProgressMonitor; //TODO: Bad dependency
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.jogamp.vecmath.*;
@@ -366,8 +367,12 @@ public abstract class AbstractToolpathGenerator {
 		String progressString = String
 				.format(LanguageResource.getString("TOOLPATHPROGRESS_STR"),
 						percentDone);
-		mProgress.setNote(progressString);
-		mProgress.setProgress(percentDone);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				mProgress.setNote(progressString);
+				mProgress.setProgress(percentDone);
+			}
+		});
 	}
 
 	protected void cancel() {

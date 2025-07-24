@@ -237,7 +237,7 @@ public class S3dReader {
 
 		int nrOfPoints = Integer.parseInt(numberOfPointsStr);
 
-		// Disregard first as it's the symetry point and we don't care about that(whatever that is)
+		// Disregard first as it's the symmetry point and we don't care about that(whatever that is)
 		for (int i = 1; i < nrOfPoints + 1; i++) {
 			BezierKnot newControlPoint = new BezierKnot();
 

@@ -52,9 +52,15 @@ public class Bullnose2dCutter extends AbstractCutter
 		rotateLeft.rotZ(-headingAngle);
 		Vector3d normalRotated = new Vector3d(normal);
 		rotateLeft.transform(normalRotated);
+		
 
 		// Get 2D vector of normal pointing sideways (left)
 		Vector2d normalFromSide = new Vector2d(normalRotated.z, normalRotated.y);
+
+		Vector2d normalFromSide2 = new Vector2d(normal.z, Math.sqrt((normalRotated.x*normalRotated.x) + (normalRotated.y*normalRotated.y)));
+		
+		System.out.printf("Bullnose2dCutter normalFromSide %.3f,%.3f", normalFromSide.x, normalFromSide.y);
+		System.out.printf("normalFromSide2 %.3f,%.3f", normalFromSide.x, normalFromSide.y);
 
 		// Find angle the vector is from pointing straight left as seen from side
 		double cornerAngle = normalFromSide.angle(leftVec2D); // we want abs(angle) here so use Vector2D.angle()

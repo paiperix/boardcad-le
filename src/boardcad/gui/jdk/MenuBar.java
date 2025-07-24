@@ -29,8 +29,6 @@ import org.jogamp.java3d.PolygonAttributes;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Vector3d;
-import org.pushingpixels.substance.internal.utils.RolloverMenuItemListener;
-
 import board.AbstractBoard;
 import board.BezierBoard;
 import board.writers.BrdWriter;
@@ -67,7 +65,6 @@ import boardcad.print.PrintHollowWoodTemplates;
 import boardcad.print.PrintSandwichTemplates;
 import boardcad.settings.CategorizedSettings;
 import boardcad.settings.Settings;
-import boardcad.settings.Settings.FileName;
 import boardcam.MachineConfig;
 import boardcam.cutters.AbstractCutter;
 import boardcam.holdingsystems.SupportsBlankHoldingSystem;

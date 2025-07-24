@@ -104,7 +104,7 @@ public class Machine3DView extends JComponent {
 	double mBrdBottomRotation;
 
 	public Machine3DView() {
-		//JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+		// JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		final JPopupMenu menu = new JPopupMenu();
 
 		final AbstractAction toggleDeckBottom = new AbstractAction() {
@@ -130,8 +130,12 @@ public class Machine3DView extends JComponent {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				mDeckSurfacePathsSwitch.setWhichChild((mDeckSurfacePathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
-				mBottomSurfacePathsSwitch.setWhichChild((mBottomSurfacePathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
+				mDeckSurfacePathsSwitch
+						.setWhichChild((mDeckSurfacePathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE
+								: Switch.CHILD_ALL);
+				mBottomSurfacePathsSwitch.setWhichChild(
+						(mBottomSurfacePathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE
+								: Switch.CHILD_ALL);
 			}
 		};
 		menu.add(toggleSurfacePaths);
@@ -144,8 +148,12 @@ public class Machine3DView extends JComponent {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				mDeckNormalsSwitch.setWhichChild((mDeckNormalsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
-				mBottomSurfaceNormalsSwitch.setWhichChild((mBottomSurfaceNormalsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
+				mDeckNormalsSwitch
+						.setWhichChild((mDeckNormalsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE
+								: Switch.CHILD_ALL);
+				mBottomSurfaceNormalsSwitch.setWhichChild(
+						(mBottomSurfaceNormalsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE
+								: Switch.CHILD_ALL);
 			}
 		};
 		menu.add(toggleNormals);
@@ -158,8 +166,12 @@ public class Machine3DView extends JComponent {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				mDeckToolpathsSwitch.setWhichChild((mDeckToolpathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
-				mBottomToolpathsSwitch.setWhichChild((mBottomToolpathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
+				mDeckToolpathsSwitch
+						.setWhichChild((mDeckToolpathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE
+								: Switch.CHILD_ALL);
+				mBottomToolpathsSwitch
+						.setWhichChild((mBottomToolpathsSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE
+								: Switch.CHILD_ALL);
 			}
 		};
 		menu.add(toggleToolpaths);
@@ -174,7 +186,8 @@ public class Machine3DView extends JComponent {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				mBlankSwitch.setWhichChild((mBlankSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
+				mBlankSwitch.setWhichChild(
+						(mBlankSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
 			}
 		};
 		menu.add(toggleBlank);
@@ -187,7 +200,8 @@ public class Machine3DView extends JComponent {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				mBrdSwitch.setWhichChild((mBrdSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
+				mBrdSwitch.setWhichChild(
+						(mBrdSwitch.getWhichChild() == Switch.CHILD_ALL) ? Switch.CHILD_NONE : Switch.CHILD_ALL);
 			}
 		};
 		menu.add(toggleBrd);
@@ -201,9 +215,9 @@ public class Machine3DView extends JComponent {
 		canvas.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0) 
+				if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0)
 					System.out.println("SHOW");
-					menu.show(canvas, e.getX(), e.getY());
+				menu.show(canvas, e.getX(), e.getY());
 			}
 
 		});
@@ -232,8 +246,7 @@ public class Machine3DView extends JComponent {
 		// Headlight
 		PlatformGeometry pg = new PlatformGeometry();
 
-		mHeadLight = new DirectionalLight(new Color3f(0.8f, 0.8f, 0.8f),
-				new Vector3f(0.0f, 0.0f, -1.0f));
+		mHeadLight = new DirectionalLight(new Color3f(0.8f, 0.8f, 0.8f), new Vector3f(0.0f, 0.0f, -1.0f));
 		mHeadLight.setInfluencingBounds(bounds);
 		mHeadLight.setCapability(Light.ALLOW_STATE_WRITE);
 		mHeadLight.setEnable(true);
@@ -249,7 +262,8 @@ public class Machine3DView extends JComponent {
 		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 1000.0);
 
 		// Set up the background
-		Color3f bgColor = new Color3f(BoardCADSettings.getInstance().getBackgroundColor().getRGBColorComponents(new float[3]));
+		Color3f bgColor = new Color3f(
+				BoardCADSettings.getInstance().getBackgroundColor().getRGBColorComponents(new float[3]));
 		mBackgroundNode = new Background(bgColor);
 		mBackgroundNode.setApplicationBounds(bounds);
 		mBackgroundNode.setCapability(Background.ALLOW_COLOR_WRITE);
@@ -326,7 +340,9 @@ public class Machine3DView extends JComponent {
 		referencePointArray.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 
 		double size = 40.0;
-		referencePointArray.setCoordinates(mDeckCurrentNormalIndex, new Point3d[] { new Point3d(-size, 0.0, 0.0), new Point3d(size, 0.0, 0.0), new Point3d(0.0, -size, 0.0), new Point3d(0.0, size, 0.0), new Point3d(0.0, 0.0, -size), new Point3d(0.0, 0.0, size) });
+		referencePointArray.setCoordinates(mDeckCurrentNormalIndex,
+				new Point3d[] { new Point3d(-size, 0.0, 0.0), new Point3d(size, 0.0, 0.0), new Point3d(0.0, -size, 0.0),
+						new Point3d(0.0, size, 0.0), new Point3d(0.0, 0.0, -size), new Point3d(0.0, 0.0, size) });
 		referencePointArray.setValidVertexCount(6);
 
 		Appearance toolpathsReferencePointApperance = new Appearance();
@@ -499,7 +515,7 @@ public class Machine3DView extends JComponent {
 		mBottomSurfaceNormalsSwitch = new Switch();
 		mBottomSurfaceNormalsSwitch.setCapability(Switch.ALLOW_SWITCH_READ);
 		mBottomSurfaceNormalsSwitch.setCapability(Switch.ALLOW_SWITCH_WRITE);
-		mBottomSurfaceNormalsSwitch.setWhichChild(Switch.CHILD_ALL);
+		mBottomSurfaceNormalsSwitch.setWhichChild(Switch.CHILD_NONE);
 		mBottomModelGroup.addChild(mBottomSurfaceNormalsSwitch);
 
 		mBottomSurfaceNormals = new Shape3D();
@@ -537,10 +553,10 @@ public class Machine3DView extends JComponent {
 
 		// Create an Appearance.
 		Appearance blankApperance = new Appearance();
-		Color3f ambient = new Color3f(0.4f, 0.4f, 0.4f);
+		Color3f ambient = new Color3f(0.1f, 0.1f, 0.4f);
 		Color3f emissive = new Color3f(0.0f, 0.0f, 0.0f);
-		Color3f diffuse = new Color3f(0.8f, 0.8f, 0.8f);
-		Color3f specular = new Color3f(1.0f, 1.0f, 1.0f);
+		Color3f diffuse = new Color3f(0.2f, 0.2f, 0.8f);
+		Color3f specular = new Color3f(0.8f, 0.8f, 1.0f);
 		TransparencyAttributes blankTransparencyAttributes = new TransparencyAttributes();
 		blankTransparencyAttributes.setTransparencyMode(TransparencyAttributes.NICEST);
 		blankTransparencyAttributes.setTransparency(0.5f);
@@ -589,7 +605,6 @@ public class Machine3DView extends JComponent {
 
 		mBrdModel.setAppearance(brdApperance);
 		mBrdTransformGroup.addChild(mBrdModel);
-
 
 		// DEBUG
 		// mDeckGroup.addChild(new com.sun.j3d.utils.geometry.Box(100.0f,100.0f,
@@ -672,7 +687,8 @@ public class Machine3DView extends JComponent {
 
 	public void addDeckSurfaceLine(Point3d point) {
 		mDeckSurfacePathsArray.setCoordinates(mDeckCurrentSurfacePathIndex++, new Point3d[] { point });
-		mDeckSurfacePathsArray.setStripVertexCounts(new int[] { (mDeckCurrentSurfacePathIndex > 2) ? mDeckCurrentSurfacePathIndex : 2 });
+		mDeckSurfacePathsArray.setStripVertexCounts(
+				new int[] { (mDeckCurrentSurfacePathIndex > 2) ? mDeckCurrentSurfacePathIndex : 2 });
 	}
 
 	public void addDeckNormal(Point3d location, Vector3d normal) {
@@ -696,7 +712,8 @@ public class Machine3DView extends JComponent {
 
 	public void addDeckToolpathLine(Point3d point) {
 		mDeckToolpathsArray.setCoordinates(mDeckCurrentToolpathIndex++, new Point3d[] { point });
-		mDeckToolpathsArray.setStripVertexCounts(new int[] { (mDeckCurrentToolpathIndex > 2) ? mDeckCurrentToolpathIndex : 2 });
+		mDeckToolpathsArray
+				.setStripVertexCounts(new int[] { (mDeckCurrentToolpathIndex > 2) ? mDeckCurrentToolpathIndex : 2 });
 
 		if (isDeckActive()) {
 			updateCutterPos(point);
@@ -710,7 +727,8 @@ public class Machine3DView extends JComponent {
 
 	public void addBottomSurfaceLine(Point3d point) {
 		mBottomSurfacePathsArray.setCoordinates(mBottomCurrentSurfacePathIndex++, new Point3d[] { point });
-		mBottomSurfacePathsArray.setStripVertexCounts(new int[] { (mBottomCurrentSurfacePathIndex > 2) ? mBottomCurrentSurfacePathIndex : 2 });
+		mBottomSurfacePathsArray.setStripVertexCounts(
+				new int[] { (mBottomCurrentSurfacePathIndex > 2) ? mBottomCurrentSurfacePathIndex : 2 });
 	}
 
 	public void addBottomNormal(Point3d location, Vector3d normal) {
@@ -731,7 +749,8 @@ public class Machine3DView extends JComponent {
 
 	public void addBottomToolpathLine(Point3d point) {
 		mBottomToolpathsArray.setCoordinates(mBottomCurrentToolpathIndex++, new Point3d[] { point });
-		mBottomToolpathsArray.setStripVertexCounts(new int[] { (mBottomCurrentToolpathIndex > 2) ? mBottomCurrentToolpathIndex : 2 });
+		mBottomToolpathsArray.setStripVertexCounts(
+				new int[] { (mBottomCurrentToolpathIndex > 2) ? mBottomCurrentToolpathIndex : 2 });
 
 		if (isBottomActive()) {
 			updateCutterPos(point);
@@ -810,7 +829,7 @@ public class Machine3DView extends JComponent {
 
 	}
 
-	public void fit_all() {
+	public void fitAll() {
 
 	}
 
@@ -820,7 +839,8 @@ public class Machine3DView extends JComponent {
 	}
 
 	public void setCutterOffset(Point3d pos) {
-		mToolpathsTransform.setTranslation(new Vector3d(pos.x * UnitUtils.MILLIMETER_PR_CENTIMETER, pos.y * UnitUtils.MILLIMETER_PR_CENTIMETER, pos.z * UnitUtils.MILLIMETER_PR_CENTIMETER));
+		mToolpathsTransform.setTranslation(new Vector3d(pos.x * UnitUtils.MILLIMETER_PR_CENTIMETER,
+				pos.y * UnitUtils.MILLIMETER_PR_CENTIMETER, pos.z * UnitUtils.MILLIMETER_PR_CENTIMETER));
 		mToolpathsGroup.setTransform(mToolpathsTransform);
 	}
 
@@ -858,7 +878,7 @@ public class Machine3DView extends JComponent {
 
 	private void setBlankOffset(Point3d pos, double angle, boolean flip) {
 		mBlankTransform.rotY(angle);
-		if(flip){
+		if (flip) {
 			Transform3D flipRot = new Transform3D();
 			flipRot.rotX(Math.PI);
 			mBlankTransform.mul(flipRot);
@@ -890,7 +910,7 @@ public class Machine3DView extends JComponent {
 
 	private void setBrdOffset(Point3d pos, double angle, boolean flip) {
 		mBrdTransform.rotY(angle);
-		if(flip){
+		if (flip) {
 			Transform3D flipRot = new Transform3D();
 			flipRot.rotX(Math.PI);
 			mBrdTransform.mul(flipRot);

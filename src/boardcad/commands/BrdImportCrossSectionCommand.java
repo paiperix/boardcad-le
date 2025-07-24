@@ -69,9 +69,7 @@ public class BrdImportCrossSectionCommand extends BrdCommand
 		}
 		
 		
-		mNewCrossSectionBezier = (BezierSpline)brd.getCurrentCrossSection().clone();
-
-		mCrossSection.scale(brd.getThicknessAtPos(pos), brd.getWidthAtPos(pos));
+		mNewCrossSectionBezier = (BezierSpline)mCrossSection.getBezierSpline().clone();
 
 		super.execute();
 	}
