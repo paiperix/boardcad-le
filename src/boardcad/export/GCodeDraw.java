@@ -125,7 +125,7 @@ public class GCodeDraw extends AbstractDraw {
 		Point2D.Double lastPoint = null;
 		Point2D.Double moveToPoint = null;
 		Point2D.Double afterMovePoint = null;
-		boolean isLastMoveTo = false;
+		boolean isPrevMoveTo = false;
 
 		// System.out.printf("GCodeDraw draw Path\n");
 
@@ -145,13 +145,13 @@ public class GCodeDraw extends AbstractDraw {
 
 				lastPoint = new Point2D.Double(coords[0], coords[1]);
 				moveToPoint = lastPoint;
-				isLastMoveTo = true;
+				isPrevMoveTo = true;
 
 				// Assuming there is only one close in path
 				prevPoint = getLastPointBeforeClose(path);
 
 			}
-				break;
+			break;
 
 			// The segment type constant for a point that specifies the end
 			// point of a line to be drawn from the most recently specified
@@ -174,7 +174,7 @@ public class GCodeDraw extends AbstractDraw {
 					continue;
 				}
 
-				if (isLastMoveTo == true) // First cut after move
+				if (isPrevMoveTo == true) // First cut after move
 				{
 					Point2D.Double startOffset = getCornerOffset(prevPoint,
 							lastPoint, currentPoint, mToolDiameter, mFlipNormal);
@@ -221,15 +221,14 @@ public class GCodeDraw extends AbstractDraw {
 				prevPoint = lastPoint;
 				lastPoint = currentPoint;
 
-				isLastMoveTo = false;
-			}
-				break;
+				isPrevMoveTo = false;
+			}break;
 
 			// The segment type constant for the set of 3 points that specify a
 			// cubic parametric curve to be drawn from the most recently
 			// specified point.
 			case PathIterator.SEG_CUBICTO: {
-				// System.out.printf("Path SEG_CUBICTO\n");
+				System.out.printf("Path SEG_CUBICTO\n");
 
 				CubicCurve2D curve = new CubicCurve2D.Double(lastPoint.getX(),
 						lastPoint.getY(), coords[0], coords[1], coords[2],
@@ -243,7 +242,7 @@ public class GCodeDraw extends AbstractDraw {
 
 				Point2D.Double startPos = bezier.getValue(0.0);
 
-				if (isLastMoveTo == true) // First cut after move
+				if (isPrevMoveTo == true) // First cut after move
 				{
 					Point2D.Double startOffset = getCornerOffset(prevPoint,
 							lastPoint,
@@ -298,9 +297,8 @@ public class GCodeDraw extends AbstractDraw {
 				prevPoint = new Point2D.Double(coords[2], coords[3]);
 				lastPoint = new Point2D.Double(coords[4], coords[5]);
 
-				isLastMoveTo = false;
-			}
-				break;
+				isPrevMoveTo = false;
+			}break;
 
 			// The segment type constant for the pair of points that specify a
 			// quadratic parametric curve to be drawn from the most recently
@@ -315,18 +313,20 @@ public class GCodeDraw extends AbstractDraw {
 			// subpath should be closed by appending a line segment back to the
 			// point corresponding to the most recent SEG_MOVETO.
 			case PathIterator.SEG_CLOSE: {
-				// System.out.printf("Path SEG_CLOSE\n");
 
-				// Assuming there is only one move in the path
-
-				Point2D.Double offset = getCornerOffset(lastPoint, moveToPoint,
-						afterMovePoint, mToolDiameter, mFlipNormal);
-
-				mGCodeWriter.writeCoordinate(mStream, moveToPoint.getX()
-						+ offset.x, moveToPoint.getY() + offset.y,
-						mCuttingDepth); // Cut
-			}
-				break;
+				if(afterMovePoint != null) {
+					// Assuming there is only one move in the path
+					System.out.printf("pos x:%f y:%f final x:%f y:%f  Offset x:%f y:%f\n", lastPoint.x, lastPoint.y, moveToPoint.x, moveToPoint.y, afterMovePoint.x, afterMovePoint.y);
+	
+					Point2D.Double offset = getCornerOffset(lastPoint, moveToPoint,
+							afterMovePoint, mToolDiameter, mFlipNormal);
+	
+					mGCodeWriter.writeCoordinate(mStream, moveToPoint.getX()
+							+ offset.x, moveToPoint.getY() + offset.y,
+							mCuttingDepth); // Cut
+				}
+			}break;
+			
 			}
 
 		}

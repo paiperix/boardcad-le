@@ -3,5 +3,5 @@ Application-Name: BoardCAD
 Main-Class: boardcad.gui.jdk.BoardCAD
 Permissions: all-permissions
 Codebase: *
-Class-Path: . gluegen-rt.jar j3dcore.jar j3dutils.jar jogl-all.jar vecmath.jar jython.jar Lib.jar jythonconsole.jar
+Class-Path: . j3dcore.jar j3dutils.jar vecmath.jar gluegen-rt-natives-linux-aarch64.jar gluegen-rt-natives-linux-amd64.jar gluegen-rt-natives-macosx-universal.jar gluegen-rt-natives-windows-amd64.jar gluegen-rt.jar jogl-all-natives-linux-aarch64.jar  jogl-all-natives-linux-amd64.jar jogl-all-natives-macosx-universal.jar jogl-all-natives-windows-amd64.jar darklaf-1.3.3.4.jar javassist.jar radiance-neon-3.5.1.jar radiance-substance-3.5.1.jar radiance-trident-3.5.1.jar reflections-0.9.12.jar ujmp-complete-0.3.0.jar
 

@@ -86,7 +86,7 @@ public class MachineView extends JPanel implements AbstractEditor
 	public void fitAll()
 	{
 		mMachine2DView.fitAll();
-		mMachine3DView.fit_all();
+		mMachine3DView.fitAll();
 	}
 	
 	public void update()

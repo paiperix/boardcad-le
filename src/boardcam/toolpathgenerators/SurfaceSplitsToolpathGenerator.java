@@ -461,11 +461,16 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 			e.printStackTrace();
 		}
 
+		startWork();
+	}
+
+	private void startWork() {
 		SwingWorker<Void, Void> deckWorker = getDeckWorker();
 		deckWorker.execute();
 
-		SwingWorker<Void, Void> bottomWorker = getBottomWorker();
-		bottomWorker.execute();
+		// Run workers in series instead due to some issue where toolpath goes haywire probably do to both workers accessing same variables
+		//SwingWorker<Void, Void> bottomWorker = getBottomWorker();
+		//bottomWorker.execute();
 	}
 
 	protected SwingWorker<Void, Void> getDeckWorker() {
@@ -477,8 +482,6 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 
 					mDeckGenerator.initDeck();
 					mDeckGenerator.writeToolpath();
-
-					mProgress.close();
 				} catch (Exception e) {
 					System.out
 							.println("Exception in SwingWorker::doInBackground(): "
@@ -498,9 +501,19 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 
 				return null;
 			}
+			
+			
+			protected void done() {
+				onDeckDone();
+			}
 		};
 
 	}
+	
+	protected void onDeckDone() {
+		getBottomWorker().execute();		
+	}
+
 
 	protected SwingWorker<Void, Void> getBottomWorker() {
 		return new SwingWorker<Void, Void>() {
@@ -512,7 +525,6 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 					mBottomGenerator.initBottom();
 					mBottomGenerator.writeToolpath();
 
-					mProgress.close();
 				} catch (Exception e) {
 					System.out
 							.println("Exception in SwingWorker::doInBackground(): "
@@ -532,8 +544,17 @@ public class SurfaceSplitsToolpathGenerator extends AbstractToolpathGenerator
 
 				return null;
 			}
+			
+			protected void done() {
+				onBottomDone();
+			}
 		};
+		
 
+	}
+	
+	protected void onBottomDone() {
+		mProgress.close();		
 	}
 
 	protected void getSettings(MachineConfig config) {

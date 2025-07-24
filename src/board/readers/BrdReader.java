@@ -44,7 +44,7 @@ public class BrdReader {
 				retVal = loadEncryptedFile(brd, aFilename, "deltaXTail");
 			} else {
 				cFile.reset();
-	
+
 				retVal = loadFile(brd, cFile);
 				brd.setFilename(aFilename);
 			}
@@ -112,8 +112,7 @@ public class BrdReader {
 
 	}
 
-	static public int loadFile(BezierBoard brd, BufferedReader cFile)
-	{
+	static public int loadFile(BezierBoard brd, BufferedReader cFile) {
 		brd.reset();
 
 		try {
@@ -538,49 +537,28 @@ public class BrdReader {
 
 			String strLine = cFile.readLine();
 
-			int id = Integer.valueOf(strLine.substring(1, 3).trim());
+			if (strLine.startsWith("(p36")) {
+				BezierBoardCrossSection crossSection = brd.getCurrentCrossSection();
 
-			String val = strLine.substring(6, strLine.length()).trim();
+				int a = strLine.indexOf(' ', 0);
+				String position = strLine.substring(a, strLine.length());
 
-			switch (id) {
-			case 33: // Bottom
-			{
-				readArrayOfControlPointsAndGuidepoints(cFile, brd.getBottom(), brd.getBottomGuidePoints());
+				double pos = crossSection.getPosition();
+
+				BezierSpline spline = crossSection.getBezierSpline();
+				spline.clear();
+
+				ArrayList<Point2D.Double> guidePoints = crossSection.getGuidePoints();
+				guidePoints.clear();
+
+				readArrayOfControlPointsAndGuidepoints(cFile, spline, guidePoints);
+
+				crossSection.scale(brd.getThicknessAtPos(pos), brd.getWidthAtPos(pos));
+
+				brd.checkAndFixContinousy(false, true);
+
+				brd.setLocks();
 			}
-				break;
-			case 34: // Deck
-			{
-				readArrayOfControlPointsAndGuidepoints(cFile, brd.getDeck(), brd.getDeckGuidePoints());
-			}
-				break;
-			case 35: // Slices
-			{
-				strLine = cFile.readLine();
-
-				while (strLine.startsWith("(p36")) {
-					BezierBoardCrossSection crossSection = new BezierBoardCrossSection();
-
-					brd.getCrossSections().add(crossSection);
-
-					int a = strLine.indexOf(' ', 0);
-					String value = strLine.substring(a, strLine.length());
-
-					double pos = Double.valueOf(value).doubleValue();
-
-					crossSection.setPosition(pos);
-
-					readArrayOfControlPointsAndGuidepoints(cFile, crossSection.getBezierSpline(),
-							crossSection.getGuidePoints());
-
-					strLine = cFile.readLine();
-				}
-			}
-				break;
-			}
-
-			brd.checkAndFixContinousy(false, true);
-
-			brd.setLocks();
 		}
 
 		catch (Exception e) {
@@ -625,8 +603,7 @@ public class BrdReader {
 			String str = e.toString();
 			System.out.printf("exception occured during load %s", str);
 			/*
-			 * java 1.6
-			 * System.console().printf("exception occured during load %s", str);
+			 * java 1.6 System.console().printf("exception occured during load %s", str);
 			 */
 		}
 	}
@@ -667,6 +644,7 @@ public class BrdReader {
 
 	static void setErrorStr(String errorStr) {
 		mErrorStr = errorStr;
+		System.out.printf("BrdReader error: %s", mErrorStr);
 	}
 
 	static public String getErrorStr() {

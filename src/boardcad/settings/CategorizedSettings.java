@@ -112,6 +112,7 @@ public class CategorizedSettings {
 			listener.onCategoryAdded(category);
 		}
 	}
+	
 	public void onCategoryRemoved(String category)
 	{
 		for(CategorySettingsChangeListener listener : mChangeListeners)

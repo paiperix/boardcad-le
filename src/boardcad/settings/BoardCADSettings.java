@@ -1,13 +1,11 @@
 package boardcad.settings;
 
 import java.awt.Color;
-import java.awt.Frame;
 
 import java.util.LinkedHashMap;
 import java.util.Set;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -104,8 +102,6 @@ public class BoardCADSettings extends CategorizedSettings
 	public static Color3f convertColor(Color color)
 	{
 		float[] rgb = color.getRGBColorComponents(null);
-		System.out.println("convertColor: " + rgb[0] + " " + rgb[1] + " " + rgb[2]);
-		
 		return new Color3f(rgb[0], rgb[1], rgb[2]);
 	}
 

@@ -28,20 +28,16 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.*;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.prefs.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.SystemMenuBar;
-
 import org.jogamp.java3d.Appearance;
 
 import cadcore.*;
 import board.*;
 import boardcad.settings.*;
-import boardcad.gui.jdk.actions.BoardLoadAction;
 import boardcad.gui.jdk.actions.BoardSaveAsAction;
 import boardcad.gui.jdk.actions.DeleteControlPointAction;
 import boardcad.gui.jdk.actions.NextCrossSectionAction;
@@ -49,18 +45,8 @@ import boardcad.gui.jdk.actions.PreviousCrossSectionAction;
 import boardcad.gui.jdk.actions.ToggleDeckAndBottomAction;
 import boardcad.gui.jdk.plugin.*;
 import boardcad.FileTools;
-import boardcad.print.*;
 import boardcad.commands.*;
-import boardcad.export.DxfExport;
-import boardcad.export.GCodeDraw;
-import boardcad.export.StlExport;
 import boardcad.i18n.LanguageResource;
-import boardcam.cutters.AbstractCutter;
-import boardcam.MachineConfig;
-import boardcam.holdingsystems.SupportsBlankHoldingSystem;
-import boardcam.toolpathgenerators.*;
-import boardcam.toolpathgenerators.ext.SandwichCompensation;
-import boardcam.writers.GCodeWriter;
 import board.writers.*;
 
 public class BoardCAD implements Runnable, KeyEventDispatcher {

@@ -32,7 +32,7 @@ class BullnoseCutter extends AbstractCutter
 //
 //		return ret;
 
-		//Make a left pointing vector and get normalvector as seen from above
+		//Make a left pointing vector and get normal vector as seen from above
 		Vector2d leftVec2D = new Vector2d(0.0,1.0);
 		Vector2d normalFromAbove = new Vector2d(normal.x, normal.y);
 
