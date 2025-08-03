@@ -50,7 +50,7 @@ import boardcad.i18n.LanguageResource;
 import board.writers.*;
 
 public class BoardCAD implements Runnable, KeyEventDispatcher {
-	private static final String appname = "BoardCAD v3.2 Limited Edition - Beta";
+	private static final String appname = "BoardCAD v3.2.1 Limited Edition";
 	enum DeckOrBottom {
 		DECK, BOTTOM, BOTH
 	};

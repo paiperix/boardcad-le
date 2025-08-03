@@ -1,6 +1,4 @@
-1. From eclipse File menu, export-> runnable jar file. Use "package required libraries into generated JAR" option
-2. Sign jar with jarsigner -keystore newkey BoardCAD.jar boardcad pw:boardcad
-3. Open launch4j, open the launch4j.xml config and click the gear to generate a boardcad.exe file
-4. Click the boardcad installer.iss script, this should open it in inno setup compiler. Click compile.
-5. Rename the resulting file into something like boardcad_setup_windows.exe
-6. Create a new release on github and upload the setup file
+1. From eclipse File menu, export-> runnable jar file. Use "Copy required libraries..." option
+2. Run generate_release.bat
+
+Generating the release signs the jar and uses jpackage to make an installer. jpackage require wix toolkit. 
