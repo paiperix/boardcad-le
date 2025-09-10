@@ -1,0 +1,40 @@
+app-id: io.github.HavardNJ.BoardCADLE
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: io.github.HavardNJ.BoardCADLE
+modules:
+  - name: openjdk17
+    buildsystem: simple
+    build-commands:
+      - install -d /app/openjdk17
+      - tar -xzf openjdk-17.tar.gz --strip-components=1 -C /app/openjdk17
+    sources:
+      - type: file
+        path: openjdk-17.tar.gz
+  - name: boardcad-le
+    buildsystem: simple
+    build-commands:
+      - install -Dm644 BoardCAD.jar /app/BoardCAD.jar
+      - install -Dm755 run-boardcad.sh /app/bin/io.github.HavardNJ.BoardCADLE
+      - install -Dm644 io.github.HavardNJ.BoardCADLE.desktop /app/share/applications/io.github.HavardNJ.BoardCADLE.desktop
+      - install -Dm644 io.github.HavardNJ.BoardCADLE.png /app/share/icons/hicolor/128x128/apps/io.github.HavardNJ.BoardCADLE.png
+    sources:
+      - type: file
+        path: BoardCAD.jar
+      - type: file
+        path: run-boardcad.sh
+      - type: file
+        path: io.github.HavardNJ.BoardCADLE.desktop
+      - type: file
+        path: io.github.HavardNJ.BoardCADLE.png
+finish-args:
+  - --share=network
+  - --filesystem=host:ro
+  - --device=dri
+  - --socket=wayland
+  - --socket=x11
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.portal.Freedesktop
+  - --filesystem=xdg-data/icons
+  - --filesystem=xdg-data/themes

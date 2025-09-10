@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=BoardCAD
+Comment=Surfboard CAD/CAM software
+Exec=io.github.HavardNJ.BoardCADLE
+Icon=io.github.HavardNJ.BoardCADLE
+Terminal=false
+Type=Application
+Categories=Graphics;Engineering;
+StartupNotify=true
