@@ -30,11 +30,17 @@ modules:
         path: io.github.HavardNJ.BoardCADLE.png
 finish-args:
   - --share=network
-  - --filesystem=host:ro
   - --device=dri
   - --socket=wayland
   - --socket=x11
   - --talk-name=org.freedesktop.Notifications
   - --talk-name=org.freedesktop.portal.Freedesktop
+  - --talk-name=org.freedesktop.portal.FileChooser
+  - --filesystem=home 
   - --filesystem=xdg-data/icons
   - --filesystem=xdg-data/themes
+  - --filesystem=xdg-documents
+  - --filesystem=xdg-download
+  - --filesystem=xdg-pictures
+  - --filesystem=xdg-config
+  - --filesystem=xdg-cache
